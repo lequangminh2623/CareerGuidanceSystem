@@ -1,4 +1,4 @@
-package com.lqm.studentgradeapp;
+package com.lqm;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

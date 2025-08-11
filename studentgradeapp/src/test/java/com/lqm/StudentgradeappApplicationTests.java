@@ -1,4 +1,4 @@
-package com.lqm.studentgradeapp;
+package com.lq;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

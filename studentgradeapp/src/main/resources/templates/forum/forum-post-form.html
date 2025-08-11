@@ -1,0 +1,100 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Thêm/Cập nhật bài đăng điễn đàn</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <p th:replace="base :: header"></p>
+    <main class="flex-grow-1 container mt-5">
+        <h2 class="text-center text-primary mb-4"
+            th:text="${forumPost.id == null ? 'Thêm bài đăng mới' : 'Cập nhật bài đăng'}">
+        </h2>
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <span th:text="${errorMessage}"></span>
+        </div>
+        <form method="post"
+              th:action="@{/forums}"
+              th:object="${forumPost}"
+              class="row g-3 needs-validation"
+              enctype="multipart/form-data">
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tiêu đề:</label>
+                    <input type="text" class="form-control" th:field="*{title}"
+                           th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" />
+                    <div class="invalid-feedback" th:errors="*{title}"></div>
+
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Lớp học:</label>
+                    <select th:field="*{classroom.id}" id="classroomSelect" class="form-select" 
+                            th:classappend="${#fields.hasErrors('classroom')} ? 'is-invalid'" >
+                        <option value="">-- Chọn lớp học --</option>
+                        <option th:each="c : ${classrooms}" 
+                                th:value="${c.id}" 
+                                th:text="${c.name}">
+                        </option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{classroom}"></div>
+
+                </div>
+
+
+
+                <div class="col-md-6">
+                    <label class="form-label">Hình ảnh:</label>
+                    <input type="file" class="form-control" th:field="*{file}" accept="image/png, image/jpeg, image/jpg, image/gif"/>
+
+                    <a th:if="${forumPost.image != null}" th:href="${forumPost.image}" target="_blank">
+                        <img th:src="${forumPost.image}"
+                             class="mt-2"
+                             style="max-width: 200px;" />
+                    </a>
+
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Người đăng:</label>
+                    <select th:field="*{user.id}" id="userSelect" class="form-select"
+                            th:classappend="${#fields.hasErrors('user')} ? 'is-invalid'" >
+                        <option value="">-- Chọn người đăng --</option>
+                        <option th:each="u : ${users}" 
+                                th:value="${u.id}" 
+                                th:text="${u.id + ' - ' + u.lastName + ' ' + u.firstName}">
+                        </option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{user}"></div>
+
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Nội dung:</label>
+                    <textarea class="form-control" aria-label="With textarea" th:field="*{content}"
+                              th:classappend="${#fields.hasErrors('content')} ? 'is-invalid'" ></textarea>
+                    <div class="invalid-feedback" th:errors="*{content}"></div>
+                </div>
+
+
+
+            </div>
+
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{image}" />
+
+
+            <div>
+                <button type="submit" class="btn btn-success">
+                    <span th:if="${forumPost.id == null}">➕ Thêm bài đăng</span>
+                    <span th:unless="${forumPost.id == null}">💾 Cập nhật bài đăng</span>
+                </button>
+            </div>
+        </form>
+    </main>
+    <p th:replace="base :: footer"></p>
+    <script th:src="@{/js/forum.js}"></script>
+</body>
+</html>
+

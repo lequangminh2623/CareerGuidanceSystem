@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Phản hồi diễn đàn</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <p th:replace="base :: header"></p>
+
+    <main class="flex-grow-1 container mt-5">
+        <h2 class="mb-4">Danh sách phản hồi</h2>
+
+        <form th:action="@{/replies}" method="get" class="row g-3 align-items-center">
+            <div class="col-md-9">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <input type="text" name="kw" class="form-control" placeholder="Tìm kiếm..." th:value="${kw}"/>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="userSelect" class="form-select" name="user">
+                            <option value="">-- Chọn người phản hồi--</option>
+                            <option th:each="u : ${users}" 
+                                    th:value="${u.id}" 
+                                    th:text="${u.id + ' - ' + u.lastName + ' ' + u.firstName}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Lọc</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <a th:href="@{/replies/add}" class="btn btn-success">+ Thêm phản hồi</a>
+            </div>
+        </form>
+
+
+        <hr />
+
+        <div class="p-3 my-3 border rounded-3">
+            <table class="table table-hover ">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nội dung</th>
+                        <th>Hình ảnh</th>
+                        <th>Người phản hồi</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${replies}">
+                        <td th:text="${r.id}"></td>
+                        <td>
+                            <span th:text="${#strings.abbreviate(r.content, 50)}"
+                                  th:title="${r.content}"></span>
+                        </td>
+                        <td>
+                            <a th:href="${r.image}" target="_blank">
+                                <img th:src="${r.image}"
+                                     class="mt-2"
+                                     style="max-width: 150px;" />
+                            </a>
+                        </td>
+                        <td th:text="${r.user.id + ' - ' + r.user.firstName}"></td>
+                        <td>
+                            <a th:href="@{/replies/{replyId}(replyId=${r.id})}" class="btn btn-warning">✏️</a>
+                            <button class="btn btn-danger" th:onclick="'deleteReply(\''+@{/replies/}+'\','+${r.id}+')'">🗑️</button>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+        </div>
+        <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link"
+                       th:href="@{'/replies'(page=${currentPage - 1}, kw=${kw})}"
+                       th:classappend="${currentPage == 1} ? ' disabled'" 
+                       aria-label="Previous">
+                        <span aria-hidden="true"><</span>
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a class="page-link"
+                       th:href="@{'/replies'(page=${i}, kw=${kw})}"
+                       th:classappend="${i == currentPage} ? ' active'">
+                        <span th:text="${i}"></span>
+                    </a>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link"
+                       th:href="@{'/replies'(page=${currentPage + 1}, kw=${kw})}"
+                       th:classappend="${currentPage == totalPages} ? ' disabled'"
+                       aria-label="Next">
+                        <span aria-hidden="true">></span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+
+
+    </main>
+
+    <p th:replace="base :: footer"></p>
+    <script th:src="@{/js/forum.js}"></script>
+</body>
+</html>
+

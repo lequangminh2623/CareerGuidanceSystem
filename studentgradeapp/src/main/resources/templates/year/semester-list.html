@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Học kỳ</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <p th:replace="base :: header"></p>
+    <main class="flex-grow-1 container mt-5">
+        <h2 class="mb-4">Danh sách học kỳ</h2>
+
+        <form th:action="@{/years/{id}/semesters(id=${year.id})}" method="get" class="row g-3 align-items-center">
+            <div class="col-md-9">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-1">
+                        <a th:href="@{/years}" class="btn btn-outline-secondary"><i
+                                class="fa-solid fa-caret-left fa-xl"></i></a>
+                    </div>
+                    <div class="col-md-3">
+                        <h5 th:text="'Năm học' + ' ' + ${year.year}"></h5>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" name="kw" class="form-control" placeholder="Tìm kiếm..." th:value="${kw}"/>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Lọc</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <a th:href="@{/years/{id}/semesters/add(id=${year.id})}" class="btn btn-success">+ Thêm học kỳ</a>
+            </div>
+        </form>
+
+
+        <hr />
+
+        <div class="p-3 my-3 border rounded-3">
+            <table class="table table-hover ">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Học kỳ</th>
+                        <th>Hành động</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="s : ${semesters}">
+                        <td th:text="${s.id}"></td>
+                        <td th:text="${s.semesterType}"></td>
+                        <td>
+                            <a th:href="@{/years/{yearId}/semesters/{semesterId}(yearId=${year.id}, semesterId=${s.id})}" 
+                               class="btn btn-warning">✏️</a>
+                            <button class="btn btn-danger" th:onclick="'deleteSemester(\''+@{/years/{yearId}/semesters/(yearId=${year.id})}+'\','+${s.id}+')'">🗑️</button>
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+        </div>
+        <!--        <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item">
+                            <a class="page-link"
+                               th:href="@{'/semesters'(page=${currentPage - 1}, kw=${kw})}"
+                               th:classappend="${currentPage == 1} ? ' disabled'" 
+                               aria-label="Previous">
+                                <span aria-hidden="true"><</span>
+                            </a>
+                        </li>
+        
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(1, totalPages)}">
+                            <a class="page-link"
+                               th:href="@{'/semesters'(page=${i}, kw=${kw})}"
+                               th:classappend="${i == currentPage} ? ' active'">
+                                <span th:text="${i}"></span>
+                            </a>
+                        </li>
+        
+                        <li class="page-item">
+                            <a class="page-link"
+                               th:href="@{'/semesters'(page=${currentPage + 1}, kw=${kw})}"
+                               th:classappend="${currentPage == totalPages} ? ' disabled'"
+                               aria-label="Next">
+                                <span aria-hidden="true">></span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>-->
+
+
+
+    </main>
+
+    <p th:replace="base :: footer"></p>
+    <script th:src="@{/js/semester.js}"></script>
+</body>
+</html>
+

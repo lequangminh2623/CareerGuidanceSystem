@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Thống kê học kỳ</title>
+    <th:block th:replace="base :: bootstrap"></th:block>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <p th:replace="base :: header"></p>
+
+    <main class="flex-grow-1 container mt-5">
+        <form method="get" th:action="@{/}">
+            <div class="col-md-6">
+                <label class="form-label">Học kỳ:</label>
+                <select name="semesterId" id="semesterSelect" class="form-select">
+                    <option th:each="s : ${semesters}" 
+                            th:value="${s.id}" 
+                            th:text="${s.academicYear.year + ' - ' + s.semesterType}"
+                            th:selected="${s.id == semesterId}">
+                    </option>
+                </select>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">Xem thống kê</button>
+            </div>
+        </form>
+        
+        <h2>Biểu đồ thống kê tỷ lệ sinh viên yếu theo môn học</h2>
+        <canvas id="weakCourseChart" width="600" height="300"></canvas>
+
+        <h3 class="mt-5">Danh sách môn học có tỷ lệ yếu cao (&ge;40%)</h3>
+        <ul>
+            <li th:each="course : ${result.criticalCourses}" th:text="${course}"></li>
+        </ul>
+
+        <h3 class="mt-5">Danh sách sinh viên yếu</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Mã SV</th>
+                    <th>Họ tên</th>
+                    <th>Môn học</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="s : ${result.weakStudentList}">
+                    <td th:text="${s.studentCode}"></td>
+                    <td th:text="${s.fullName}"></td>
+                    <td th:text="${s.courseName}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <!-- Script hiển thị biểu đồ -->
+    <script th:inline="javascript">
+        const courseWeakRatios = [[${result.courseWeakRatios}]];
+        const labels = Object.keys(courseWeakRatios);
+        const data = Object.values(courseWeakRatios);
+        new Chart(document.getElementById('weakCourseChart'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                        label: '% Sinh viên yếu',
+                        data: data,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+
+    <p th:replace="base :: footer"></p>
+</body>
+</html>

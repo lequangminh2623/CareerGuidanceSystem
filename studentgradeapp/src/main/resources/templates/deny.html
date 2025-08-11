@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title>Truy cập bị từ chối</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                color: #333;
+                text-align: center;
+            }
+
+            .container {
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+                padding: 40px;
+                width: 90%;
+                max-width: 450px;
+                margin: 0 20px 0 20px;
+            }
+
+            h1 {
+                font-size: 50px;
+                margin: 0;
+                color: #d9534f;
+            }
+
+            p {
+                font-size: 20px;
+                margin: 20px 0;
+                line-height: 1.5;
+            }
+
+            .button {
+                background-color: #3d5a80;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px 20px;
+                font-size: 18px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: background-color 0.3s ease;
+            }
+
+            .button:hover {
+                background-color: #31b0d5;
+            }
+
+            .error-icon {
+                font-size: 100px;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="error-icon">🔒</div>
+            <h1>Truy cập bị từ chối</h1>
+            <p>Bạn không có quyền truy cập trang này.</p>
+            <a th:href="@{/login}" class="button">Trở về</a>
+        </div>
+    </body>
+
+</html>
