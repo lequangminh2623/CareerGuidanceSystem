@@ -122,7 +122,12 @@ public class ApiUserController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<User> pages = userService.getUsers(kw, role, pageable);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("kw", kw);
+        params.put("role", role);
+
+        Page<User> pages = userService.getUsers(params, pageable);
         return ResponseEntity.ok(pages);
     }
 }

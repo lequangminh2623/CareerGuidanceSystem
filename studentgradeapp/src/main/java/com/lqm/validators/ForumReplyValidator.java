@@ -22,7 +22,7 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class ForumReplyValidator implements Validator {
+public class ForumReplyValidator implements Validator, SupportsClass {
 
     @Autowired
     private ClassroomService classroomService;
@@ -34,7 +34,12 @@ public class ForumReplyValidator implements Validator {
     private ForumReplyService forumReplyService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return ForumReply.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return ForumReply.class.isAssignableFrom(clazz);
     }
 

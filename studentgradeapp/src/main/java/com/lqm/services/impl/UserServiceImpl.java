@@ -2,13 +2,17 @@ package com.lqm.services.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.lqm.models.ForumPost;
 import com.lqm.models.User;
 import com.lqm.repositories.UserRepository;
 import com.lqm.services.UserService;
+import com.lqm.specifications.CourseSpecification;
+import com.lqm.specifications.ForumPostSpecification;
 import com.lqm.specifications.UserSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -57,10 +62,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<User> getUsers(String kw, String role, Pageable pageable) {
+    public Page<User> getUsers(Map<String, String> params, Pageable pageable) {
         return userRepo.findAll(
-                UserSpecification.hasKeyword(kw)
-                        .and(UserSpecification.hasRole(role)),
+                UserSpecification.filterByParams(params),
                 pageable
         );
     }

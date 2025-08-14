@@ -31,17 +31,19 @@ public class Course implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     @ToString.Include
-    @Setter(AccessLevel.NONE)
-    @Column(name = "id", nullable = false)
+    @EqualsAndHashCode.Include
+    @Basic(optional = false)
+    @Column(name = "id")
     private Integer id;
 
+    @Basic(optional = false)
     @NotNull
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     @ToString.Include
     private String name;
 
+    @Basic(optional = false)
     @NotNull
     @Min(value = 0, message = "{course.credit.invalid}")
     @Max(value = 7, message = "{course.credit.invalid}")

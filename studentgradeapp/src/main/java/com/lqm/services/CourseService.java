@@ -17,10 +17,6 @@ public interface CourseService {
 
     void deleteCourseById(int id);
 
-    long countCourses(Map<String, String> params);
-
     boolean existCourseByName(String name, Integer excludeId);
-
-    List<Course> getAllCourses();
 
 }

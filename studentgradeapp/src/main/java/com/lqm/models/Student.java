@@ -31,6 +31,8 @@ public class Student implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
 
     @Basic(optional = false)

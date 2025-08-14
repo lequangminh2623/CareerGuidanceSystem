@@ -10,10 +10,13 @@ import java.util.Map;
 
 public class ClassroomSpecification {
 
-    // Dành cho các bộ lọc cơ bản theo params (search, semester, course, lecturer)
     public static Specification<Classroom> filterByParams(Map<String, String> params) {
         return (root, query, cb) -> {
             var predicate = cb.conjunction();
+
+            if (params == null || params.isEmpty()) {
+                return predicate;
+            }
 
             String name = params.get("name");
             if (name != null && !name.isBlank()) {
@@ -52,23 +55,21 @@ public class ClassroomSpecification {
         };
     }
 
-    // Mở rộng thêm điều kiện theo User (lecturer hoặc student)
     public static Specification<Classroom> filterByParamsAndUser(User user, Map<String, String> params) {
         return (root, query, cb) -> {
             var predicate = filterByParams(params).toPredicate(root, query, cb);
 
             if (user != null && user.getRole() != null) {
-                switch (user.getRole()) {
-                    case "ROLE_LECTURER":
-                        predicate = cb.and(predicate,
-                                cb.equal(root.get("lecturer").get("id"), user.getId()));
-                        break;
-                    case "ROLE_STUDENT":
+                predicate = switch (user.getRole()) {
+                    case "ROLE_LECTURER" -> cb.and(predicate,
+                            cb.equal(root.get("lecturer").get("id"), user.getId()));
+                    case "ROLE_STUDENT" -> {
                         Join<Object, Object> studentJoin = root.join("studentSet", JoinType.INNER);
-                        predicate = cb.and(predicate,
+                        yield cb.and(predicate,
                                 cb.equal(studentJoin.get("id"), user.getId()));
-                        break;
-                }
+                    }
+                    default -> predicate;
+                };
             }
 
             return predicate;

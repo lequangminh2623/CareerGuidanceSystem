@@ -48,23 +48,22 @@ public class CourseController {
 
     @GetMapping("/courses")
     public String listCourses(Model model, @RequestParam Map<String, String> params) {
-        int pageNumber = 0; // mặc định trang đầu tiên (0-based)
+        int pageNumber = 1;
 
-        // Lấy số trang từ params (người dùng nhập 1-based)
         String pageParam = params.get("page");
         if (pageParam != null && !pageParam.isEmpty()) {
             try {
-                pageNumber = Integer.parseInt(pageParam) - 1;
-                if (pageNumber < 0) pageNumber = 0;
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
             } catch (NumberFormatException ignored) {}
         }
 
-        Pageable pageable = PageRequest.of(pageNumber, PageSize.COURSE_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(pageNumber - 1, PageSize.COURSE_PAGE_SIZE);
 
         Page<Course> coursePage = courseService.getCourses(params, pageable);
 
         model.addAttribute("courses", coursePage.getContent());
-        model.addAttribute("currentPage", pageNumber + 1);
+        model.addAttribute("currentPage", pageNumber);
         model.addAttribute("totalPages", coursePage.getTotalPages());
         model.addAttribute("kw", params.get("kw"));
 

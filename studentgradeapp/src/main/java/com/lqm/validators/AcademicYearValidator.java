@@ -2,6 +2,7 @@ package com.lqm.validators;
 
 import com.lqm.models.AcademicYear;
 import com.lqm.services.AcademicYearService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -16,18 +17,23 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class AcademicYearValidator implements Validator {
+public class AcademicYearValidator implements Validator, SupportsClass {
 
     @Autowired
     private AcademicYearService academicYearService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return AcademicYear.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return AcademicYear.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         AcademicYear year = (AcademicYear) target;
 
         if (year.getYear() == null || year.getYear().trim().isEmpty()) {

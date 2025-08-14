@@ -75,7 +75,8 @@
                         <td th:text="${f.classroom.name}"></td>
                         <td>
                             <a th:href="@{'/forums/' + ${f.id}}" class="btn btn-warning">✏️</a>
-                            <button class="btn btn-danger" th:onclick="'deleteForumPost(\''+@{/forums/}+'\','+${f.id}+')'">🗑️</button>
+<!--                            <button class="btn btn-danger" th:onclick="'deleteForumPost(\''+@{/forums/}+'\','+${f.id}+')'">🗑️</button>-->
+                            <button class="btn btn-danger" th:onclick="|deleteForumPost('@{/forums/}', ${f.id})|">🗑️</button>
                         </td>
                         <td><a th:href="@{'/forums/' + ${f.id} + '/replies'}" class="btn btn-info">Xem phản hồi <i class="fa-solid fa-chevron-right"></i></a></td>
                     </tr>

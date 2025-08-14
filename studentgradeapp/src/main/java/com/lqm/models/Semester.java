@@ -29,6 +29,8 @@ public class Semester implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
 
     @Basic(optional = false)

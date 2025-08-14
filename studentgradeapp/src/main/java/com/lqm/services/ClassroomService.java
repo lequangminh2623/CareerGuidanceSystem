@@ -31,19 +31,15 @@ public interface ClassroomService {
 
     Classroom getClassroomWithStudents(Integer id);
 
-    int countClassroom(Map<String, String> params);
-
-    void removeStudentFromClassroom(int classroomId, int studentId);
+    void removeStudentFromClassroom(Integer classroomId, Integer studentId);
 
     boolean existsDuplicateClassroom(String name, Integer semesterId, Integer courseId, Integer excludeId);
 
-    boolean existsStudentInOtherClassroom(int studentId, int semesterId, int courseId, Integer excludeClassroomId);
+    boolean existsStudentInOtherClassroom(Integer studentId, Integer semesterId, Integer courseId, Integer excludeClassroomId);
 
-    boolean existUserInClassroom(int userId, int classRoomId);
+    boolean existUserInClassroom(Integer userId, Integer classRoomId);
 
     Page<Classroom> getClassroomsByUser(User user, Map<String, String> params, Pageable pageable);
-
-    int countClassroomsByUser(User user, Map<String, String> params);
 
     Classroom getClassroomByForumPostId(int id);
 

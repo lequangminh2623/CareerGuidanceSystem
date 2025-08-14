@@ -2,6 +2,8 @@ package com.lqm.models;
 
 import com.lqm.utils.CollectionUpdater;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.util.LinkedHashSet;
@@ -12,21 +14,27 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class AcademicYear {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
 
+    @Basic(optional = false)
+    @NotNull
+    @Pattern(regexp = "^[0-9]{4}-[0-9]{4}$", message = "Năm học phải có định dạng yyyy-yyyy")
+    @Column(name = "year")
     private String year;
 
     @Setter(AccessLevel.NONE)
     @OneToMany(mappedBy = "academicYear", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Semester> semesterSet = new LinkedHashSet<>();
-
-    public AcademicYear(String year) {
-        this.year = year;
-    }
 
     // Thêm 1 semester vào AcademicYear
     public void addSemester(Semester semester) {

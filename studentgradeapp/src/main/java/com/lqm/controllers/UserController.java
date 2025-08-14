@@ -3,6 +3,7 @@ package com.lqm.controllers;
 import com.lqm.models.Student;
 import com.lqm.models.User;
 import com.lqm.services.UserService;
+import com.lqm.utils.PageSize;
 import com.lqm.validators.WebAppValidator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.Map;
 
 @Controller
 public class UserController {
@@ -51,21 +54,27 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public String listUsers(
-            Model model,
-            @RequestParam(required = false) String kw,
-            @RequestParam(required = false) String role,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("lastName").ascending());
-        Page<User> userPage = userService.getUsers(kw, role, pageable);
+    public String listUsers(Model model, @RequestParam Map<String, String> params) {
+        int pageNumber = 1;
+
+        String pageParam = params.get("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber - 1, PageSize.USER_PAGE_SIZE, Sort.by("lastName").ascending());
+
+        Page<User> userPage = userService.getUsers(params, pageable);
 
         model.addAttribute("users", userPage.getContent());
-        model.addAttribute("currentPage", userPage.getNumber() + 1);
+        model.addAttribute("currentPage", pageNumber);
         model.addAttribute("totalPages", userPage.getTotalPages());
-        model.addAttribute("kw", kw);
-        model.addAttribute("role", role);
+        model.addAttribute("kw", params.get("kw"));
+        model.addAttribute("role", params.get("role"));
+
         return "/user/user-list";
     }
 

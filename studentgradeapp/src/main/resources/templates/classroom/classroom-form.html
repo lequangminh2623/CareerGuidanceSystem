@@ -81,7 +81,7 @@
                     <span class="form-check form-switch">
                         <input style="transform: scale(1.5); transform-origin: left center;" class="form-check-input"
                                type="checkbox" id="gradeStatusSwitch" th:checked="${classroom.gradeStatus == 'LOCKED'}" />
-                        <input type="hidden" th:field=*{gradeStatus} id="gradeStatusHidden"/>
+                        <input type="hidden" th:field="*{gradeStatus}" id="gradeStatusHidden"/>
                     </span>
                 </div>
             </div>

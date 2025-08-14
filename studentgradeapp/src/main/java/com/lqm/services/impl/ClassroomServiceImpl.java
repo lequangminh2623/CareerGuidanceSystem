@@ -61,6 +61,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     @Override
     public Classroom saveClassroom(Classroom classroom) {
+
         return classroomRepo.save(classroom);
     }
 
@@ -85,13 +86,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public int countClassroom(Map<String, String> params) {
-        Specification<Classroom> spec = ClassroomSpecification.filterByParams(params);
-        return (int) classroomRepo.count(spec);
-    }
-
-    @Override
-    public void removeStudentFromClassroom(int classroomId, int studentId) {
+    public void removeStudentFromClassroom(Integer classroomId, Integer studentId) {
         Classroom cls = getClassroomWithStudents(classroomId);
         Set<Student> students = cls.getStudentSet();
         students.removeIf(s -> s.getId() == studentId);
@@ -107,7 +102,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public boolean existsStudentInOtherClassroom(int studentId, int semesterId, int courseId, Integer excludeClassroomId) {
+    public boolean existsStudentInOtherClassroom(Integer studentId, Integer semesterId, Integer courseId, Integer excludeClassroomId) {
         if (excludeClassroomId == null) {
             return classroomRepo.existsByStudentSet_IdAndSemester_IdAndCourse_Id(studentId, semesterId, courseId);
         }
@@ -116,7 +111,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public boolean existUserInClassroom(int userId, int classRoomId) {
+    public boolean existUserInClassroom(Integer userId, Integer classRoomId) {
         return classroomRepo.existsByStudentSet_User_IdAndId(userId, classRoomId);
     }
 
@@ -124,21 +119,6 @@ public class ClassroomServiceImpl implements ClassroomService {
     public Page<Classroom> getClassroomsByUser(User user, Map<String, String> params, Pageable pageable) {
         Specification<Classroom> spec = ClassroomSpecification.filterByParamsAndUser(user, params);
         return classroomRepo.findAll(spec, pageable);
-    }
-
-
-    @Override
-    public int countClassroomsByUser(User user, Map<String, String> params) {
-        params.put("lecturerId", user.getRole().equals("ROLE_LECTURER") ? user.getId().toString() : null);
-        Specification<Classroom> spec = ClassroomSpecification.filterByParams(params)
-                .and((root, query, cb) -> {
-                    if ("ROLE_STUDENT".equals(user.getRole())) {
-                        return cb.isMember(user, root.get("studentSet"));
-                    } else {
-                        return cb.equal(root.get("lecturer"), user);
-                    }
-                });
-        return (int) classroomRepo.count(spec);
     }
 
     @Override

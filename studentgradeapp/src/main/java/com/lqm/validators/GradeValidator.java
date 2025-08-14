@@ -7,6 +7,7 @@ package com.lqm.validators;
 import com.lqm.models.ExtraGrade;
 import com.lqm.models.GradeDetail;
 import com.lqm.services.GradeDetailService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -17,18 +18,23 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class GradeValidator implements Validator {
+public class GradeValidator implements Validator, SupportsClass {
 
     @Autowired
     private GradeDetailService gradeDetailService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return GradeDetail.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return GradeDetail.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         GradeDetail detail = (GradeDetail) target;
 
         if (detail.getStudent() == null || detail.getStudent().getId() == null) {

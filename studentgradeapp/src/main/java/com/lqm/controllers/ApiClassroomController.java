@@ -164,7 +164,6 @@ public class ApiClassroomController {
         ));
     }
 
-
     @GetMapping("/{classroomId}/forums")
     public ResponseEntity<?> getForumPosts(
             @PathVariable int classroomId,
@@ -180,16 +179,16 @@ public class ApiClassroomController {
         params.put("classroom", String.valueOf(classroomId));
 
         // Xử lý phân trang
-        int page = 0;
+        int page = 1;
         String pageParam = params.get("page");
         if (pageParam != null && !pageParam.isEmpty()) {
             try {
-                page = Integer.parseInt(pageParam) - 1;
-                if (page < 0) page = 0;
+                page = Integer.parseInt(pageParam);
+                if (page < 1) page = 1;
             } catch (NumberFormatException ignored) {}
         }
 
-        Pageable pageable = PageRequest.of(page, PageSize.FORUM_POST_PAGE_SIZE);
+        Pageable pageable = PageRequest.of(page - 1, PageSize.FORUM_POST_PAGE_SIZE);
 
         Page<ForumPost> postPage = forumPostService.getForumPosts(params, pageable);
 
@@ -200,7 +199,6 @@ public class ApiClassroomController {
                 )
         );
     }
-
 
     @PostMapping("/{classroomId}/forums")
     public ResponseEntity<?> addForumPost(@PathVariable int classroomId,

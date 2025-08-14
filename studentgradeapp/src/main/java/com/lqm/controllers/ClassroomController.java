@@ -21,7 +21,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,27 +71,39 @@ public class ClassroomController {
     @ModelAttribute
     public void commonAttributes(Model model) {
         model.addAttribute("students", studentService.getStudents(null, null, Pageable.unpaged()).getContent());
-        model.addAttribute("courses", courseService.getAllCourses());
+        model.addAttribute("courses", courseService.getCourses(null, Pageable.unpaged()).getContent());
         model.addAttribute("semesters", semesterService.getSemesters(null));
-        List<User> lecturers = userService.getUsers(null, "ROLE_LECTURER", Pageable.unpaged()).getContent();
+        List<User> lecturers = userService.getUsers(Map.of("role", "ROLE_LECTURER"), Pageable.unpaged()).getContent();
         model.addAttribute("lecturers", lecturers);
     }
 
     @GetMapping("")
-    public String listClassrooms(
-            Model model,
-            @RequestParam Map<String, String> params,
-            @PageableDefault(size = PageSize.CLASSROOM_PAGE_SIZE) Pageable pageable) {
+    public String listClassrooms(Model model, @RequestParam Map<String, String> params) {
+        int pageNumber = 1;
 
-        Page<Classroom> page = classroomService.getClassrooms(params, pageable);
+        // Lấy page từ params và validate
+        String pageParam = params.get("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
+            } catch (NumberFormatException ignored) {}
+        }
 
-        model.addAttribute("classrooms", page.getContent());
-        model.addAttribute("currentPage", page.getNumber() + 1);
-        model.addAttribute("totalPages", page.getTotalPages());
-        model.addAttribute("kw", params.get("kw"));
+        Pageable pageable = PageRequest.of(
+                pageNumber - 1,
+                PageSize.CLASSROOM_PAGE_SIZE
+        );
+
+        Page<Classroom> classroomPage = classroomService.getClassrooms(params, pageable);
+
+        model.addAttribute("classrooms", classroomPage.getContent());
+        model.addAttribute("currentPage", pageNumber);
+        model.addAttribute("totalPages", classroomPage.getTotalPages());
 
         return "/classroom/classroom-list";
     }
+
 
     @GetMapping("/add")
     public String addClassroom(Model model) {
@@ -102,9 +116,14 @@ public class ClassroomController {
         List<GradeDTO> gradeDTOList = new ArrayList<>();
 
         for (Student s : classroom.getStudentSet()) {
-            Map<String, Integer> ref = Map.of("classroomId", classroom.getId(), "studentId", s.getId());
+            Map<String, Integer> ref = Map.of(
+                    "classroomId", classroom.getId(),
+                    "studentId", s.getId()
+            );
+
             List<GradeDetail> gradeDetails = gradeDetailService.getGradeDetail(ref);
-            GradeDetail gd = !gradeDetails.isEmpty() ? gradeDetails.get(0) : new GradeDetail();
+            GradeDetail gd = !gradeDetails.isEmpty() ? gradeDetails.getFirst() : new GradeDetail();
+
             if (gd.getExtraGradeSet() == null) {
                 gd.setExtraGradeSet(new HashSet<>());
             }
@@ -115,10 +134,13 @@ public class ClassroomController {
             dto.setFullName(s.getUser().getLastName() + " " + s.getUser().getFirstName());
             dto.setMidtermGrade(gd.getMidtermGrade());
             dto.setFinalGrade(gd.getFinalGrade());
-            dto.setExtraGrades(gd.getExtraGradeSet().stream()
-                    .sorted(Comparator.comparingInt(ExtraGrade::getGradeIndex))
-                    .map(ExtraGrade::getGrade)
-                    .collect(Collectors.toList()));
+            dto.setExtraGrades(
+                    gd.getExtraGradeSet().stream()
+                            .sorted(Comparator.comparingInt(ExtraGrade::getGradeIndex))
+                            .map(ExtraGrade::getGrade)
+                            .collect(Collectors.toList())
+            );
+
             gradeDTOList.add(dto);
         }
 
@@ -126,11 +148,14 @@ public class ClassroomController {
         transcript.setClassroomName(classroom.getCourse().getName() + " - " + classroom.getName());
         transcript.setCourseName(classroom.getCourse().getName());
         transcript.setAcademicTerm(classroom.getSemester().getSemesterType());
-        transcript.setLecturerName(classroom.getLecturer().getLastName() + " " + classroom.getLecturer().getFirstName());
+        transcript.setLecturerName(
+                classroom.getLecturer().getLastName() + " " + classroom.getLecturer().getFirstName()
+        );
         transcript.setGrades(gradeDTOList);
 
         return transcript;
     }
+
 
     @GetMapping("/{id}")
     public String updateClassroom(@PathVariable("id") Integer id, Model model) {
@@ -221,7 +246,7 @@ public class ClassroomController {
         ref.put("studentId", studentId);
         List<GradeDetail> gradeDetails = this.gradeDetailService.getGradeDetail(ref);
         if (gradeDetails != null) {
-            Integer gradeDetailId = gradeDetails.get(0).getId();
+            Integer gradeDetailId = gradeDetails.getFirst().getId();
             classroomService.removeStudentFromClassroom(classId, studentId);
             this.gradeDetailService.deleteGradeDetail(gradeDetailId);
         }

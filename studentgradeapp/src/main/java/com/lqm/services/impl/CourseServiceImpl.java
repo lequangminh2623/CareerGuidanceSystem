@@ -20,7 +20,6 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Page<Course> getCourses(Map<String, String> params, Pageable pageable) {
-        // dùng Specification để lọc theo params, tự paginate + sort
         return courseRepository.findAll(
                 CourseSpecification.filterByParams(params),
                 pageable
@@ -44,23 +43,10 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public long countCourses(Map<String, String> params) {
-        // JpaSpecificationExecutor cung cấp count(Specification)
-        return courseRepository.count(
-                CourseSpecification.filterByParams(params)
-        );
-    }
-
-    @Override
     public boolean existCourseByName(String name, Integer excludeId) {
         // nếu excludeId null, truyền -1 để không loại trừ
         Integer exId = (excludeId != null ? excludeId : -1);
         return courseRepository.existsByNameAndIdNot(name, exId);
-    }
-
-    @Override
-    public List<Course> getAllCourses() {
-        return courseRepository.findAll();
     }
 
 }

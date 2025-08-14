@@ -2,6 +2,7 @@ package com.lqm.validators;
 
 import com.lqm.models.Course;
 import com.lqm.services.CourseService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -16,18 +17,23 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class CourseValidator implements Validator {
+public class CourseValidator implements Validator, SupportsClass {
 
     @Autowired
     private CourseService courseService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return Course.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return Course.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         Course course = (Course) target;
 
         if (course.getName() == null || course.getName().trim().isEmpty()) {

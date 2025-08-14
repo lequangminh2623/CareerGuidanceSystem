@@ -7,6 +7,8 @@ import com.lqm.repositories.ForumReplyRepository;
 import com.lqm.services.ForumReplyService;
 import java.io.IOException;
 import java.util.Date;
+
+import com.lqm.specifications.ReplySpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,9 +39,11 @@ public class ForumReplyServiceImpl implements ForumReplyService {
     }
 
     @Override
-    public Page<ForumReply> getAllReplies(String keyword, Integer userId, Pageable pageable) {
-        String kw = (keyword == null || keyword.isBlank()) ? null : keyword;
-        return replyRepo.findAllReplies(kw, userId, pageable);
+    public Page<ForumReply> getAllReplies(Map<String, String> params, Pageable pageable) {
+        return replyRepo.findAll(
+                ReplySpecification.filterByParams(params),
+                pageable
+        );
     }
 
     @Override

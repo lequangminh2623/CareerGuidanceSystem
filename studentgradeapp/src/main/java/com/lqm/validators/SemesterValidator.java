@@ -3,6 +3,8 @@ package com.lqm.validators;
 import com.lqm.models.Semester;
 import com.lqm.services.SemesterService;
 import java.util.Arrays;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -14,21 +16,26 @@ import org.springframework.validation.Validator;
  */
 /**
  *
- * @author leoma
+ * @author Le Quang Minh
  */
 @Component
-public class SemesterValidator implements Validator {
+public class SemesterValidator implements Validator, SupportsClass {
 
     @Autowired
     private SemesterService semesterService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return Semester.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return Semester.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         Semester semester = (Semester) target;
 
         String[] types = {"FIRST_TERM", "SECOND_TERM", "THIRD_TERM"};

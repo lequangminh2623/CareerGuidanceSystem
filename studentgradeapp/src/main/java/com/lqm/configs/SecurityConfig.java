@@ -4,8 +4,6 @@
  */
 package com.lqm.configs;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.lqm.filters.JwtFilter;
 import com.lqm.validators.AcademicYearValidator;
 import com.lqm.validators.ClassroomValidator;
@@ -19,12 +17,11 @@ import com.lqm.validators.GradeValidator;
 import com.lqm.validators.UserDTOValidator;
 import com.lqm.validators.UserValidator;
 import com.lqm.validators.WebAppValidator;
-import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,8 +30,8 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
@@ -46,7 +43,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
  *
@@ -62,47 +58,27 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
         "com.lqm.validators",
         "com.lqm.utils"
 })
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private ClassroomValidator classroomValidator;
-
-    @Autowired
-    private UserValidator userValidator;
-
-    @Autowired
-    private GradeValidator gradeValidator;
-
-    @Autowired
-    private CourseValidator courseValidator;
-
-    @Autowired
-    private AcademicYearValidator academicYearValidator;
-
-    @Autowired
-    private SemesterValidator semesterValidator;
-
-    @Autowired
-    private ForumPostValidator forumPostValidator;
-
-    @Autowired
-    private ForumReplyValidator forumReplyValidator;
-
-    @Autowired
-    private UserDTOValidator userDTOValidator;
-
-    @Autowired
-    private ForumPostDTOValidator forumPostDTOValidator;
-
-    @Autowired
-    private ForumReplyDTOValidator forumReplyDTOValidator;
+    private final ClassroomValidator classroomValidator;
+    private final UserValidator userValidator;
+    private final GradeValidator gradeValidator;
+    private final CourseValidator courseValidator;
+    private final AcademicYearValidator academicYearValidator;
+    private final SemesterValidator semesterValidator;
+    private final ForumPostValidator forumPostValidator;
+    private final ForumReplyValidator forumReplyValidator;
+    private final UserDTOValidator userDTOValidator;
+    private final ForumPostDTOValidator forumPostDTOValidator;
+    private final ForumReplyDTOValidator forumReplyDTOValidator;
 
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurity(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/api/**")
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -131,7 +107,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain webSecurity(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(c -> c.disable()).authorizeHttpRequests(auth -> auth
+                .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/access-deny").permitAll()
                         .requestMatchers("/", "/home", "/users", "/users/**", "/classrooms", "/classrooms/**",
                                 "/courses", "/courses/**", "/years", "/years/**",
@@ -146,11 +122,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-//    @Bean
-//    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-//        return new HandlerMappingIntrospector();
-//    }
 
     @Bean
     @Order(0)
@@ -176,7 +147,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public WebAppValidator webAppValidator() {
+    public WebAppValidator webAppValidator(
+            jakarta.validation.Validator beanValidator,
+            ClassroomValidator classroomValidator,
+            UserValidator userValidator,
+            CourseValidator courseValidator,
+            AcademicYearValidator academicYearValidator,
+            SemesterValidator semesterValidator,
+            ForumPostValidator forumPostValidator,
+            ForumReplyValidator forumReplyValidator,
+            GradeValidator gradeValidator,
+            UserDTOValidator userDTOValidator,
+            ForumPostDTOValidator forumPostDTOValidator,
+            ForumReplyDTOValidator forumReplyDTOValidator
+    ) {
         Set<Validator> springValidators = new HashSet<>();
         springValidators.add(classroomValidator);
         springValidators.add(userValidator);
@@ -189,10 +173,10 @@ public class SecurityConfig {
         springValidators.add(userDTOValidator);
         springValidators.add(forumPostDTOValidator);
         springValidators.add(forumReplyDTOValidator);
-        WebAppValidator validator = new WebAppValidator();
-        validator.setSpringValidators(springValidators);
-        return validator;
+
+        return new WebAppValidator(beanValidator, springValidators);
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

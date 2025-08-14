@@ -8,9 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -20,6 +18,8 @@ import java.util.Set;
 
 @Setter
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "user")
 @NamedQueries({
@@ -43,6 +43,8 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
 
     @Basic(optional = false)

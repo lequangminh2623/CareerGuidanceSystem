@@ -147,7 +147,7 @@ public class AcademicYearController {
         }
         semester.setAcademicYear(year);
         semesterService.saveSemester(semester);
-        return "redirect:/years/{yearId}/semesters";
+        return "redirect:/years/" + yearId + "/semesters";
     }
 
     @GetMapping("/years/{yearId}/semesters/{semesterId}")

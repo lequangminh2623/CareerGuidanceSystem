@@ -6,6 +6,7 @@ import com.lqm.repositories.UserRepository;
 import com.lqm.services.ForumReplyService;
 import com.lqm.services.ForumPostService;
 import com.lqm.services.UserService;
+import com.lqm.utils.PageSize;
 import com.lqm.validators.WebAppValidator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,11 +31,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class ForumReplyController {
-
-    private static final int PAGE_SIZE = 10; // hoặc PageSize.FORUM_REPLY_PAGE_SIZE.getSize()
 
     @Autowired
     private ForumReplyService forumReplyService;
@@ -61,23 +62,34 @@ public class ForumReplyController {
     }
 
     @GetMapping("/replies")
-    public String listReplies(
-            Model model,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "kw", required = false) String kw
-    ) {
-        Pageable pageable = PageRequest.of(page - 1, PAGE_SIZE);
-        Page<ForumReply> replyPage = forumReplyService.getAllReplies(
-                kw, null, pageable
+    public String listReplies(Model model, @RequestParam Map<String, String> params) {
+        int pageNumber = 1;
+
+        // Lấy page từ params và validate
+        String pageParam = params.get("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Pageable pageable = PageRequest.of(
+                pageNumber - 1,
+                PageSize.FORUM_REPLY_PAGE_SIZE,
+                Sort.by("id").descending() // mới nhất trước
         );
 
+        Page<ForumReply> replyPage = forumReplyService.getAllReplies(params, pageable);
+
         model.addAttribute("replies", replyPage.getContent());
-        model.addAttribute("currentPage", page);
+        model.addAttribute("currentPage", pageNumber);
         model.addAttribute("totalPages", replyPage.getTotalPages());
-        model.addAttribute("kw", kw);
+        model.addAttribute("kw", params.get("kw"));
 
         return "/forum/reply-list";
     }
+
 
     @GetMapping("/replies/add")
     public String showAddForm(Model model) {

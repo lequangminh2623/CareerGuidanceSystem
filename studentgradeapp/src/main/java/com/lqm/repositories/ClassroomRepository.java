@@ -22,18 +22,18 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Integer>, 
     boolean existsByNameAndSemesterIdAndCourseIdAndIdNot(String name, Integer semesterId, Integer courseId, Integer excludeId);
 
     // Kiểm tra sinh viên đã có mặt trong lớp khác của học kỳ và khóa học
-    boolean existsByStudentSet_IdAndSemester_IdAndCourse_Id(int studentId, int semesterId, int courseId);
+    boolean existsByStudentSet_IdAndSemester_IdAndCourse_Id(Integer studentId, Integer semesterId, Integer courseId);
 
-    boolean existsByStudentSet_IdAndSemester_IdAndCourse_IdAndIdNot(int studentId, int semesterId, int courseId, int excludeClassroomId);
+    boolean existsByStudentSet_IdAndSemester_IdAndCourse_IdAndIdNot(Integer studentId, Integer semesterId, Integer courseId, Integer excludeClassroomId);
 
     // Kiểm tra người dùng (sinh viên hoặc giảng viên) có trong lớp không
-    boolean existsByStudentSet_User_IdAndId(int userId, int classroomId);
+    boolean existsByStudentSet_User_IdAndId(Integer userId, Integer classroomId);
 
     // Tìm lớp học theo giảng viên
     List<Classroom> findByLecturer(User user);
 
     // Lấy lớp học kèm sinh viên
-    @Query("SELECT c FROM Classroom c LEFT JOIN FETCH c.studentSet WHERE c.id = :id")
+    @Query("SELECT DISTINCT c FROM Classroom c LEFT JOIN FETCH c.studentSet WHERE c.id = :id")
     Classroom findWithStudentsById(@Param("id") Integer id);
 
     // Lấy lớp học theo bài viết diễn đàn

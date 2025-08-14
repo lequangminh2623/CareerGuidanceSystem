@@ -3,25 +3,39 @@ package com.lqm.specifications;
 import com.lqm.models.User;
 import org.springframework.data.jpa.domain.Specification;
 
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class UserSpecification {
 
-    public static Specification<User> hasKeyword(String keyword) {
+    public static Specification<User> filterByParams(Map<String, String> params) {
         return (root, query, cb) -> {
-            if (keyword == null || keyword.trim().isEmpty())
-                return cb.conjunction(); // no filter
-            String kw = "%" + keyword.trim().toLowerCase() + "%";
-            return cb.or(
-                    cb.like(cb.lower(root.get("firstName")), kw),
-                    cb.like(cb.lower(root.get("lastName")), kw)
-            );
-        };
-    }
+            List<Predicate> predicates = new ArrayList<>();
 
-    public static Specification<User> hasRole(String role) {
-        return (root, query, cb) -> {
-            if (role == null || role.isEmpty())
-                return cb.conjunction();
-            return cb.equal(root.get("role"), role);
+            if (params != null) {
+                // Tìm kiếm theo keyword (firstName hoặc lastName)
+                String kw = params.get("kw");
+                if (kw != null && !kw.trim().isEmpty()) {
+                    String likeKw = "%" + kw.trim().toLowerCase() + "%";
+                    predicates.add(cb.or(
+                            cb.like(cb.lower(root.get("firstName")), likeKw),
+                            cb.like(cb.lower(root.get("lastName")), likeKw)
+                    ));
+                }
+
+                // Lọc theo role
+                String role = params.get("role");
+                if (role != null && !role.trim().isEmpty()) {
+                    predicates.add(cb.equal(root.get("role"), role));
+                }
+            }
+
+            // Sắp xếp
+            query.orderBy(cb.desc(root.get("id")));
+
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

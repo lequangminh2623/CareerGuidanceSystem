@@ -8,6 +8,8 @@ import com.lqm.models.Classroom;
 import com.lqm.services.ClassroomService;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -18,18 +20,23 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class ClassroomValidator implements Validator {
+public class ClassroomValidator implements Validator, SupportsClass {
 
     @Autowired
     private ClassroomService classroomService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return Classroom.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return Classroom.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         Classroom classroom = (Classroom) target;
         System.out.println("Running classroom validator...");
 

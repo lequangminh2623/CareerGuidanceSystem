@@ -62,20 +62,30 @@ public class ForumController {
     public void populateCommon(Model model) {
         model.addAttribute("users", userRepo.findByRoleIn(List.of("ROLE_LECTURER", "ROLE_STUDENT")));
         // classrooms pagination for sidebar/filter
-        Pageable classroomPageable = Pageable.ofSize(10);
+        Pageable classroomPageable = Pageable.ofSize(PageSize.CLASSROOM_PAGE_SIZE);
         model.addAttribute("classrooms", classroomService.getClassrooms(null, classroomPageable));
     }
 
     @GetMapping
-    public String listPosts(
-            Model model,
-            @RequestParam Map<String, String> params,
-            @PageableDefault(size = 5, sort = "id", direction = org.springframework.data.domain.Sort.Direction.DESC)
-            Pageable pageable) {
+    public String listPosts(Model model, @RequestParam Map<String, String> params) {
+        int pageNumber = 1;
+
+        String pageParam = params.get("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber - 1, PageSize.FORUM_POST_PAGE_SIZE);
         Page<ForumPost> page = forumPostService.getForumPosts(params, pageable);
+
         model.addAttribute("forumPosts", page.getContent());
-        model.addAttribute("page", page);
-        model.addAttribute("params", params);
+        model.addAttribute("currentPage", pageNumber);
+        model.addAttribute("totalPages", page.getTotalPages());
+        model.addAttribute("kw", params.get("kw"));
+
         return "forum/forum-post-list";
     }
 

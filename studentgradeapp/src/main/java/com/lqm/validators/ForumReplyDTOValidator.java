@@ -5,9 +5,7 @@
 package com.lqm.validators;
 
 import com.lqm.dtos.ForumReplyDTO;
-import com.lqm.services.ClassroomService;
-import com.lqm.services.ForumPostService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -17,21 +15,20 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class ForumReplyDTOValidator implements Validator {
-
-    @Autowired
-    private ClassroomService classroomService;
-
-    @Autowired
-    private ForumPostService forumPostService;
+public class ForumReplyDTOValidator implements Validator, SupportsClass {
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return ForumReplyDTO.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return ForumReplyDTO.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         ForumReplyDTO reply = (ForumReplyDTO) target;
 
         if (reply.getContent() == null || reply.getContent().trim().isEmpty()) {

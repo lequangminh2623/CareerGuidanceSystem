@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -28,21 +26,24 @@ public class ExtraGrade implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id")
-    @Setter(AccessLevel.NONE) // Khóa setter, chỉ đọc
+    @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
 
     @Max(10)
     @Min(0)
     @Column(name = "grade")
+    @EqualsAndHashCode.Include
     private Double grade;
 
     @Column(name = "grade_index", nullable = false)
+    @EqualsAndHashCode.Include
     private Integer gradeIndex;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "grade_detail_id", referencedColumnName = "id")
     @JsonIgnore
-    @Setter(AccessLevel.NONE) // Khóa setter auto, sẽ có setter custom
+    @Setter(AccessLevel.NONE)
     private GradeDetail gradeDetail;
 
     public ExtraGrade() {

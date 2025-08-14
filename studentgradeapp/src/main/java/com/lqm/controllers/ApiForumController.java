@@ -12,12 +12,15 @@ import com.lqm.services.ClassroomService;
 import com.lqm.services.ForumPostService;
 import com.lqm.services.ForumReplyService;
 import com.lqm.services.UserService;
+import com.lqm.utils.PageSize;
 import com.lqm.validators.WebAppValidator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -60,12 +63,31 @@ public class ApiForumController {
 
     @GetMapping
     public ResponseEntity<Page<ForumPostDetailDTO>> listForumPosts(
-            @RequestParam Map<String, String> params,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @RequestParam Map<String, String> params) {
+
+        int pageNumber = 1;
+
+        // Lấy và validate tham số page
+        String pageParam = params.get("page");
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                pageNumber = Integer.parseInt(pageParam);
+                if (pageNumber < 1) pageNumber = 1;
+            } catch (NumberFormatException ignored) {}
+        }
+
+        Pageable pageable = PageRequest.of(
+                pageNumber - 1,
+                PageSize.FORUM_POST_PAGE_SIZE,
+                Sort.by("id").descending()
+        );
+
         Page<ForumPost> posts = forumPostService.getForumPosts(params, pageable);
         Page<ForumPostDetailDTO> dtoPage = posts.map(ForumPostDetailDTO::new);
+
         return ResponseEntity.ok(dtoPage);
     }
+
 
     @GetMapping(path = "/{postId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getForumPostDetail(

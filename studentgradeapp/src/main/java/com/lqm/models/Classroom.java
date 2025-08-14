@@ -27,12 +27,16 @@ public class Classroom implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     @ToString.Include
+    @Column(name = "id")
+    @Basic(optional = false)
+    @EqualsAndHashCode.Include
     private Integer id;
 
+    @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
+    @Column(name = "name")
     @ToString.Include
     private String name;
 
@@ -41,7 +45,7 @@ public class Classroom implements Serializable {
     @Column(name = "grade_status")
     private String gradeStatus = "DRAFT";
 
-    @OneToMany(mappedBy = "classroom", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "classroom", cascade = CascadeType.ALL)
     @Setter(AccessLevel.NONE)
     private Set<ForumPost> forumPostSet = new HashSet<>();
 

@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface UserService extends UserDetailsService {
@@ -13,7 +14,7 @@ public interface UserService extends UserDetailsService {
 
     boolean authenticate(String email, String password);
 
-    Page<User> getUsers(String kw, String role, Pageable pageable);
+    Page<User> getUsers(Map<String, String> params, Pageable pageable);
 
     User saveUser(User user);
 

@@ -7,6 +7,7 @@ package com.lqm.validators;
 import com.lqm.models.User;
 import com.lqm.services.StudentService;
 import com.lqm.services.UserService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -17,7 +18,7 @@ import org.springframework.validation.Validator;
  * @author Le Quang Minh
  */
 @Component
-public class UserValidator implements Validator {
+public class UserValidator implements Validator, SupportsClass {
 
     @Autowired
     private UserService userService;
@@ -26,12 +27,17 @@ public class UserValidator implements Validator {
     private StudentService studentService;
 
     @Override
-    public boolean supports(Class<?> clazz) {
+    public Class<?> getSupportedClass() {
+        return User.class;
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<?> clazz) {
         return User.class.isAssignableFrom(clazz);
     }
 
     @Override
-    public void validate(Object target, Errors errors) {
+    public void validate(@NotNull Object target, @NotNull Errors errors) {
         User user = (User) target;
 
         if (user.getFirstName() == null || user.getFirstName().trim().isEmpty()) {
@@ -46,7 +52,7 @@ public class UserValidator implements Validator {
             errors.rejectValue("email", "user.email.notNull");
         }
 
-        
+
         if (!errors.hasFieldErrors("email")) {
             boolean existEmail = userService.existsByEmail(
                     user.getEmail(),
