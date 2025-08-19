@@ -75,7 +75,7 @@ public class ForumPostServiceImpl implements ForumPostService {
 
     @Override
     public boolean checkForumPostPermission(int userId, int classroomId) {
-        return !classroomRepository.existsByStudentSet_User_IdAndId(userId, classroomId);
+        return !classroomRepository.existsByLecturerOrStudent(userId, classroomId);
     }
 
     @Override

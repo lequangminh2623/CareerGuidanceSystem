@@ -112,7 +112,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     @Override
     public boolean existUserInClassroom(Integer userId, Integer classRoomId) {
-        return classroomRepo.existsByStudentSet_User_IdAndId(userId, classRoomId);
+        return classroomRepo.existsByLecturerOrStudent(userId, classRoomId);
     }
 
     @Override

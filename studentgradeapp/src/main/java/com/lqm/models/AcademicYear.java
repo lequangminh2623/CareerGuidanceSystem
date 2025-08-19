@@ -1,5 +1,6 @@
 package com.lqm.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lqm.utils.CollectionUpdater;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +34,7 @@ public class AcademicYear {
     private String year;
 
     @Setter(AccessLevel.NONE)
+    @JsonIgnore
     @OneToMany(mappedBy = "academicYear", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Semester> semesterSet = new LinkedHashSet<>();
 

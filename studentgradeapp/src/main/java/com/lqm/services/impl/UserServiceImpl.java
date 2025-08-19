@@ -74,6 +74,8 @@ public class UserServiceImpl implements UserService {
         // Encode password
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+        } else {
+            user.setPassword(passwordEncoder.encode("1"));
         }
         // Set defaults
         if (user.getCreatedDate() == null) {

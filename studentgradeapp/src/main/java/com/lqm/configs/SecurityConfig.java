@@ -123,11 +123,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    @Order(0)
-    public StandardServletMultipartResolver multipartResolver() {
-        return new StandardServletMultipartResolver();
-    }
+//    @Bean
+//    @Order(0)
+//    public StandardServletMultipartResolver multipartResolver() {
+//        return new StandardServletMultipartResolver();
+//    }
 
     @Bean
     public MessageSource messageSource() {

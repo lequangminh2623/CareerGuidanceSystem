@@ -12,7 +12,6 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import io.github.cdimascio.dotenv.Dotenv;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,12 +23,7 @@ import java.util.Map;
 public class JwtUtils {
 
     private static final long EXPIRATION_MS = 86400000; // 1 ngày
-    private static final String SECRET;
-
-    static {
-        Dotenv dotenv = Dotenv.load();
-        SECRET = dotenv.get("SECRET");
-    }
+    private static final String SECRET = "6F7Kel6lvN1Olgn31EBbOGv4O7jhMA2dM+1H6D08dh0FpDXJW9f+whbzSuID44h1vE9HsQpeavDwVoxCWGcw5w==";
 
     public static String generateToken(String email, String role) throws Exception {
         JWSSigner signer = new MACSigner(SECRET);
@@ -50,6 +44,7 @@ public class JwtUtils {
 
         return signedJWT.serialize();
     }
+
 
     public static Map<String, String> validateToken(String token) throws Exception {
         SignedJWT signedJWT = SignedJWT.parse(token);

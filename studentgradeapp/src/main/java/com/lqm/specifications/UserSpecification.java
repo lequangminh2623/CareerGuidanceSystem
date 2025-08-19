@@ -19,10 +19,8 @@ public class UserSpecification {
                 String kw = params.get("kw");
                 if (kw != null && !kw.trim().isEmpty()) {
                     String likeKw = "%" + kw.trim().toLowerCase() + "%";
-                    predicates.add(cb.or(
-                            cb.like(cb.lower(root.get("firstName")), likeKw),
-                            cb.like(cb.lower(root.get("lastName")), likeKw)
-                    ));
+                    predicates.add(
+                            cb.like(cb.lower(cb.concat(cb.concat(root.get("lastName"), " "), root.get("firstName"))), likeKw));
                 }
 
                 // Lọc theo role

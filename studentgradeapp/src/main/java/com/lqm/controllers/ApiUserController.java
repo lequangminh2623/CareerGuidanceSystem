@@ -87,9 +87,9 @@ public class ApiUserController {
      * Đăng nhập, trả về JWT
      */
     @PostMapping(path = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody Map<String, String> payload) throws Exception {
-        String email = payload.get("email");
-        String pwd = payload.get("password");
+    public ResponseEntity<?> login(@RequestBody User u) throws Exception {
+        String email = u.getEmail();
+        String pwd = u.getPassword();
         if (userService.authenticate(email, pwd)) {
             User current = userService.getUserByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found after auth"));

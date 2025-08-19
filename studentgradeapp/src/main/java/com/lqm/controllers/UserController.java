@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -33,6 +34,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     @Qualifier("webAppValidator")
@@ -82,6 +86,9 @@ public class UserController {
     public String addUser(Model model) {
         User user = new User();
         user.setStudent(new Student());
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         model.addAttribute("user", user);
         return "/user/user-form";
     }
@@ -92,6 +99,7 @@ public class UserController {
             BindingResult bindingResult,
             Model model
     ) {
+
         if ("ROLE_STUDENT".equals(user.getRole())) {
             Student s = user.getStudent();
             s.setUser(user);

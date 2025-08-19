@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 
 /**
  *
- * @author leoma
+ * @author Le Quang Minh
  */
 @RestController
 @RequestMapping("/api/auth")

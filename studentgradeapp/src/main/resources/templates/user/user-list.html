@@ -10,7 +10,7 @@
     <main class="flex-grow-1 container mt-5">
         <form th:action="@{/users}" method="get" class="row g-3">
             <div class="col-md-4">
-                <input type="text" name="kw" class="form-control" placeholder="Tìm theo tên..." />
+                <input type="text" name="kw" class="form-control" placeholder="Tìm theo tên..." th:value="${kw}" />
             </div>
             <div class="col-md-3">
                 <select name="role" class="form-select">

@@ -27,8 +27,12 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Integer>, 
     boolean existsByStudentSet_IdAndSemester_IdAndCourse_IdAndIdNot(Integer studentId, Integer semesterId, Integer courseId, Integer excludeClassroomId);
 
     // Kiểm tra người dùng (sinh viên hoặc giảng viên) có trong lớp không
-    boolean existsByStudentSet_User_IdAndId(Integer userId, Integer classroomId);
-
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
+            "FROM Classroom c " +
+            "LEFT JOIN c.studentSet s " +
+            "WHERE c.id = :classroomId AND (c.lecturer.id = :userId OR s.user.id = :userId)")
+    boolean existsByLecturerOrStudent(@Param("userId") int userId,
+                                      @Param("classroomId") int classroomId);
     // Tìm lớp học theo giảng viên
     List<Classroom> findByLecturer(User user);
 
