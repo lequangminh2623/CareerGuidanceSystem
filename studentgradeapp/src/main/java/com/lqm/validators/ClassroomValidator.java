@@ -52,8 +52,8 @@ public class ClassroomValidator implements Validator, SupportsClass {
             errors.rejectValue("course", "classroom.course.notNull");
         }
 
-        if (classroom.getLecturer() == null || classroom.getLecturer().getId() == null) {
-            errors.rejectValue("lecturer", "classroom.lecturer.notNull");
+        if (classroom.getTeacher() == null || classroom.getTeacher().getId() == null) {
+            errors.rejectValue("teacher", "classroom.teacher.notNull");
         }
         if (!errors.hasErrors()) {
             boolean exists = classroomService.existsDuplicateClassroom(

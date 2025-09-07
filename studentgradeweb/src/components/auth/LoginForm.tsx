@@ -143,10 +143,7 @@ const LoginForm = () => {
                             {loading ? (
                                 <div className="mt-6"><MySpinner /></div>
                             ) : (
-                                <button
-                                    type="submit"
-                                    className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors mt-6"
-                                >
+                                <button type="submit" className="w-full py-3 bg-primary text-white rounded-lg shadow-md hover:bg-blue-700 transition mt-6">
                                     Đăng nhập
                                 </button>
                             )}

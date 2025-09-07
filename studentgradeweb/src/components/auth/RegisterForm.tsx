@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Apis, { endpoints } from "@/lib/utils/api";
 import MySpinner from "@/components/layout/MySpinner";
 import GoogleLoginButton from "@/components/GoogleLogin/GoogleLoginButton";
+import Image from "next/image";
 
 interface FormField {
     title: string;
@@ -38,9 +39,16 @@ const RegisterForm = () => {
     const [msg, setMsg] = useState<string>("");
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [loading, setLoading] = useState<boolean>(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
 
     const info: FormField[] = [
         {
+            title: "Họ và tên lót",
+            field: "lastName",
+            type: "text",
+            disabled: isGoogleRegister
+        }, {
             title: "Tên",
             field: "firstName",
             type: "text",
@@ -51,19 +59,19 @@ const RegisterForm = () => {
             type: "email",
             disabled: isGoogleRegister
         }, {
-            title: "Họ và tên lót",
-            field: "lastName",
-            type: "text",
-            disabled: isGoogleRegister
-        }, {
-            title: "Mật khẩu",
-            field: "password",
-            type: "password",
+            title: "Giới tính",
+            field: "gender",
+            type: "select",
             disabled: false
         }, {
             title: "Mã số sinh viên",
             field: "code",
             type: "text",
+            disabled: false
+        }, {
+            title: "Mật khẩu",
+            field: "password",
+            type: "password",
             disabled: false
         }, {
             title: "Xác nhận mật khẩu",
@@ -164,15 +172,29 @@ const RegisterForm = () => {
                                     <label className="block text-gray-700 text-sm font-bold mb-2">
                                         {i.title}
                                     </label>
-                                    <input
-                                        type={i.type}
-                                        placeholder={i.title}
-                                        value={user[i.field] || ""}
-                                        onChange={e => setState(e.target.value, i.field)}
-                                        disabled={i.disabled}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
+                                    {i.type === "select" ? (
+                                        <select value={user[i.field] || ""}
+                                            onChange={e => setState(e.target.value, i.field)}
+                                            disabled={i.disabled}
+                                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
+                                                ${fieldErrors[i.field] ? 'border-red-500' : 'border-gray-300'}`}
+                                        >
+                                            <option value="">Chọn giới tính</option>
+                                            <option value="0">Nữ</option>
+                                            <option value="1">Nam</option>
+                                        </select>
+                                    ) : (
+
+                                        <input
+                                            type={i.type}
+                                            placeholder={i.title}
+                                            value={user[i.field] || ""}
+                                            onChange={e => setState(e.target.value, i.field)}
+                                            disabled={i.disabled}
+                                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
                                             ${fieldErrors[i.field] ? 'border-red-500' : 'border-gray-300'}`}
-                                    />
+                                        />
+                                    )}
                                     {fieldErrors[i.field] && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors[i.field]}</p>
                                     )}
@@ -180,18 +202,43 @@ const RegisterForm = () => {
                             ))}
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">
-                                Avatar
-                            </label>
-                            <input
-                                ref={avatarRef}
-                                type="file"
-                                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
-                                    ${fieldErrors.avatar ? 'border-red-500' : 'border-gray-300'}`}
-                            />
-                            {fieldErrors.avatar && (
-                                <p className="text-red-500 text-xs mt-1">{fieldErrors.avatar}</p>
+                        <div className="mt-4 flex gap-4 items-start">
+                            <div className="flex-1">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">
+                                    Avatar
+                                </label>
+                                <input
+                                    ref={avatarRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const url = URL.createObjectURL(file);
+                                            setPreviewImage(url);
+                                        }
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4
+                                                 file:rounded-full file:border-0 file:text-sm
+                                                 file:bg-primary file:text-white hover:file:bg-primary-dark
+                                            ${fieldErrors.avatar ? 'border-red-500' : 'border-gray-300'}`}
+                                />
+                                {fieldErrors.avatar && (
+                                    <p className="text-red-500 text-xs mt-1">{fieldErrors.avatar}</p>
+                                )}
+                            </div>
+
+                            {previewImage && (
+                                <div className="flex-shrink-0">
+                                    <div className="relative w-32 h-32">
+                                        <Image
+                                            src={previewImage}
+                                            alt="Preview"
+                                            fill
+                                            className="rounded-full object-cover border-4 border-gray-200"
+                                        />
+                                    </div>
+                                </div>
                             )}
                         </div>
 

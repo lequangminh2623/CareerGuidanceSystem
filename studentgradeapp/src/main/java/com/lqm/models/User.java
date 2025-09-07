@@ -32,7 +32,7 @@ import java.util.Set;
         @NamedQuery(name = "User.findByAvatar", query = "SELECT u FROM User u WHERE u.avatar = :avatar"),
         @NamedQuery(name = "User.findByCreatedDate", query = "SELECT u FROM User u WHERE u.createdDate = :createdDate"),
         @NamedQuery(name = "User.findByUpdatedDate", query = "SELECT u FROM User u WHERE u.updatedDate = :updatedDate"),
-        @NamedQuery(name = "User.findByActive", query = "SELECT u FROM User u WHERE u.active = :active"),
+        @NamedQuery(name = "User.findByGender", query = "SELECT u FROM User u WHERE u.gender = :gender"),
         @NamedQuery(name = "User.findByRole", query = "SELECT u FROM User u WHERE u.role = :role")
 })
 public class User implements Serializable {
@@ -84,8 +84,8 @@ public class User implements Serializable {
 
     @Basic(optional = false)
     @NotNull
-    @Column(name = "active")
-    private boolean active;
+    @Column(name = "gender")
+    private boolean gender;
 
     @Basic(optional = false)
     @Size(min = 1, max = 13)
@@ -102,7 +102,7 @@ public class User implements Serializable {
     private Student student;
 
     @Setter(AccessLevel.NONE)
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "lecturer")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "teacher")
     @JsonIgnore
     private Set<Classroom> classroomSet = new LinkedHashSet<>();
 
@@ -122,13 +122,13 @@ public class User implements Serializable {
         this.id = id;
     }
 
-    public User(Integer id, String firstName, String lastName, String email, String avatar, boolean active, String role) {
+    public User(Integer id, String firstName, String lastName, String email, String avatar, boolean gender, String role) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.avatar = avatar;
-        this.active = active;
+        this.gender = gender;
         this.role = role;
     }
 
@@ -159,13 +159,13 @@ public class User implements Serializable {
     public void addClassroom(Classroom classroom) {
         if (classroom == null) return;
         classroomSet.add(classroom);
-        classroom.setLecturer(this);
+        classroom.setTeacher(this);
     }
 
     public void removeClassroom(Classroom classroom) {
         if (classroom == null) return;
         if (classroomSet.remove(classroom)) {
-            classroom.setLecturer(null);
+            classroom.setTeacher(null);
         }
     }
 

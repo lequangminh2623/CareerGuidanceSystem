@@ -45,7 +45,7 @@ public interface ClassroomService {
 
     boolean lockClassroomGrades(Integer classroomId);
 
-    boolean checkLecturerPermission(Integer classroomId);
+    boolean checkTeacherPermission(Integer classroomId);
 
     boolean isLockedClassroom(Integer classroomId);
 

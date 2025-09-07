@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Người dùng</title>
-    <th:block th:replace="base :: bootstrap"></th:block>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <p th:replace="base :: header"></p>
+    <p th:replace="~{base :: header}"></p>
 
     <main class="flex-grow-1 container mt-5">
         <form th:action="@{/users}" method="get" class="row g-3">
@@ -17,7 +17,7 @@
                     <option value="">Tất cả vai trò</option>
                     <option value="ROLE_ADMIN">Admin</option>
                     <option value="ROLE_STUDENT">Student</option>
-                    <option value="ROLE_LECTURER">Lecturer</option>
+                    <option value="ROLE_TEACHER">teacher</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -95,7 +95,7 @@
         </nav>
     </main>
 
-    <p th:replace="base :: footer"></p>
+    <p th:replace="~{base :: footer}"></p>
     <script th:src="@{/js/user.js}"></script>
 </body>
 </html>

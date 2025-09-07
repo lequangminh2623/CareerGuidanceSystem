@@ -5,13 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { MyUserContext } from "@/lib/contexts/userContext";
-import { checkPermission, checkCanEdit, formatVietnamTime } from '@/lib/utils';
+import { checkPermission, checkCanEdit } from '@/lib/utils';
 import { FaPenToSquare, FaTrashCan, FaReply } from "react-icons/fa6";
 import { IoCloseSharp } from "react-icons/io5";
 import { authApis, endpoints } from "@/lib/utils/api";
 import MySpinner from "@/components/layout/MySpinner";
 import { useTranslation } from "react-i18next";
 import { capitalizeFirstWord } from "@/lib/utils";
+import TimeConvert from "../layout/TimeConvert";
 
 interface User {
     id: string;
@@ -25,6 +26,7 @@ interface Reply {
     content: string;
     image?: string;
     createdDate: string;
+    updatedDate?: string;
     user: User;
 }
 
@@ -49,17 +51,17 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
     const pathname = usePathname();
     const { t } = useTranslation();
 
-    const isAddPage = pathname.endsWith(`/replies/${reply.id}/add`);
+    const isAddPage = pathname.endsWith(`/replies/${reply.id}/add-reply`);
 
     const handleDeleteReply = async () => {
-        if (!window.confirm("Bạn có chắc chắn muốn xoá phản hồi này?")) return;
+        if (!window.confirm(t('confirm-remove'))) return;
 
         try {
             await authApis().delete(endpoints['forum-reply-detail'](postId, reply.id));
             onReplyDeleted(reply.id);
         } catch (ex) {
             console.error("Delete error:", ex);
-            alert("Xoá phản hồi thất bại!");
+            alert(t('error-message'));
         }
     };
 
@@ -98,7 +100,7 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
         if (isAddPage) {
             router.push(`/classrooms/${classroomId}/forums/${postId}`);
         } else {
-            router.push(`/classrooms/${classroomId}/forums/${postId}/replies/${reply.id}/add`);
+            router.push(`/classrooms/${classroomId}/forums/${postId}/replies/${reply.id}/add-reply`);
         }
     };
 
@@ -109,7 +111,7 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
     useEffect(() => {
         setPage(1);
         setChildReplies([]);
-    }, []);
+    }, [postId, reply.id]);
 
     useEffect(() => {
         if (page > 0 && loadedOnce) {
@@ -140,7 +142,14 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
                     <div className="font-bold">
                         {reply.user.firstName} {reply.user.lastName}
                     </div>
-                    <div className="text-sm text-gray-500">{formatVietnamTime(reply.createdDate)}</div>
+                    <div className="text-sm text-gray-500">
+                        <TimeConvert timestamp={reply.createdDate} />
+                        {reply.updatedDate && (
+                            <span className="ml-2 text-xs italic">
+                                ({t('edited')})
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -150,7 +159,7 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
                         <div className="flex space-x-2">
                             <button
                                 onClick={() =>
-                                    router.push(`/classrooms/${classroomId}/forums/${postId}/replies/${reply.id}/edit`)
+                                    router.push(`/classrooms/${classroomId}/forums/${postId}/replies/${reply.id}/edit-reply`)
                                 }
                                 disabled={!canEditOrDelete}
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50"
@@ -221,7 +230,7 @@ export default function ForumReply({ classroomId, postId, reply, onReplyDeleted 
                                     ))
                                 ) : (
                                     <div className="text-gray-500">
-                                        {capitalizeFirstWord(`${t("no")} ${t("reply")}`)}
+                                        {capitalizeFirstWord(`${t("none")} ${t("reply")}`)}
                                     </div>
                                 )}
 

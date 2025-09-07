@@ -44,7 +44,7 @@ const HomeClient = () => {
     ];
 
     return (
-        <div className="container mx-auto p-3 min-h-screen bg-gray-50">
+        <div className="container mx-auto p-3 min-h-screen">
             <h1 className="text-center mt-1 mb-5 text-2xl font-bold text-gray-800">
                 🎓 {t('welcome')}!
             </h1>
@@ -55,7 +55,7 @@ const HomeClient = () => {
                         <div
                             key={index}
                             onClick={() => router.push(card.href)}
-                            className="w-full max-w-sm p-6 bg-white rounded-lg shadow-sm 
+                            className="w-full max-w-sm p-6 bg-gray-50 rounded-lg shadow-sm 
                                      hover:shadow-md transition-all duration-300 cursor-pointer
                                      border border-gray-100"
                         >

@@ -20,17 +20,16 @@ interface FieldErrors {
 interface Props {
     classroomId: string;
     postId: string;
+    parentId?: string;
 }
 
-export default function CreateReplyClient({ classroomId, postId }: Props) {
+export default function CreateReplyClient({ classroomId, postId, parentId }: Props) {
     const [reply, setReply] = useState<Reply>({});
     const imageRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState("");
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const parentId = searchParams.get('parentId');
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const { t } = useTranslation();
 
@@ -40,7 +39,7 @@ export default function CreateReplyClient({ classroomId, postId }: Props) {
 
     const validate = (): boolean => {
         if (!reply.content?.trim()) {
-            setFieldErrors({ content: 'Nội dung không được để trống' });
+            setFieldErrors({ content: t("empty-error") });
             return false;
         }
         return true;
@@ -68,21 +67,15 @@ export default function CreateReplyClient({ classroomId, postId }: Props) {
                     form.append("parentId", parentId);
                 }
 
-                const res = await authApis().post(
-                    endpoints['forum-reply'](postId),
+                const response = await authApis().post(
+                    endpoints['forum-replies'](postId),
                     form,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
+                console.log(response);
 
-                const queryParams = new URLSearchParams();
-                if (parentId) {
-                    queryParams.set('newChildReply', JSON.stringify(res.data));
-                    queryParams.set('parentId', parentId);
-                } else {
-                    queryParams.set('newReply', JSON.stringify(res.data));
-                }
-
-                router.push(`/classrooms/${classroomId}/forums/${postId}?${queryParams.toString()}`);
+                // Simply redirect to the post page without query parameters
+                router.push(`/classrooms/${classroomId}/forums/${postId}`);
             } catch (ex: any) {
                 if (ex.response?.status === 400 && Array.isArray(ex.response.data)) {
                     const errors: FieldErrors = {};
@@ -91,7 +84,7 @@ export default function CreateReplyClient({ classroomId, postId }: Props) {
                     });
                     setFieldErrors(errors);
                 } else {
-                    setMsg("Lỗi khi phản hồi");
+                    setMsg(t("error-message"));
                 }
             } finally {
                 setLoading(false);

@@ -86,8 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/login", "/api/users", "/api/auth/**").permitAll()
                         .requestMatchers("/api/secure/grades/student").hasRole("STUDENT")
                         .requestMatchers("/api/secure/classrooms", "/api/secure/classrooms/*/forums",
-                                "/api/secure/ai/ask", "/api/secure/forums/**").hasAnyRole("LECTURER", "STUDENT")
-                        .requestMatchers("/api/secure/ai/analysis/**", "/api/secure/classrooms/**").hasRole("LECTURER")
+                                "/api/secure/ai/ask", "/api/secure/forums/**").hasAnyRole("TEACHER", "STUDENT")
+                        .requestMatchers("/api/secure/ai/analysis/**", "/api/secure/classrooms/**").hasRole("TEACHER")
                         .requestMatchers("/api/secure/**").authenticated()
                         .anyRequest().authenticated()
                 )

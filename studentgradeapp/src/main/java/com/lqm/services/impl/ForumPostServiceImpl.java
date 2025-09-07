@@ -49,23 +49,34 @@ public class ForumPostServiceImpl implements ForumPostService {
 
     @Override
     public ForumPost saveForumPost(ForumPost forumPost) {
-        if (forumPost.getCreatedDate() == null) {
-            forumPost.setCreatedDate(new Date());
-        }
+        ForumPost updatedForumPost = forumPost;
+        if(forumPost.getId() != null)
+            updatedForumPost = getForumPostById(forumPost.getId()).orElse(forumPost);
+
+        if(forumPost.getContent() != null) updatedForumPost.setContent(forumPost.getContent());
+        if(forumPost.getFile() != null) updatedForumPost.setFile(forumPost.getFile());
+        if(forumPost.getClassroom() != null) updatedForumPost.setClassroom(forumPost.getClassroom());
+        if(forumPost.getUser() != null) updatedForumPost.setUser(forumPost.getUser());
+        if(forumPost.getTitle() != null) updatedForumPost.setTitle(forumPost.getTitle());
+
+        if (forumPost.getId() == null)
+            updatedForumPost.setCreatedDate(new Date());
+        else
+            updatedForumPost.setUpdatedDate(new Date());
+
         if (forumPost.getFile() != null && !forumPost.getFile().isEmpty()) {
             try {
                 Map<?, ?> res = cloudinary.uploader().upload(
                         forumPost.getFile().getBytes(),
                         ObjectUtils.asMap("resource_type", "auto", "folder", "GradeManagement")
                 );
-                forumPost.setImage(res.get("secure_url").toString());
+                updatedForumPost.setImage(res.get("secure_url").toString());
             } catch (IOException ex) {
                 Logger.getLogger(ForumPostServiceImpl.class.getName())
                         .log(Level.SEVERE, null, ex);
             }
         }
-        forumPost.setUpdatedDate(new Date());
-        return forumPostRepository.save(forumPost);
+        return forumPostRepository.save(updatedForumPost);
     }
 
     @Override
@@ -75,14 +86,14 @@ public class ForumPostServiceImpl implements ForumPostService {
 
     @Override
     public boolean checkForumPostPermission(int userId, int classroomId) {
-        return !classroomRepository.existsByLecturerOrStudent(userId, classroomId);
+        return classroomRepository.existsByTeacherOrStudent(userId, classroomId);
     }
 
     @Override
     public boolean checkOwnerForumPostPermission(int userId, int forumPostId) {
         return forumPostRepository.findById(forumPostId)
                 .filter(post -> post.getUser().getId() == userId)
-                .isEmpty();
+                .isPresent();
     }
 
     @Override
@@ -92,12 +103,7 @@ public class ForumPostServiceImpl implements ForumPostService {
             return true;
         }
         long minutes = (new Date().getTime() - opt.get().getCreatedDate().getTime()) / 60000;
-        return minutes >= 30;
-    }
-
-    @Override
-    public List<ForumPost> getAllForumPosts() {
-        return forumPostRepository.findAll();
+        return minutes < 30;
     }
 
 }

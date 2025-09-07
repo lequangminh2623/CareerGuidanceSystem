@@ -49,15 +49,25 @@ public class ForumReplyServiceImpl implements ForumReplyService {
     @Override
     public ForumReply getReplyById(int id) {
         return replyRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Reply not found: " + id));
+                .orElse(null);
     }
 
     @Override
     public ForumReply saveReply(ForumReply reply) {
-        Date now = new Date();
-        if (reply.getCreatedDate() == null) {
-            reply.setCreatedDate(now);
+        ForumReply updatedReply = reply;
+
+        if (reply.getId() == null) {
+            updatedReply.setCreatedDate(new Date());
+        } else {
+            updatedReply = getReplyById(reply.getId());
+            updatedReply.setUpdatedDate(new Date());
         }
+        if(reply.getContent() != null) updatedReply.setContent(reply.getContent());
+        if(reply.getUser() != null) updatedReply.setUser(reply.getUser());
+        if(reply.getForumPost() != null) updatedReply.setForumPost(reply.getForumPost());
+        if(reply.getParent() == null);
+        else if(reply.getParent().getId() != null) updatedReply.setParent(reply.getParent());
+        else updatedReply.setParent(null);
 
         // Handle file upload
         if (reply.getFile() != null && !reply.getFile().isEmpty()) {
@@ -66,24 +76,16 @@ public class ForumReplyServiceImpl implements ForumReplyService {
                         reply.getFile().getBytes(),
                         ObjectUtils.asMap("resource_type", "auto", "folder", "GradeManagement")
                 );
-                reply.setImage(uploadResult.get("secure_url").toString());
+                updatedReply.setImage(uploadResult.get("secure_url").toString());
             } catch (IOException ex) {
                 Logger.getLogger(ForumReplyServiceImpl.class.getName())
                         .log(Level.SEVERE, "Cloudinary upload failed", ex);
             }
         }
 
-        reply.setUpdatedDate(now);
-        ForumReply saved = replyRepo.save(reply);
-
-        // If new and parent not set, set parent to self
-        if (saved.getParent() == null) {
-            saved.setParent(saved);
-            saved = replyRepo.save(saved);
-        }
-
-        return saved;
+        return replyRepo.save(updatedReply);
     }
+
 
     @Override
     public void deleteReply(int id) {

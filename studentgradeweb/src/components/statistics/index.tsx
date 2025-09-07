@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Chart, registerables } from "chart.js";
 import { authApis, endpoints } from "@/lib/utils/api";
 import { useTranslation } from "react-i18next";
+import MySpinner from "../layout/MySpinner";
 
 Chart.register(...registerables);
 let chartInstance: Chart | null = null;
@@ -115,7 +116,7 @@ const StatisticsClient = () => {
                     labels: labels,
                     datasets: [
                         {
-                            label: "% Sinh viên yếu",
+                            label: t('percentage-weak-students'),
                             data: data,
                             backgroundColor: "rgba(255, 99, 132, 0.6)",
                             borderColor: "rgba(255, 99, 132, 1)",
@@ -142,9 +143,7 @@ const StatisticsClient = () => {
 
     if (loading) {
         return (
-            <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
-                <div className="text-lg">Loading...</div>
-            </div>
+            <MySpinner />
         );
     }
 

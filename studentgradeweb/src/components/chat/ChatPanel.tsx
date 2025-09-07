@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import { db } from "@/lib/utils/firebase";
 import { MyUserContext } from "@/lib/contexts/userContext";
 import { collection, addDoc, serverTimestamp, doc, setDoc, onSnapshot } from "firebase/firestore";
+import { useTranslation } from "react-i18next";
 
 interface SelectedUser {
     email: string;
@@ -29,7 +30,7 @@ export default function ChatPanel({ selectedUser, onChatbotInteraction }: ChatPa
     const [text, setText] = useState<string>("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-
+    const { t } = useTranslation();
     const chatHistoryRef = useRef<HTMLDivElement>(null);
     const endRef = useRef<HTMLDivElement>(null);
 
@@ -118,12 +119,10 @@ export default function ChatPanel({ selectedUser, onChatbotInteraction }: ChatPa
 
     return (
         <div className="flex flex-col flex-1 bg-white h-full">
-            {/* Header */}
             <div className="p-4 border-b">
                 <h5 className="font-medium">{`${selectedUser.lastName} ${selectedUser.firstName}`}</h5>
             </div>
 
-            {/* Messages */}
             <div ref={chatHistoryRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((m) => (
                     <div
@@ -141,7 +140,7 @@ export default function ChatPanel({ selectedUser, onChatbotInteraction }: ChatPa
 
                 {loading && (
                     <div className="flex justify-start">
-                        <div className="bg-gray-100 rounded-lg p-3">Đang trả lời...</div>
+                        <div className="bg-gray-100 rounded-lg p-3">...</div>
                     </div>
                 )}
 
@@ -154,7 +153,7 @@ export default function ChatPanel({ selectedUser, onChatbotInteraction }: ChatPa
                     type="text"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="Nhập tin nhắn..."
+                    placeholder={t("enter")}
                     disabled={loading}
                     className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -163,7 +162,7 @@ export default function ChatPanel({ selectedUser, onChatbotInteraction }: ChatPa
                     disabled={loading}
                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
                 >
-                    Gửi
+                    {t("send")}
                 </button>
             </form>
         </div>

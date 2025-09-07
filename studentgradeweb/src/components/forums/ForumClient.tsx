@@ -20,6 +20,7 @@ interface Post {
     title: string;
     image?: string;
     createdDate: string;
+    updatedDate?: string;
     user: User;
 }
 
@@ -31,19 +32,18 @@ export default function ForumClient({ classroomId }: Props) {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
-    const [classRoomName, setClassRoomName] = useState<string>('');
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const { t } = useTranslation();
 
-    const isAddPage = pathname.endsWith('/add');
+    const isAddPage = pathname.endsWith('/add-post');
 
     const toggleAddPost = () => {
         if (isAddPage) {
             router.push(`/classrooms/${classroomId}/forums`);
         } else {
-            router.push(`/classrooms/${classroomId}/forums/add`);
+            router.push(`/classrooms/${classroomId}/forums/add-post`);
         }
     };
 
@@ -56,6 +56,7 @@ export default function ForumClient({ classroomId }: Props) {
             if (kw) url += `&kw=${kw}`;
 
             const res = await authApis().get(url);
+            console.info("Loaded posts:", res.data);
 
             if (page === 1) {
                 setPosts(res.data.content);
@@ -79,7 +80,7 @@ export default function ForumClient({ classroomId }: Props) {
 
     const handlePostDeleted = (deletedId: string) => {
         setPosts(prev => prev.filter(p => p.id !== deletedId));
-        alert('Xóa bài đăng thành công!');
+        alert(t("success-message"));
     };
 
     useEffect(() => {
@@ -99,7 +100,7 @@ export default function ForumClient({ classroomId }: Props) {
         <div className="container mx-auto px-4 py-6 min-h-screen">
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold">
-                    {t('list-posts')} - {classRoomName}
+                    {t('list-posts')}
                 </h3>
                 <button
                     onClick={toggleAddPost}
@@ -114,15 +115,15 @@ export default function ForumClient({ classroomId }: Props) {
                     {posts.map(post => (
                         <ForumPost
                             key={post.id}
+                            classroomId={classroomId}
                             post={post}
-                            classRoomName={classRoomName}
                             onPostDeleted={handlePostDeleted}
                         />
                     ))}
                 </div>
             ) : (
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-4 text-blue-700">
-                    {capitalizeFirstWord(`${t('no')} ${t('post')}`)}
+                    {capitalizeFirstWord(`${t("none")} ${t("post")}`)}
                 </div>
             )}
 

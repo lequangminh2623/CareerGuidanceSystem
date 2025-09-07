@@ -1,4 +1,3 @@
-// ApiForumController.java
 package com.lqm.controllers;
 
 import com.lqm.dtos.ForumPostDTO;
@@ -89,33 +88,65 @@ public class ApiForumController {
     }
 
 
-    @GetMapping(path = "/{postId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{postId}/detail")
     public ResponseEntity<?> getForumPostDetail(
             @PathVariable int postId,
             @RequestParam Map<String, String> params,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = PageSize.FORUM_POST_PAGE_SIZE) Pageable pageable) {
+
         User user = userService.getCurrentUser();
+
         Classroom classroom = classroomService.getClassroomByForumPostId(postId);
         if (classroom == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Không tìm thấy bài đăng"));
         }
+
         if (!forumPostService.checkForumPostPermission(user.getId(), classroom.getId())) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
         }
+
         Optional<ForumPost> optPost = forumPostService.getForumPostById(postId);
         if (optPost.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Không tìm thấy bài đăng"));
         }
+
         ForumPost post = optPost.get();
         Page<ForumReply> replies = forumReplyService.getTopLevelReplies(postId, params.get("kw"), pageable);
         ForumPostDetailDTO detail = new ForumPostDetailDTO(post, replies);
+
         return ResponseEntity.ok(detail);
     }
 
-    @PatchMapping(path = "/{postId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{postId}")
+    public ResponseEntity<?> getForumPost(
+            @PathVariable int postId) {
+
+        User user = userService.getCurrentUser();
+
+        Classroom classroom = classroomService.getClassroomByForumPostId(postId);
+        if (classroom == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Không tìm thấy bài đăng"));
+        }
+
+        if (!forumPostService.checkForumPostPermission(user.getId(), classroom.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
+        }
+
+        Optional<ForumPost> optPost = forumPostService.getForumPostById(postId);
+        if (optPost.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Không tìm thấy bài đăng"));
+        }
+
+        ForumPost post = optPost.get();
+        ForumPostDTO detail = new ForumPostDTO(post);
+
+        return ResponseEntity.ok(detail);
+    }
+
+    @PatchMapping(path = "/{postId}")
     public ResponseEntity<?> updateForumPost(
             @PathVariable int postId,
-            @Valid @RequestBody ForumPostDTO dto,
+            @Valid @ModelAttribute ForumPostDTO dto,
             BindingResult errors,
             Locale locale) {
         if (errors.hasErrors()) {
@@ -137,11 +168,16 @@ public class ApiForumController {
         if (!forumPostService.isPostStillEditable(postId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không thể chỉnh sửa được nữa"));
         }
-        ForumPost post = optPost(postId);
+
+        ForumPost post = new ForumPost();
+        post.setId(postId);
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
         post.setFile(dto.getFile());
+        post.setClassroom(classroomService.getClassroomByForumPostId(postId));
+        post.setUser(user);
         ForumPost updated = forumPostService.saveForumPost(post);
+
         return ResponseEntity.ok(new ForumPostDetailDTO(updated));
     }
 
@@ -167,8 +203,7 @@ public class ApiForumController {
     public ResponseEntity<Page<ForumReplyDTO>> getChildReplies(
             @PathVariable int postId,
             @PathVariable int replyId,
-            @RequestParam Map<String, String> params,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = PageSize.FORUM_REPLY_PAGE_SIZE) Pageable pageable) {
         User user = userService.getCurrentUser();
         Classroom classroom = classroomService.getClassroomByForumPostId(postId);
         if (classroom == null) {
@@ -182,10 +217,31 @@ public class ApiForumController {
         return ResponseEntity.ok(dtoPage);
     }
 
-    @PostMapping(path = "/{postId}/replies", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{postId}/replies/{replyId}")
+    public ResponseEntity<?> getReply(
+            @PathVariable int postId,
+            @PathVariable int replyId) {
+        User user = userService.getCurrentUser();
+        Classroom classroom = classroomService.getClassroomByForumPostId(postId);
+        if (classroom == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Không tìm thấy bài đăng"));
+        }
+        if (!forumPostService.checkForumPostPermission(user.getId(), classroom.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
+        }
+
+        ForumReply reply = forumReplyService.getReplyById(replyId);
+        if (reply == null || reply.getForumPost().getId() != postId) {
+            return ResponseEntity.status(404).body(Map.of("error", "Không tìm thấy bình luận"));
+        }
+
+        return ResponseEntity.ok(new ForumReplyDTO(reply));
+    }
+
+    @PostMapping(path = "/{postId}/replies")
     public ResponseEntity<?> createReply(
             @PathVariable int postId,
-            @Valid @RequestBody ForumReplyDTO dto,
+            @Valid @ModelAttribute ForumReplyDTO dto,
             BindingResult errors,
             Locale locale) {
         if (errors.hasErrors()) {
@@ -203,15 +259,23 @@ public class ApiForumController {
         if (!forumPostService.checkForumPostPermission(user.getId(), classroom.getId())) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
         }
-        ForumReply reply = forumReplyService.saveReply(dto.toEntity(postId, user));
-        return ResponseEntity.status(201).body(new ForumReplyDTO(reply));
+
+        ForumReply reply = new ForumReply();
+        reply.setForumPost(forumPostService.getForumPostById(postId).orElse(null));
+        reply.setUser(user);
+        reply.setContent(dto.getContent());
+        reply.setFile(dto.getFile());
+        reply.setParent(dto.getParentId() == null ? null : forumReplyService.getReplyById(dto.getParentId()));
+        ForumReply savedReply = forumReplyService.saveReply(reply);
+
+        return ResponseEntity.status(201).body(new ForumReplyDTO(savedReply));
     }
 
-    @PatchMapping(path = "/{postId}/replies/{replyId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(path = "/{postId}/replies/{replyId}")
     public ResponseEntity<?> updateReply(
             @PathVariable int postId,
             @PathVariable int replyId,
-            @Valid @RequestBody ForumReplyDTO dto,
+            @Valid @ModelAttribute ForumReplyDTO dto,
             BindingResult errors,
             Locale locale) {
         if (errors.hasErrors()) {
@@ -230,10 +294,11 @@ public class ApiForumController {
                 forumReplyService.checkOwnerPermission(user.getId(), replyId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
         }
-        if (forumReplyService.isReplyStillEditable(replyId)) {
+        if (!forumReplyService.isReplyStillEditable(replyId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không thể chỉnh sửa được nữa"));
         }
-        ForumReply reply = forumReplyService.getReplyById(replyId);
+        ForumReply reply = new ForumReply();
+        reply.setId(replyId);
         reply.setContent(dto.getContent());
         reply.setFile(dto.getFile());
         ForumReply updated = forumReplyService.saveReply(reply);
@@ -253,15 +318,10 @@ public class ApiForumController {
                 forumReplyService.checkOwnerPermission(user.getId(), replyId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không có quyền truy cập"));
         }
-        if (forumReplyService.isReplyStillEditable(replyId)) {
+        if (!forumReplyService.isReplyStillEditable(replyId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Bạn không thể chỉnh sửa được nữa"));
         }
         forumReplyService.deleteReply(replyId);
         return ResponseEntity.noContent().build();
-    }
-
-    private ForumPost optPost(int postId) {
-        return forumPostService.getForumPostById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
     }
 }

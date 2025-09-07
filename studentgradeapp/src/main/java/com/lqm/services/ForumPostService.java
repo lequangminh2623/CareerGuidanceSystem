@@ -24,6 +24,4 @@ public interface ForumPostService {
 
     boolean isPostStillEditable(int forumPostId);
 
-    List<ForumPost> getAllForumPosts();
-
 }

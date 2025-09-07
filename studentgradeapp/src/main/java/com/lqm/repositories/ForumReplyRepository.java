@@ -15,7 +15,7 @@ public interface ForumReplyRepository extends JpaRepository<ForumReply, Integer>
     SELECT fr
     FROM ForumReply fr
     WHERE fr.forumPost.id = :forumPostId
-      AND fr.parent.id = fr.id
+      AND fr.parent.id IS NULL
       AND (:kw IS NULL OR LOWER(CAST(fr.content AS string)) LIKE LOWER(CONCAT('%', :kw, '%')))
     ORDER BY fr.createdDate DESC
 """)
@@ -30,23 +30,12 @@ public interface ForumReplyRepository extends JpaRepository<ForumReply, Integer>
         FROM ForumReply fr
         WHERE fr.forumPost.id = :forumPostId
           AND fr.parent.id = :parentId
-          AND fr.parent.id <> fr.id
+          AND fr.parent.id IS NOT NULL
         ORDER BY fr.createdDate DESC
         """)
     Page<ForumReply> findChildReplies(
             @Param("forumPostId") int forumPostId,
             @Param("parentId") int parentId,
-            Pageable pageable
-    );
-    @Query("""
-    SELECT fr FROM ForumReply fr
-    WHERE (:kw IS NULL OR LOWER(CAST(fr.content AS string)) LIKE LOWER(CONCAT('%', :kw, '%')))
-      AND (:userId IS NULL OR fr.user.id = :userId)
-    ORDER BY fr.createdDate DESC
-""")
-    Page<ForumReply> findAllReplies(
-            @Param("kw") String kw,
-            @Param("userId") Integer userId,
             Pageable pageable
     );
 

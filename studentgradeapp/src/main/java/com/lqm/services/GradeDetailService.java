@@ -4,16 +4,16 @@
  */
 package com.lqm.services;
 
+import com.lqm.dtos.*;
 import com.lqm.models.Classroom;
 import com.lqm.models.GradeDetail;
-import com.lqm.dtos.GradeDTO;
-import com.lqm.dtos.GradeDetailDTO;
-import com.lqm.dtos.SemesterAnalysisResult;
-import com.lqm.dtos.TranscriptDTO;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.annotation.Nullable;
 
 /**
  *
@@ -47,7 +47,9 @@ public interface GradeDetailService {
 
     SemesterAnalysisResult analyzeSemester(List<GradeDetail> gradeDetails);
     
-    List<GradeDetail> getGradeDetailsByLecturerAndSemester(Integer lecturerId, Integer semesterId);
+    List<GradeDetail> getGradeDetailsByTeacherAndSemester(Integer teacherId, Integer semesterId);
     
     void initGradeDetailsForClassroom(Classroom classroom);
+
+    OrientationDTO getSubjectAveragesForStudent(Integer studentId);
 }

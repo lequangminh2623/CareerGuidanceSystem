@@ -7,6 +7,7 @@ interface Props {
     };
 }
 
-export default function CreateReplyPage({ params }: Props) {
-    return <CreateReplyClient classroomId={params.classroomId} postId={params.postId} />;
+export default async function CreateReplyPage({ params }: { params: Promise<Props['params']> }) {
+    const resolvedParams = await params;
+    return <CreateReplyClient classroomId={resolvedParams.classroomId} postId={resolvedParams.postId} />;
 }

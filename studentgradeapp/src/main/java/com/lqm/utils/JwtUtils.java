@@ -4,6 +4,7 @@
  */
 package com.lqm.utils;
 
+import com.lqm.configs.JwtConfig;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -12,6 +13,8 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,16 +25,13 @@ import java.util.Map;
  */
 public class JwtUtils {
 
-    private static final long EXPIRATION_MS = 86400000; // 1 ngày
-    private static final String SECRET = "6F7Kel6lvN1Olgn31EBbOGv4O7jhMA2dM+1H6D08dh0FpDXJW9f+whbzSuID44h1vE9HsQpeavDwVoxCWGcw5w==";
-
     public static String generateToken(String email, String role) throws Exception {
-        JWSSigner signer = new MACSigner(SECRET);
+        JWSSigner signer = new MACSigner(JwtConfig.getSecret());
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(email)
                 .claim("roles", role)
-                .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .expirationTime(new Date(System.currentTimeMillis() + JwtConfig.getExpirationMs()))
                 .issueTime(new Date())
                 .build();
 
@@ -48,7 +48,7 @@ public class JwtUtils {
 
     public static Map<String, String> validateToken(String token) throws Exception {
         SignedJWT signedJWT = SignedJWT.parse(token);
-        JWSVerifier verifier = new MACVerifier(SECRET);
+        JWSVerifier verifier = new MACVerifier(JwtConfig.getSecret());
 
         if (signedJWT.verify(verifier)) {
             Date expiration = signedJWT.getJWTClaimsSet().getExpirationTime();

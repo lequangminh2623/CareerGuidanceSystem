@@ -46,7 +46,7 @@ const replySelect = document.querySelector('#replySelect');
 if (replySelect) {
     new TomSelect(replySelect, {
         placeholder: 'Tìm theo phản hồi...',
-        allowEmptyOption: false
+        allowEmptyOption: true
     });
 }
 

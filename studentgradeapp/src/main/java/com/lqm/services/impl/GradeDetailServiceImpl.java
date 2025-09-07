@@ -13,10 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import smile.clustering.KMeans;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.lqm.specifications.GradeDetailSpecification.filter;
@@ -148,7 +150,7 @@ public class GradeDetailServiceImpl implements GradeDetailService {
         dto.setAcademicTerm(classroom.getSemester().getAcademicYear().getYear() + " - " +
                 classroom.getSemester().getSemesterType());
         dto.setCourseName(classroom.getCourse().getName());
-        dto.setLecturerName(classroom.getLecturer().getLastName() + " " + classroom.getLecturer().getFirstName());
+        dto.setTeacherName(classroom.getTeacher().getLastName() + " " + classroom.getTeacher().getFirstName());
         dto.setGradeStatus(classroom.getGradeStatus());
         List<GradeDTO> list = new ArrayList<>();
         for (Student s : students) {
@@ -273,66 +275,8 @@ public class GradeDetailServiceImpl implements GradeDetailService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public SemesterAnalysisResult analyzeSemester(List<GradeDetail> gradeDetails) {
-        // giữ nguyên logic clustering
-        List<GradeDTO> gradeList = gradeDetails.stream().map(g -> {
-            GradeDTO d = new GradeDTO();
-            d.setStudentId(g.getStudent().getId());
-            d.setStudentCode(g.getStudent().getCode());
-            d.setFullName(g.getStudent().getUser().getLastName() + " " + g.getStudent().getUser().getFirstName());
-            d.setMidtermGrade(g.getMidtermGrade());
-            d.setFinalGrade(g.getFinalGrade());
-            List<Double> ex = Optional.ofNullable(g.getExtraGradeSet()).orElse(Collections.emptySet())
-                    .stream()
-                    .sorted(Comparator.comparingInt(ExtraGrade::getGradeIndex))
-                    .map(ExtraGrade::getGrade).collect(Collectors.toList());
-            d.setExtraGrades(ex);
-            return d;
-        }).toList();
-        if (gradeList.isEmpty()) return new SemesterAnalysisResult();
-        int maxExtra = gradeList.stream().mapToInt(d -> d.getExtraGrades() == null ? 0 : d.getExtraGrades().size()).max().orElse(0);
-        double[][] data = gradeList.stream().map(d -> {
-            List<Double> features = new ArrayList<>();
-            features.add(Optional.ofNullable(d.getMidtermGrade()).orElse(0.0));
-            features.add(Optional.ofNullable(d.getFinalGrade()).orElse(0.0));
-            for (int i = 0; i < maxExtra; i++) {
-                features.add(i < d.getExtraGrades().size() ? Optional.ofNullable(d.getExtraGrades().get(i)).orElse(0.0) : 0.0);
-            }
-            return features.stream().mapToDouble(Double::doubleValue).toArray();
-        }).toArray(double[][]::new);
-        KMeans kmeans = KMeans.fit(data, 2);
-        int[] labels = kmeans.y;
-        // tính trung bình cluster
-        Map<Integer, List<double[]>> clusters = new HashMap<>();
-        for (int i = 0; i < labels.length; i++) {
-            clusters.computeIfAbsent(labels[i], k -> new ArrayList<>()).add(data[i]);
-        }
-        Map<Integer, Double> avg = clusters.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey,
-                        e -> {
-                            double sum = Arrays.stream(e.getValue().stream()
-                                    .flatMapToDouble(Arrays::stream).toArray()).sum();
-                            return sum / (e.getValue().size() * e.getValue().get(0).length);
-                        }));
-        int weakCluster = avg.getOrDefault(0, 0.0) <= avg.getOrDefault(1, 0.0) ? 0 : 1;
-        List<GradeClusterResultDTO> clustersDto = new ArrayList<>();
-        for (int i = 0; i < gradeList.size(); i++) {
-            GradeClusterResultDTO cr = new GradeClusterResultDTO();
-            GradeDTO gd = gradeList.get(i);
-            cr.setStudentId(gd.getStudentId());
-            cr.setStudentCode(gd.getStudentCode());
-            cr.setFullName(gd.getFullName());
-            cr.setCourseName(gradeDetails.get(i).getCourse().getName());
-            cr.setCluster(labels[i] == weakCluster ? 0 : 1);
-            clustersDto.add(cr);
-        }
-        return buildSemesterAnalysis(clustersDto);
-    }
-
-    @Override
-    public List<GradeDetail> getGradeDetailsByLecturerAndSemester(Integer lecturerId, Integer semesterId) {
-        return gradeDetailRepo.findByLecturerAndSemester(lecturerId, semesterId);
+    public List<GradeDetail> getGradeDetailsByTeacherAndSemester(Integer teacherId, Integer semesterId) {
+        return gradeDetailRepo.findByTeacherAndSemester(teacherId, semesterId);
     }
 
     @Override
@@ -400,5 +344,124 @@ public class GradeDetailServiceImpl implements GradeDetailService {
         r.setCourseWeakRatios(ratios);
         r.setCriticalCourses(critical);
         return r;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SemesterAnalysisResult analyzeSemester(List<GradeDetail> gradeDetails) {
+        // giữ nguyên logic clustering
+        List<GradeDTO> gradeList = gradeDetails.stream().map(g -> {
+            GradeDTO d = new GradeDTO();
+            d.setStudentId(g.getStudent().getId());
+            d.setStudentCode(g.getStudent().getCode());
+            d.setFullName(g.getStudent().getUser().getLastName() + " " + g.getStudent().getUser().getFirstName());
+            d.setMidtermGrade(g.getMidtermGrade());
+            d.setFinalGrade(g.getFinalGrade());
+            List<Double> ex = Optional.ofNullable(g.getExtraGradeSet()).orElse(Collections.emptySet())
+                    .stream()
+                    .sorted(Comparator.comparingInt(ExtraGrade::getGradeIndex))
+                    .map(ExtraGrade::getGrade).collect(Collectors.toList());
+            d.setExtraGrades(ex);
+            return d;
+        }).toList();
+        if (gradeList.isEmpty()) return new SemesterAnalysisResult();
+        int maxExtra = gradeList.stream().mapToInt(d -> d.getExtraGrades() == null ? 0 : d.getExtraGrades().size()).max().orElse(0);
+        double[][] data = gradeList.stream().map(d -> {
+            List<Double> features = new ArrayList<>();
+            features.add(Optional.ofNullable(d.getMidtermGrade()).orElse(0.0));
+            features.add(Optional.ofNullable(d.getFinalGrade()).orElse(0.0));
+            for (int i = 0; i < maxExtra; i++) {
+                features.add(i < d.getExtraGrades().size() ? Optional.ofNullable(d.getExtraGrades().get(i)).orElse(0.0) : 0.0);
+            }
+            return features.stream().mapToDouble(Double::doubleValue).toArray();
+        }).toArray(double[][]::new);
+        KMeans kmeans = KMeans.fit(data, 2);
+        int[] labels = kmeans.y;
+        // tính trung bình cluster
+        Map<Integer, List<double[]>> clusters = new HashMap<>();
+        for (int i = 0; i < labels.length; i++) {
+            clusters.computeIfAbsent(labels[i], k -> new ArrayList<>()).add(data[i]);
+        }
+        Map<Integer, Double> avg = clusters.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        e -> {
+                            double sum = Arrays.stream(e.getValue().stream()
+                                    .flatMapToDouble(Arrays::stream).toArray()).sum();
+                            return sum / (e.getValue().size() * e.getValue().get(0).length);
+                        }));
+        int weakCluster = avg.getOrDefault(0, 0.0) <= avg.getOrDefault(1, 0.0) ? 0 : 1;
+        List<GradeClusterResultDTO> clustersDto = new ArrayList<>();
+        for (int i = 0; i < gradeList.size(); i++) {
+            GradeClusterResultDTO cr = new GradeClusterResultDTO();
+            GradeDTO gd = gradeList.get(i);
+            cr.setStudentId(gd.getStudentId());
+            cr.setStudentCode(gd.getStudentCode());
+            cr.setFullName(gd.getFullName());
+            cr.setCourseName(gradeDetails.get(i).getCourse().getName());
+            cr.setCluster(labels[i] == weakCluster ? 0 : 1);
+            clustersDto.add(cr);
+        }
+        return buildSemesterAnalysis(clustersDto);
+    }
+
+    @Override
+    public OrientationDTO getSubjectAveragesForStudent(Integer studentId) {
+        List<GradeDetail> details = gradeDetailRepo.findAllWithExtrasByStudentId(studentId);
+
+        // Map để gom scores theo môn (course name)
+        Map<String, List<Double>> perCourseScores = new HashMap<>();
+
+        for (GradeDetail gd : details) {
+            if (gd.getCourse() == null || gd.getCourse().getName() == null) continue;
+            String courseName = gd.getCourse().getName().trim();
+
+            // Chỉ quan tâm các môn target (sẽ lọc tiếp bên dưới), nhưng vẫn thu thập cho mọi course để dễ map alias
+            List<Double> comps = new ArrayList<>();
+            if (gd.getMidtermGrade() != null) comps.add(gd.getMidtermGrade());
+            if (gd.getFinalGrade() != null) comps.add(gd.getFinalGrade());
+
+            // Dùng ExtraGrade.grade trực tiếp
+            if (gd.getExtraGradeSet() != null && !gd.getExtraGradeSet().isEmpty()) {
+                for (ExtraGrade eg : gd.getExtraGradeSet()) {
+                    if (eg != null && eg.getGrade() != null) {
+                        comps.add(eg.getGrade());
+                    }
+                }
+            }
+
+            if (comps.isEmpty()) continue;
+
+            double avgForDetail = comps.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+
+            perCourseScores.computeIfAbsent(courseName, k -> new ArrayList<>()).add(avgForDetail);
+        }
+
+        // Hàm helper: lấy average cho nhóm alias (vd: toán -> contains "toan" hoặc "math")
+        Function<List<String>, Double> avgForAliases = aliases -> {
+            List<Double> all = new ArrayList<>();
+            for (Map.Entry<String, List<Double>> e : perCourseScores.entrySet()) {
+                String cname = e.getKey().toLowerCase();
+                for (String alias : aliases) {
+                    if (cname.contains(alias.toLowerCase())) {
+                        all.addAll(e.getValue());
+                        break;
+                    }
+                }
+            }
+            return all.isEmpty() ? null : all.stream().mapToDouble(Double::doubleValue).average().orElse(Double.NaN);
+        };
+
+        OrientationDTO dto = new OrientationDTO();
+
+// Các alias phổ biến (bạn có thể mở rộng nếu tên course khác)
+        dto.setMathScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("math", "toan", "toán", "mathematics"))).orElse(0.0));
+        dto.setPhysicsScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("physics", "ly", "lý", "vật lý", "vat ly"))).orElse(0.0));
+        dto.setChemistryScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("chemistry", "hoa", "hóa", "hóa học", "hoa hoc"))).orElse(0.0));
+        dto.setBiologyScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("biology", "sinh", "sinh học", "sinh hoc"))).orElse(0.0));
+        dto.setEnglishScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("english", "tiếng anh", "tieng anh"))).orElse(0.0));
+        dto.setGeographyScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("geography", "địa lý", "dia ly", "đia ly"))).orElse(0.0));
+        dto.setHistoryScore(Optional.ofNullable(avgForAliases.apply(Arrays.asList("history", "lịch sử", "lich su"))).orElse(0.0));
+
+        return dto;
     }
 }

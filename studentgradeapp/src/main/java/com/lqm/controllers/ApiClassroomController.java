@@ -65,7 +65,7 @@ public class ApiClassroomController {
     }
 
     private boolean isUnauthorized(Integer classroomId) {
-        return !classroomService.checkLecturerPermission(classroomId);
+        return classroomService.checkTeacherPermission(classroomId);
     }
 
     private ResponseEntity<String> unauthorizedResponse(String message) {
@@ -76,7 +76,7 @@ public class ApiClassroomController {
 
     @GetMapping("/{classroomId}/grades")
     public ResponseEntity<?> getGradeSheet(@PathVariable Integer classroomId, @RequestParam Map<String, String> params) {
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
 
         try {
             TranscriptDTO sheet = gradeDetailService.getTranscriptForClassroom(classroomId, params);
@@ -88,7 +88,7 @@ public class ApiClassroomController {
 
     @PatchMapping("/{classroomId}/lock")
     public ResponseEntity<?> lockTranscript(@PathVariable Integer classroomId) {
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
         if (classroomService.isLockedClassroom(classroomId)) return unauthorizedResponse("Bảng điểm đã được khóa trước đó.");
         if (!classroomService.lockClassroomGrades(classroomId)) return unauthorizedResponse("Chưa nhập đủ điểm cho tất cả sinh viên.");
 
@@ -100,7 +100,7 @@ public class ApiClassroomController {
                                              @RequestBody @Valid List<GradeDTO> gradeRequests,
                                              BindingResult result) {
         if (result.hasErrors()) return ResponseEntity.badRequest().body("Lỗi: Điểm phải nằm trong khoảng từ 0 đến 10");
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
         if (classroomService.isLockedClassroom(classroomId)) return unauthorizedResponse("Bảng điểm đã khóa.");
 
         try {
@@ -114,7 +114,7 @@ public class ApiClassroomController {
     @PostMapping("/{classroomId}/grades/import")
     public ResponseEntity<String> importCsv(@PathVariable Integer classroomId,
                                             @RequestParam("file") MultipartFile file) {
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
         if (classroomService.isLockedClassroom(classroomId)) return unauthorizedResponse("Bảng điểm đã khóa.");
 
         try {
@@ -127,7 +127,7 @@ public class ApiClassroomController {
 
     @GetMapping("/{classroomId}/grades/export/csv")
     public ResponseEntity<String> exportCsv(@PathVariable Integer classroomId, HttpServletResponse response) throws IOException {
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
         if (!classroomService.isLockedClassroom(classroomId)) return unauthorizedResponse("Bảng điểm chưa khóa.");
 
         classroomService.exportGradesToCsv(classroomId, response);
@@ -136,7 +136,7 @@ public class ApiClassroomController {
 
     @GetMapping("/{classroomId}/grades/export/pdf")
     public ResponseEntity<String> exportPdf(@PathVariable Integer classroomId, HttpServletResponse response) throws IOException {
-        if (isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
+        if (!isUnauthorized(classroomId)) return unauthorizedResponse("Bạn không phải giảng viên phụ trách lớp này.");
         if (!classroomService.isLockedClassroom(classroomId)) return unauthorizedResponse("Bảng điểm chưa khóa.");
 
         classroomService.exportGradesToPdf(classroomId, response);
@@ -171,7 +171,7 @@ public class ApiClassroomController {
             @PageableDefault(size = PageSize.FORUM_POST_PAGE_SIZE) Pageable pageable) {
 
         User user = userService.getCurrentUser();
-        if (forumPostService.checkForumPostPermission(user.getId(), classroomId)) {
+        if (!forumPostService.checkForumPostPermission(user.getId(), classroomId)) {
             return unauthorizedResponse("Bạn không có quyền truy cập");
         }
 
@@ -204,7 +204,7 @@ public class ApiClassroomController {
         }
 
         User user = userService.getCurrentUser();
-        if (forumPostService.checkForumPostPermission(user.getId(), classroomId)) {
+        if (!forumPostService.checkForumPostPermission(user.getId(), classroomId)) {
             return unauthorizedResponse("Bạn không có quyền truy cập");
         }
 

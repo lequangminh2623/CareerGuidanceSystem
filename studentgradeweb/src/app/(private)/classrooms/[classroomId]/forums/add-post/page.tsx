@@ -1,5 +1,6 @@
 import CreatePostClient from '@/components/forums/CreatePostClient';
 
-export default function CreatePostPage({ params }: { params: { classroomId: string } }) {
-    return <CreatePostClient classroomId={params.classroomId} />;
+export default async function CreatePostPage({ params }: { params: Promise<{ classroomId: string }> }) {
+    const resolvedParams = await params;
+    return <CreatePostClient classroomId={resolvedParams.classroomId} />;
 }

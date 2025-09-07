@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import { authApis, endpoints } from "@/lib/utils/api";
 import MySpinner from "@/components/layout/MySpinner";
 
@@ -24,6 +25,8 @@ interface Profile {
 const ProfileClient = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+    const { i18n, t } = useTranslation();
+
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -47,7 +50,7 @@ const ProfileClient = () => {
     if (!profile) {
         return (
             <p className="text-center text-red-600">
-                Không thể tải thông tin người dùng.
+                {t('error-message')}
             </p>
         );
     }
@@ -71,15 +74,15 @@ const ProfileClient = () => {
                         <div className="space-y-2 text-gray-600">
                             <p>{profile.email}</p>
                             {profile.role === "ROLE_STUDENT" && (
-                                <p>MSSV: {profile.student?.code}</p>
+                                <p>{t('student-code')}: {profile.student?.code}</p>
                             )}
-                            <p>Vai trò: {profile.role}</p>
-                            <p>Ngày tạo: {profile.createdDate}</p>
-                            <p>Ngày cập nhật: {profile.updatedDate}</p>
+                            <p>{t('role')}: {profile.role}</p>
+                            <p>{t('created-date')}: {profile.createdDate}</p>
+                            <p>{t('updated-date')}: {profile.updatedDate}</p>
                             <p>
-                                Trạng thái:{" "}
-                                <span className={profile.active ? "text-green-600" : "text-red-600"}>
-                                    {profile.active ? "Hoạt động" : "Không hoạt động"}
+                                {t('gender')}:{" "}
+                                <span>
+                                    {profile.active ? t('male') : t('female')}
                                 </span>
                             </p>
                         </div>

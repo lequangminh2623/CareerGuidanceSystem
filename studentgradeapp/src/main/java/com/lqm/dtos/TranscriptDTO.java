@@ -20,7 +20,7 @@ public class TranscriptDTO {
     private String classroomName;
     private String academicTerm;
     private String courseName;
-    private String lecturerName;
+    private String teacherName;
     private String gradeStatus;
 
     @Valid

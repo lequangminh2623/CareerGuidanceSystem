@@ -45,7 +45,7 @@ export default function GoogleLoginButton({ setMsg }: GoogleLoginButtonProps) {
           `/register?newUser=${encodeURIComponent(JSON.stringify(res.data))}`
         );
       } else {
-        // ✅ Lưu token vào cookie
+
         setCookie("token", res.data.token, {
           maxAge: 60 * 60 * 24 * 7,
           secure: process.env.NODE_ENV === "production",

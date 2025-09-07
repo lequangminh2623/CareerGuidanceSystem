@@ -31,6 +31,9 @@ public class UserDTO {
     @Column(name = "last_name")
     private String lastName;
 
+    @Basic(optional = false)
+    private boolean gender;
+
     @Pattern(regexp = "^[A-Za-z0-9._%+-]+@ou\\.edu\\.vn$", message = "{user.email.invalid}")
     private String email;
 
@@ -54,6 +57,7 @@ public class UserDTO {
         user.setPassword(this.password);
         user.setAvatar(this.avatar);
         user.setFile(this.file);
+        user.setGender(this.gender);
 
         if (this.code != null && !this.code.isEmpty()) {
             Student student = new Student();

@@ -2,7 +2,9 @@
 
 import { Dispatch, SetStateAction, useRef } from "react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import TimeConvert from "@/components/layout/TimeConvert";
+
 
 interface User {
     email: string;
@@ -37,6 +39,7 @@ export default function Sidebar({
 }: SidebarProps) {
 
     const loadingRef = useRef(false);
+    const { i18n, t } = useTranslation();
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -65,8 +68,8 @@ export default function Sidebar({
                         const fullName = `${u.lastName} ${u.firstName}`;
                         const p = previews[u.email] || {};
                         const previewText = p.text
-                            ? (p.sender === currentEmail ? `You: ${p.text}` : p.text)
-                            : "No messages yet";
+                            ? (p.sender === currentEmail ? `${t('you')}: ${p.text}` : p.text)
+                            : `${t("none")} ${t("message")}`;
 
                         return (
                             <li

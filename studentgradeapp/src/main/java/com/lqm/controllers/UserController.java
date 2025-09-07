@@ -99,12 +99,6 @@ public class UserController {
             BindingResult bindingResult,
             Model model
     ) {
-
-        if ("ROLE_STUDENT".equals(user.getRole())) {
-            Student s = user.getStudent();
-            s.setUser(user);
-        }
-
         if (bindingResult.hasErrors()) {
             model.addAttribute("errorMessage", "Có lỗi xảy ra");
             return "/user/user-form";
@@ -112,6 +106,17 @@ public class UserController {
 
         if (!"ROLE_STUDENT".equals(user.getRole())) {
             user.setStudent(null);
+        } else {
+            Student s = user.getStudent();
+
+            User existing = userService.getUserById(user.getId())
+                    .orElse(null);
+            if (existing != null && existing.getStudent() != null) {
+                s = existing.getStudent();
+            }
+
+            s.setUser(user);
+            user.setStudent(s);
         }
 
         userService.saveUser(user);

@@ -1,15 +1,21 @@
 'use client';
 
 import moment from "moment";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 import "moment/locale/vi";
 
 interface TimeConvertProps {
     timestamp: string | number | Date;
 }
 
-moment.locale("vi");
-
 export default function TimeConvert({ timestamp }: TimeConvertProps) {
+    const { i18n } = useTranslation();
+
+    useEffect(() => {
+        moment.locale(i18n.language);
+    }, [i18n.language]);
+
     if (!timestamp) return null;
 
     const time = typeof timestamp === "number"

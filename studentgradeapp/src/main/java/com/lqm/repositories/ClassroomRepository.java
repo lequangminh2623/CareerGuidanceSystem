@@ -30,11 +30,11 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Integer>, 
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
             "FROM Classroom c " +
             "LEFT JOIN c.studentSet s " +
-            "WHERE c.id = :classroomId AND (c.lecturer.id = :userId OR s.user.id = :userId)")
-    boolean existsByLecturerOrStudent(@Param("userId") int userId,
+            "WHERE c.id = :classroomId AND (c.teacher.id = :userId OR s.user.id = :userId)")
+    boolean existsByTeacherOrStudent(@Param("userId") int userId,
                                       @Param("classroomId") int classroomId);
     // Tìm lớp học theo giảng viên
-    List<Classroom> findByLecturer(User user);
+    List<Classroom> findByTeacher(User user);
 
     // Lấy lớp học kèm sinh viên
     @Query("SELECT DISTINCT c FROM Classroom c LEFT JOIN FETCH c.studentSet WHERE c.id = :id")

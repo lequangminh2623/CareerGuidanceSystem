@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { authApis, endpoints } from '@/lib/utils/api';
@@ -12,8 +12,6 @@ interface Reply {
     id: string;
     content?: string;
     image?: string;
-    createdDate?: string;
-    updatedDate?: string;
     [key: string]: string | undefined;
 }
 
@@ -37,13 +35,45 @@ export default function EditReplyClient({ classroomId, postId, replyId }: Props)
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState("");
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-    const [previewImage, setPreviewImage] = useState<string | null>(reply.image || null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
     const router = useRouter();
     const { t } = useTranslation();
+    const setState = (value: string, field: keyof Reply) => {
+        setReply({ ...reply, [field]: value });
+    };
+
+    useEffect(() => {
+        const fetchReply = async () => {
+            try {
+                setLoading(true);
+                const response = await authApis().get(
+                    endpoints['forum-reply-detail'](postId, replyId)
+                );
+                const replyData = response.data;
+
+                setReply({
+                    id: replyData.id,
+                    content: replyData.content || '',
+                    image: replyData.image || '',
+                });
+
+                if (replyData.image) {
+                    setPreviewImage(replyData.image);
+                }
+            } catch (error) {
+                console.error('Failed to fetch reply:', error);
+                setMsg(t('error-message'));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReply();
+    }, [postId, replyId]);
 
     const validate = (): boolean => {
         if (!reply.content?.trim()) {
-            setFieldErrors({ content: 'Nội dung không được để trống' });
+            setFieldErrors({ content: t("empty-error") });
             return false;
         }
         return true;
@@ -59,11 +89,11 @@ export default function EditReplyClient({ classroomId, postId, replyId }: Props)
                 setLoading(true);
                 const form = new FormData();
 
-                Object.entries(reply).forEach(([key, value]) => {
-                    if (key !== 'createdDate' && key !== 'updatedDate' && value) {
-                        form.append(key, value);
+                for (let key in reply) {
+                    if (key !== 'createdDate' && key !== 'updatedDate' && reply[key]) {
+                        form.append(key, reply[key] as string);
                     }
-                });
+                }
 
                 if (imageRef.current?.files?.[0]) {
                     form.append("file", imageRef.current.files[0]);
@@ -75,8 +105,8 @@ export default function EditReplyClient({ classroomId, postId, replyId }: Props)
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
 
-                alert(t('update-reply-success'));
-                router.back();
+                alert(t('success-message'));
+                router.push(`/classrooms/${classroomId}/forums/${postId}`);
             } catch (ex: any) {
                 if (ex.response?.status === 400 && Array.isArray(ex.response.data)) {
                     const errors: FieldErrors = {};
@@ -85,13 +115,15 @@ export default function EditReplyClient({ classroomId, postId, replyId }: Props)
                     });
                     setFieldErrors(errors);
                 } else {
-                    setMsg(t('update-reply-error'));
+                    setMsg(t('error-message'));
                 }
             } finally {
                 setLoading(false);
             }
         }
     };
+
+    if (loading) return <MySpinner />;
 
     return (
         <div className="container mx-auto px-4 py-6 min-h-screen">
@@ -165,7 +197,7 @@ export default function EditReplyClient({ classroomId, postId, replyId }: Props)
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => router.back()}
+                                    onClick={() => router.push(`/classrooms/${classroomId}/forums/${postId}`)}
                                     className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg
                                              hover:bg-gray-600 transition-colors disabled:opacity-50"
                                 >

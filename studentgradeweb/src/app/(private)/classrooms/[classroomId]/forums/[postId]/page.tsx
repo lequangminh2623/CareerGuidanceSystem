@@ -7,6 +7,7 @@ interface Props {
     };
 }
 
-export default function ForumPostDetailPage({ params }: Props) {
-    return <ForumPostDetailClient classroomId={params.classroomId} postId={params.postId} />;
+export default async function ForumPostDetailPage({ params }: { params: Promise<Props['params']> }) {
+    const resolvedParams = await params;
+    return <ForumPostDetailClient classroomId={resolvedParams.classroomId} postId={resolvedParams.postId} />;
 }

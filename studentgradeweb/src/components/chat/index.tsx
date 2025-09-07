@@ -108,10 +108,10 @@ export default function ChatBox() {
                 { query: message },
                 { headers: { "Content-Type": "application/json" } }
             );
-            return response?.data ?? "Xin lỗi, tôi không thể trả lời lúc này.";
+            return response?.data ?? t('error-message');
         } catch (err) {
             console.error("Error calling chatbot API:", err);
-            return "Xin lỗi, tôi không thể trả lời lúc này.";
+            return t('error-message');
         }
     };
 

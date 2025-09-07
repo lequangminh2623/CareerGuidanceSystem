@@ -73,8 +73,8 @@ public class ClassroomController {
         model.addAttribute("students", studentService.getStudents(null, null, Pageable.unpaged()).getContent());
         model.addAttribute("courses", courseService.getCourses(null, Pageable.unpaged()).getContent());
         model.addAttribute("semesters", semesterService.getSemesters(null));
-        List<User> lecturers = userService.getUsers(Map.of("role", "ROLE_LECTURER"), Pageable.unpaged()).getContent();
-        model.addAttribute("lecturers", lecturers);
+        List<User> teachers = userService.getUsers(Map.of("role", "ROLE_TEACHER"), Pageable.unpaged()).getContent();
+        model.addAttribute("teachers", teachers);
     }
 
     @GetMapping("")
@@ -148,8 +148,8 @@ public class ClassroomController {
         transcript.setClassroomName(classroom.getCourse().getName() + " - " + classroom.getName());
         transcript.setCourseName(classroom.getCourse().getName());
         transcript.setAcademicTerm(classroom.getSemester().getSemesterType());
-        transcript.setLecturerName(
-                classroom.getLecturer().getLastName() + " " + classroom.getLecturer().getFirstName()
+        transcript.setTeacherName(
+                classroom.getTeacher().getLastName() + " " + classroom.getTeacher().getFirstName()
         );
         transcript.setGrades(gradeDTOList);
 

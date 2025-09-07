@@ -20,10 +20,12 @@ export const endpoints = {
 
     ask: "/secure/ai/ask",
     analysis: (semesterId: number | string) => `/secure/ai/analysis/${semesterId}`,
+    orientate: "/secure/ai/orientate",
 
     "forum-posts": (classroomId: number | string) => `/secure/classrooms/${classroomId}/forums`,
-    "forum-post-detail": (postId: number | string) => `/secure/forums/${postId}`,
-    "forum-reply": (postId: number | string) => `/secure/forums/${postId}/replies`,
+    "forum-post-detail": (postId: number | string) => `/secure/forums/${postId}/detail`,
+    "forum-post": (postId: number | string) => `/secure/forums/${postId}`,
+    "forum-replies": (postId: number | string) => `/secure/forums/${postId}/replies`,
     "forum-reply-detail": (postId: number | string, replyId: number | string) =>
         `/secure/forums/${postId}/replies/${replyId}`,
     "forum-child-replies": (postId: number | string, replyId: number | string) =>

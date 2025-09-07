@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Danh sách lớp học</title>
-    <th:block th:replace="base :: bootstrap"></th:block>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <p th:replace="base :: header"></p>
+    <p th:replace="~{base :: header}"></p>
     <main class="flex-grow-1 container mt-5">
         <h2 class="mb-4">Danh sách lớp học</h2>
 
@@ -33,7 +33,7 @@
                     <tr>
                         <th>Tên lớp</th>
                         <th>Khóa học</th>
-                        <th>Giảng viên</th>
+                        <th>Giáo viên</th>
                         <th>Học kỳ</th>
                         <th>Trạng thái điểm</th>
                         <th>Hành động</th>
@@ -43,7 +43,7 @@
                     <tr th:each="c : ${classrooms}">
                         <td th:text="${c.name}"></td>
                         <td th:text="${c.course.name}"></td>
-                        <td th:text="${c.lecturer.id + ' - ' + c.lecturer.lastName + ' ' + c.lecturer.firstName}"></td>
+                        <td th:text="${c.teacher.id + ' - ' + c.teacher.lastName + ' ' + c.teacher.firstName}"></td>
                         <td th:text="${c.semester.academicYear.year + ' - ' + c.semester.semesterType}"></td>
                         <td th:text="${c.gradeStatus}"></td>
                         <td>
@@ -85,7 +85,7 @@
             </ul>
         </nav>
     </main>
-    <p th:replace="base :: footer"></p>
+    <p th:replace="~{base :: footer}"></p>
     <script th:src="@{/js/classroom.js}"></script>
 </body>
 </html>

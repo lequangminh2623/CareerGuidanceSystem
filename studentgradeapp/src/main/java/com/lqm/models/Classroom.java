@@ -67,8 +67,8 @@ public class Classroom implements Serializable {
     private Semester semester;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "lecturer_id", referencedColumnName = "id")
-    private User lecturer;
+    @JoinColumn(name = "teacher_id", referencedColumnName = "id")
+    private User teacher;
 
     // ----- ForumPost management -----
     public void addForumPost(ForumPost post) {

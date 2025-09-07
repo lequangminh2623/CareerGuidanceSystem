@@ -14,5 +14,5 @@ public class PageSize {
     public static final int USER_PAGE_SIZE = 10;
     public static final int CLASSROOM_PAGE_SIZE = 9;
     public static final int FORUM_POST_PAGE_SIZE = 8;
-    public static final int FORUM_REPLY_PAGE_SIZE = 5;
+    public static final int FORUM_REPLY_PAGE_SIZE = 10;
 }

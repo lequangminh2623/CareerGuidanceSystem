@@ -1,7 +1,9 @@
 // src/main/java/com/lqm/controllers/ForumReplyController.java
 package com.lqm.controllers;
 
+import com.lqm.models.ForumPost;
 import com.lqm.models.ForumReply;
+import com.lqm.models.User;
 import com.lqm.repositories.UserRepository;
 import com.lqm.services.ForumReplyService;
 import com.lqm.services.ForumPostService;
@@ -48,6 +50,8 @@ public class ForumReplyController {
     @Autowired
     @Qualifier("webAppValidator")
     private WebAppValidator webAppValidator;
+    @Autowired
+    private UserService userService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -56,9 +60,9 @@ public class ForumReplyController {
 
     @ModelAttribute
     public void addCommonAttributes(Model model) {
-        List<String> roles = List.of("ROLE_LECTURER", "ROLE_STUDENT");
+        List<String> roles = List.of("ROLE_TEACHER", "ROLE_STUDENT");
         model.addAttribute("users", userRepo.findByRoleIn(roles));
-        model.addAttribute("forumPosts", forumPostService.getAllForumPosts());
+        model.addAttribute("forumPosts", forumPostService.getForumPosts(null, Pageable.unpaged()));
     }
 
     @GetMapping("/replies")
@@ -74,11 +78,7 @@ public class ForumReplyController {
             } catch (NumberFormatException ignored) {}
         }
 
-        Pageable pageable = PageRequest.of(
-                pageNumber - 1,
-                PageSize.FORUM_REPLY_PAGE_SIZE,
-                Sort.by("id").descending() // mới nhất trước
-        );
+        Pageable pageable = PageRequest.of(pageNumber - 1, PageSize.FORUM_REPLY_PAGE_SIZE);
 
         Page<ForumReply> replyPage = forumReplyService.getAllReplies(params, pageable);
 
@@ -93,6 +93,8 @@ public class ForumReplyController {
 
     @GetMapping("/replies/add")
     public String showAddForm(Model model) {
+        List<ForumReply> replies = this.forumReplyService.getAllReplies(null, Pageable.unpaged()).getContent();
+        model.addAttribute("replies", replies);
         model.addAttribute("reply", new ForumReply());
         return "/forum/reply-form";
     }
@@ -100,6 +102,11 @@ public class ForumReplyController {
     @GetMapping("/replies/{id}")
     public String showEditForm(@PathVariable int id, Model model) {
         ForumReply reply = forumReplyService.getReplyById(id);
+        List<ForumReply> replies = this.forumReplyService.getAllReplies(null, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .filter(r -> !r.getId().equals(id)) // loại bỏ reply hiện tại
+                .toList();        model.addAttribute("replies", replies);
         model.addAttribute("reply", reply);
         return "/forum/reply-form";
     }

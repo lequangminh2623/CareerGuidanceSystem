@@ -112,7 +112,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     @Override
     public boolean existUserInClassroom(Integer userId, Integer classRoomId) {
-        return classroomRepo.existsByLecturerOrStudent(userId, classRoomId);
+        return classroomRepo.existsByTeacherOrStudent(userId, classRoomId);
     }
 
     @Override
@@ -183,10 +183,10 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public boolean checkLecturerPermission(Integer classroomId) {
+    public boolean checkTeacherPermission(Integer classroomId) {
         String email = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Classroom c = getClassroomById(classroomId);
-        return c.getLecturer().getEmail().equalsIgnoreCase(email);
+        return c.getTeacher().getEmail().equalsIgnoreCase(email);
     }
 
     @Override
@@ -234,8 +234,8 @@ public class ClassroomServiceImpl implements ClassroomService {
             infoTable.addCell(new Cell().add(new Paragraph("Môn: " + classroom.getCourse().getName()).setFontSize(12)).setBorder(Border.NO_BORDER));
             infoTable.addCell(new Cell().add(new Paragraph("Lớp: " + classroom.getName()).setFontSize(12)).setBorder(Border.NO_BORDER));
 
-            String lecturerName = classroom.getLecturer().getLastName() + " " + classroom.getLecturer().getFirstName();
-            infoTable.addCell(new Cell().add(new Paragraph("Giảng viên: " + lecturerName).setFontSize(12)).setBorder(Border.NO_BORDER));
+            String teacherName = classroom.getTeacher().getLastName() + " " + classroom.getTeacher().getFirstName();
+            infoTable.addCell(new Cell().add(new Paragraph("Giảng viên: " + teacherName).setFontSize(12)).setBorder(Border.NO_BORDER));
             infoTable.addCell(new Cell().add(new Paragraph("Học kỳ: " + classroom.getSemester().getSemesterType()
                     + " " + classroom.getSemester().getAcademicYear().getYear()).setFontSize(12)).setBorder(Border.NO_BORDER));
 

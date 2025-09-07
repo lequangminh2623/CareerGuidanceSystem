@@ -12,14 +12,8 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Redirect root path to login if not authenticated
-    if (pathname === '/' && !token) {
-        const loginUrl = new URL('/login', request.url);
-        return NextResponse.redirect(loginUrl);
-    }
-
-    // Redirect to login if not authenticated for other protected routes
-    if (!token) {
+    // Redirect to login if not authenticated
+    if (!(['/login', '/register'].includes(pathname)) && !token) {
         const loginUrl = new URL('/login', request.url);
         return NextResponse.redirect(loginUrl);
     }

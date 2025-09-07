@@ -3,8 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Other/javascript.js to edit this template
  */
 
-new TomSelect('#lecturerSelect', {
-    placeholder: 'Tìm giảng viên...',
+new TomSelect('#teacherSelect', {
+    placeholder: 'Tìm giáo viên...',
     allowEmptyOption: false
 });
 

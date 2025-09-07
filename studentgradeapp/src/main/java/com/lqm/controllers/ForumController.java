@@ -30,9 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * MVC controller for forum posts and replies.
- */
 @Controller
 @RequestMapping("/forums")
 public class ForumController {
@@ -60,10 +57,8 @@ public class ForumController {
 
     @ModelAttribute("commonData")
     public void populateCommon(Model model) {
-        model.addAttribute("users", userRepo.findByRoleIn(List.of("ROLE_LECTURER", "ROLE_STUDENT")));
-        // classrooms pagination for sidebar/filter
-        Pageable classroomPageable = Pageable.ofSize(PageSize.CLASSROOM_PAGE_SIZE);
-        model.addAttribute("classrooms", classroomService.getClassrooms(null, classroomPageable));
+        model.addAttribute("users", userRepo.findByRoleIn(List.of("ROLE_TEACHER", "ROLE_STUDENT")));
+        model.addAttribute("classrooms", classroomService.getClassrooms(null, Pageable.unpaged()));
     }
 
     @GetMapping
@@ -96,13 +91,14 @@ public class ForumController {
     }
 
     @PostMapping
-    public String createPost(
+    public String saveForumPost(
             @ModelAttribute("forumPost") @Valid ForumPost forumPost,
             BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "forum/forum-post-form";
         }
         forumPostService.saveForumPost(forumPost);
+
         return "redirect:/forums";
     }
 
@@ -113,27 +109,14 @@ public class ForumController {
         return "forum/forum-post-form";
     }
 
-    @PostMapping("/{id}")
-    public String updatePost(
-            @PathVariable int id,
-            @ModelAttribute("forumPost") @Valid ForumPost forumPost,
-            BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "forum/forum-post-form";
-        }
-        forumPost.setId(id);
-        forumPostService.saveForumPost(forumPost);
-        return "redirect:/forums";
-    }
-
-    @PostMapping("/{id}/delete")
-    public String deletePost(@PathVariable int id) {
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePost(@PathVariable int id) {
         forumPostService.deleteForumPostById(id);
-        return "redirect:/forums";
     }
 
     //REPLY
-    @GetMapping("/forums/{id}/replies")
+    @GetMapping("/{id}/replies")
     public String getForumReplies(Model model,
                                   @PathVariable("id") int forumPostId,
                                   @RequestParam Map<String, String> params) {
@@ -155,7 +138,7 @@ public class ForumController {
         return "/forum/forum-reply-list";
     }
 
-    @GetMapping("/forums/{postId}/replies/{replyId}/child-replies")
+    @GetMapping("/{postId}/replies/{replyId}/child-replies")
     public ResponseEntity<List<ForumReplyDTO>> getReplies(@PathVariable("postId") int postId,
                                                           @PathVariable("replyId") int replyId,
                                                           @RequestParam Map<String, String> params) {

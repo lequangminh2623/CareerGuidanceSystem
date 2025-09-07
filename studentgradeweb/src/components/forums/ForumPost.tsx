@@ -4,10 +4,11 @@ import { useContext, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MyUserContext } from '@/lib/contexts/userContext';
-import { checkPermission, checkCanEdit, formatVietnamTime } from '@/lib/utils';
+import { checkPermission, checkCanEdit } from '@/lib/utils';
 import { FaPenToSquare, FaEye, FaTrashCan } from "react-icons/fa6";
 import { authApis, endpoints } from "@/lib/utils/api";
 import { useTranslation } from "react-i18next";
+import TimeConvert from '../layout/TimeConvert';
 
 interface User {
     id: string;
@@ -21,16 +22,17 @@ interface Post {
     title: string;
     image?: string;
     createdDate: string;
+    updatedDate?: string;
     user: User;
 }
 
 interface ForumPostProps {
+    classroomId: string;
     post: Post;
-    classRoomName: string;
     onPostDeleted: (id: string) => void;
 }
 
-export default function ForumPost({ post, classRoomName, onPostDeleted }: ForumPostProps) {
+export default function ForumPost({ classroomId, post, onPostDeleted }: ForumPostProps) {
     const router = useRouter();
     const [perm, setPerm] = useState(false);
     const [canEditOrDelete, setCanEditOrDelete] = useState(false);
@@ -38,14 +40,14 @@ export default function ForumPost({ post, classRoomName, onPostDeleted }: ForumP
     const { t } = useTranslation();
 
     const handleDeletePost = async () => {
-        if (!window.confirm("Bạn có chắc chắn muốn xoá bài đăng này?")) return;
+        if (!window.confirm(t("confirm-remove"))) return;
 
         try {
-            await authApis().delete(endpoints['forum-post-detail'](post.id));
+            await authApis().delete(endpoints['forum-post'](post.id));
             onPostDeleted(post.id);
         } catch (ex) {
             console.error("Delete error:", ex);
-            alert("Xoá bài viết thất bại!");
+            alert(t("error-message"));
         }
     };
 
@@ -72,7 +74,12 @@ export default function ForumPost({ post, classRoomName, onPostDeleted }: ForumP
                         {post.user.firstName} {post.user.lastName}
                     </div>
                     <div className="text-sm text-gray-500">
-                        {formatVietnamTime(post.createdDate)}
+                        <TimeConvert timestamp={post.createdDate} />
+                        {post.updatedDate && (
+                            <span className="ml-2 text-xs italic">
+                                ({t('edited')})
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -93,7 +100,7 @@ export default function ForumPost({ post, classRoomName, onPostDeleted }: ForumP
 
                 <div className="flex justify-end space-x-2">
                     <button
-                        onClick={() => router.push(`/classrooms/${post.id}/forums/${post.id}`)}
+                        onClick={() => router.push(`/classrooms/${classroomId}/forums/${post.id}`)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                         title={t('view')}
                     >
@@ -103,7 +110,7 @@ export default function ForumPost({ post, classRoomName, onPostDeleted }: ForumP
                     {perm && (
                         <>
                             <button
-                                onClick={() => router.push(`/classrooms/${post.id}/forums/${post.id}/edit`)}
+                                onClick={() => router.push(`/classrooms/${classroomId}/forums/${post.id}/edit-post`)}
                                 disabled={!canEditOrDelete}
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50"
                                 title={t('edit-tooltip')}

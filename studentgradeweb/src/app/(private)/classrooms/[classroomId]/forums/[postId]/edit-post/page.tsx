@@ -7,6 +7,7 @@ interface Props {
     };
 }
 
-export default function EditPostPage({ params }: Props) {
-    return <EditPostClient classroomId={params.classroomId} postId={params.postId} />;
+export default async function EditPostPage({ params }: { params: Promise<Props['params']> }) {
+    const resolvedParams = await params;
+    return <EditPostClient classroomId={resolvedParams.classroomId} postId={resolvedParams.postId} />;
 }

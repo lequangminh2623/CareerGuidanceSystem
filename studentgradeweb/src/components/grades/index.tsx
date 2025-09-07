@@ -121,12 +121,11 @@ const GradesClient = () => {
                         key={idx}
                         semesterTitle={semester.semesterTitle}
                         subjects={semester.subjects}
-                        summary={null}
                     />
                 ))
             ) : (
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-4 text-blue-700">
-                    {capitalizeFirstWord(`${t('no')} ${t('grades')}`)}
+                    {capitalizeFirstWord(`${t('none')} ${t('grades')}`)}
                 </div>
             )}
 

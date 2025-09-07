@@ -18,10 +18,10 @@ public class ClassroomSpecification {
                 return predicate;
             }
 
-            String name = params.get("name");
-            if (name != null && !name.isBlank()) {
+            String kw = params.get("kw");
+            if (kw != null && !kw.isBlank()) {
                 predicate = cb.and(predicate,
-                        cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%"));
+                        cb.like(cb.lower(root.get("name")), "%" + kw.toLowerCase() + "%"));
             }
 
             String semesterIdStr = params.get("semesterId");
@@ -42,12 +42,12 @@ public class ClassroomSpecification {
                 } catch (NumberFormatException ignored) {}
             }
 
-            String lecturerIdStr = params.get("lecturerId");
-            if (lecturerIdStr != null && !lecturerIdStr.isBlank()) {
+            String teacherIdStr = params.get("teacherId");
+            if (teacherIdStr != null && !teacherIdStr.isBlank()) {
                 try {
-                    Integer lecturerId = Integer.parseInt(lecturerIdStr);
+                    Integer teacherId = Integer.parseInt(teacherIdStr);
                     predicate = cb.and(predicate,
-                            cb.equal(root.get("lecturer").get("id"), lecturerId));
+                            cb.equal(root.get("teacher").get("id"), teacherId));
                 } catch (NumberFormatException ignored) {}
             }
 
@@ -61,8 +61,8 @@ public class ClassroomSpecification {
 
             if (user != null && user.getRole() != null) {
                 predicate = switch (user.getRole()) {
-                    case "ROLE_LECTURER" -> cb.and(predicate,
-                            cb.equal(root.get("lecturer").get("id"), user.getId()));
+                    case "ROLE_TEACHER" -> cb.and(predicate,
+                            cb.equal(root.get("teacher").get("id"), user.getId()));
                     case "ROLE_STUDENT" -> {
                         Join<Object, Object> studentJoin = root.join("studentSet", JoinType.INNER);
                         yield cb.and(predicate,

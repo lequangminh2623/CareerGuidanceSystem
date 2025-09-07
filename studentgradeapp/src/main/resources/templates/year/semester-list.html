@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Học kỳ</title>
-    <th:block th:replace="base :: bootstrap"></th:block>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <p th:replace="base :: header"></p>
+    <p th:replace="~{base :: header}"></p>
     <main class="flex-grow-1 container mt-5">
         <h2 class="mb-4">Danh sách học kỳ</h2>
 
@@ -95,7 +95,7 @@
 
     </main>
 
-    <p th:replace="base :: footer"></p>
+    <p th:replace="~{base :: footer}"></p>
     <script th:src="@{/js/semester.js}"></script>
 </body>
 </html>

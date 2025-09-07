@@ -4,6 +4,7 @@
  */
 package com.lqm.dtos;
 
+import com.lqm.models.ForumPost;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,13 @@ public class ForumPostDTO {
     private MultipartFile file;
 
     public ForumPostDTO() {
+    }
+
+    public ForumPostDTO(ForumPost post) {
+        this.title = post.getTitle();
+        this.content = post.getContent();
+        this.image = post.getImage();
+        this.file = post.getFile();
     }
 
 }

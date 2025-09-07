@@ -8,6 +8,13 @@ interface Props {
     };
 }
 
-export default function EditReplyPage({ params }: Props) {
-    return <EditReplyClient {...params} />;
+export default async function EditReplyPage({ params }: { params: Promise<Props["params"]> }) {
+    const resolvedParams = await params;
+    return (
+        <EditReplyClient
+            classroomId={resolvedParams.classroomId}
+            postId={resolvedParams.postId}
+            replyId={resolvedParams.replyId}
+        />
+    );
 }

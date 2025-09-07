@@ -46,14 +46,20 @@ public interface GradeDetailRepository extends JpaRepository<GradeDetail, Intege
         WHERE gd.semester.id = :semesterId AND EXISTS (
             SELECT 1 FROM Classroom c
             JOIN c.studentSet s
-            WHERE c.lecturer.id = :lecturerId
+            WHERE c.teacher.id = :teacherId
             AND c.semester.id = :semesterId
             AND c.course.id = gd.course.id
             AND s.id = gd.student.id
         )
     """)
-    List<GradeDetail> findByLecturerAndSemester(
-            @Param("lecturerId") Integer lecturerId,
+    List<GradeDetail> findByTeacherAndSemester(
+            @Param("teacherId") Integer teacherId,
             @Param("semesterId") Integer semesterId
     );
+
+    @Query("SELECT DISTINCT gd FROM GradeDetail gd " +
+            "LEFT JOIN FETCH gd.extraGradeSet eg " +
+            "LEFT JOIN FETCH gd.course c " +
+            "WHERE gd.student.id = :studentId")
+    List<GradeDetail> findAllWithExtrasByStudentId(@Param("studentId") Integer studentId);
 }

@@ -1,5 +1,7 @@
 package com.lqm.controllers;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.lqm.dtos.OrientationDTO;
 import com.lqm.models.GradeDetail;
 import com.lqm.models.Semester;
 import com.lqm.models.User;
@@ -8,16 +10,14 @@ import com.lqm.services.GradeDetailService;
 import com.lqm.services.SemesterService;
 import com.lqm.services.UserService;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -49,14 +49,14 @@ public class ApiAIController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized"));
         }
 
-        User lecturer = userService.getUserByEmail(email)
+        User teacher = userService.getUserByEmail(email)
                 .orElse(null);
 
-        if (lecturer == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Lecturer not found"));
+        if (teacher == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Teacher not found"));
         }
 
-        List<GradeDetail> gradeDetails = gradeDetailService.getGradeDetailsByLecturerAndSemester(lecturer.getId(), semesterId);
+        List<GradeDetail> gradeDetails = gradeDetailService.getGradeDetailsByTeacherAndSemester(teacher.getId(), semesterId);
         SemesterAnalysisResult result = gradeDetailService.analyzeSemester(gradeDetails);
         List<Semester> allSemesters = semesterService.getSemesters(null);
 
@@ -78,7 +78,7 @@ public class ApiAIController {
         String apiUrl = "http://localhost:11434/api/chat";
 
         Map<String, Object> requestBody = Map.of(
-                "model", "gemma2:2b",
+                "model", "studentgrade-assistant:latest",
                 "messages", List.of(
                         Map.of("role", "user", "content", userQuery)
                 ),
@@ -121,5 +121,69 @@ public class ApiAIController {
 
         // Fallback response if the content is empty after retries
         return "I'm sorry, I couldn't process your query. Please try again.";
+    }
+
+    @PostMapping(path = "/orientate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> orientate(
+            @RequestBody com.lqm.dtos.OrientationDTO request
+    ) {
+        // 1) Lấy dữ liệu học thuật của người dùng hiện tại (gender + điểm các môn)
+        User currentUser = this.userService.getCurrentUser();
+        OrientationDTO dto = gradeDetailService.getSubjectAveragesForStudent(currentUser.getId());
+
+        // 2) Ghép payload gửi sang service Python
+        java.util.Map<String, Object> payload = new java.util.LinkedHashMap<>();
+        payload.put("gender", currentUser.isGender());
+        payload.put("part_time_job", request.getPartTimeJob());
+        payload.put("extracurricular_activities", request.getExtracurricularActivities());
+        payload.put("absence_days", request.getAbsenceDays());
+        payload.put("weekly_self_study_hours", request.getWeeklySelfStudyHours());
+        payload.put("math_score", dto.getMathScore());
+        payload.put("history_score", dto.getHistoryScore());
+        payload.put("physics_score", dto.getPhysicsScore());
+        payload.put("chemistry_score", dto.getChemistryScore());
+        payload.put("biology_score", dto.getBiologyScore());
+        payload.put("english_score", dto.getEnglishScore());
+        payload.put("geography_score", dto.getGeographyScore());
+
+        // 3) Gọi sang http://127.0.0.1:8000/orientate
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<java.util.Map<String, Object>> entity =
+                new HttpEntity<>(payload, headers);
+
+        final String url = "http://127.0.0.1:8000/orientate";
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ResponseEntity<java.util.Map<String, Object>> pyResp =
+                    restTemplate.exchange(
+                            url, HttpMethod.POST, entity, new ParameterizedTypeReference<Map<String, Object>>() {}
+                    );
+
+            Map<String, Object> responseBody = pyResp.getBody();
+            Map<String, Object> result = new LinkedHashMap<>();
+            boolean ok = pyResp.getStatusCode().is2xxSuccessful();
+
+            result.put("success", ok);
+            // Lấy kết quả định hướng nghề nghiệp nếu có
+            result.put("career_orientation", responseBody != null ? responseBody.get("career_orientation") : null);
+            // Đính kèm toàn bộ phản hồi từ Python để frontend linh hoạt xử lý
+            result.put("data", responseBody);
+
+            return ResponseEntity.status(pyResp.getStatusCode()).body(result);
+        } catch (RestClientResponseException ex) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("error", "Python service responded with an error");
+            error.put("status", ex.getStatusCode());
+            error.put("response", ex.getResponseBodyAsString());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
+        } catch (Exception ex) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("success", false);
+            error.put("error", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }

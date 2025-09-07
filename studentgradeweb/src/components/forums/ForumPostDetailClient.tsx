@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -8,9 +8,10 @@ import { MyUserContext } from '@/lib/contexts/userContext';
 import MySpinner from '@/components/layout/MySpinner';
 import { authApis, endpoints } from '@/lib/utils/api';
 import ForumReply from '@/components/forums/ForumReply';
-import { checkPermission, checkCanEdit, formatVietnamTime, capitalizeFirstWord } from '@/lib/utils';
+import { checkPermission, checkCanEdit, capitalizeFirstWord } from '@/lib/utils';
 import { FaPenToSquare, FaTrashCan } from 'react-icons/fa6';
 import { useTranslation } from 'react-i18next';
+import TimeConvert from '../layout/TimeConvert';
 
 interface User {
     id: string;
@@ -23,6 +24,7 @@ interface Reply {
     id: string;
     content: string;
     createdDate: string;
+    updatedDate?: string;
     user: User;
 }
 
@@ -32,6 +34,7 @@ interface Post {
     content: string;
     image?: string;
     createdDate: string;
+    updatedDate?: string;
     user: User;
     forumReplies: Reply[];
 }
@@ -53,16 +56,21 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
     const pathname = usePathname();
     const { t } = useTranslation();
 
-    const isAddPage = pathname.endsWith('add');
+    const isAddPage = pathname.endsWith('add-post');
 
-    const loadForumPost = async () => {
+    const loadForumPost = useCallback(async () => {
+        if (loading) return;
         try {
             setLoading(true);
             const url = `${endpoints['forum-post-detail'](postId)}?page=${page}`;
             const res = await authApis().get(url);
-
-            setPost(res.data.content);
-            setReplies((prev) => [...prev, ...res.data.content.forumReplies]);
+            console.info("Loaded post detail:", res.data);
+            setPost(res.data);
+            setReplies((prev) => {
+                const existingIds = new Set(prev.map(reply => reply.id));
+                const newReplies = (res.data.forumReplies || []).filter((reply: Reply) => !existingIds.has(reply.id));
+                return [...prev, ...newReplies];
+            });
 
             if (page >= res.data.totalPages) {
                 setPage(0);
@@ -72,25 +80,31 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page]);
+
+    useEffect(() => {
+        setPost(null);
+        setReplies([]);
+        setPage(1);
+    }, [postId]);
 
     const handleDeletePost = async () => {
         if (!post) return;
-        if (!window.confirm(t('confirm-delete-post'))) return;
+        if (!window.confirm(t('confirm-remove'))) return;
 
         try {
-            await authApis().delete(endpoints['forum-post-detail'](post.id));
-            alert(t('delete-success'));
+            await authApis().delete(endpoints['forum-post'](post.id));
+            alert(t('success-message'));
             router.push(`/classrooms/${classroomId}/forums`);
         } catch (ex) {
             console.error('Delete error:', ex);
-            alert(t('delete-failed'));
+            alert(t('error-message'));
         }
     };
 
     const handleReplyDeleted = (deletedId: string) => {
         setReplies((prev) => prev.filter((r) => r.id !== deletedId));
-        alert(t('reply-delete-success'));
+        alert(t('success-message'));
     };
 
     useEffect(() => {
@@ -106,15 +120,10 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
         if (!loading && page > 0) setPage((p) => p + 1);
     };
 
-    useEffect(() => {
-        setPost(null);
-        setReplies([]);
-        setPage(1);
-    }, [postId]);
 
     useEffect(() => {
         if (page > 0) loadForumPost();
-    }, [page]);
+    }, [loadForumPost]);
 
     if (loading && !post) return <MySpinner />;
 
@@ -139,7 +148,12 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
                                     {post.user.firstName} {post.user.lastName}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    {formatVietnamTime(post.createdDate)}
+                                    <TimeConvert timestamp={post.createdDate} />
+                                    {post.updatedDate && (
+                                        <span className="ml-2 text-xs italic">
+                                            ({t('edited')})
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -150,20 +164,20 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
 
                                 {perm && (
                                     <div className="flex space-x-2">
-                                        {canEditOrDelete && (
+                                        {canEditOrDelete && (<>
                                             <button
-                                                onClick={() => router.push(`/classrooms/${classroomId}/forums/${postId}/edit`)}
+                                                onClick={() => router.push(`/classrooms/${classroomId}/forums/${postId}/edit-post`)}
                                                 className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center gap-1"
                                             >
                                                 <FaPenToSquare /> {t('edit')}
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={handleDeletePost}
-                                            className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-1"
-                                        >
-                                            <FaTrashCan /> {t('delete')}
-                                        </button>
+                                            <button
+                                                onClick={handleDeletePost}
+                                                className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-1"
+                                            >
+                                                <FaTrashCan /> {t('delete')}
+                                            </button>
+                                        </>)}
                                     </div>
                                 )}
                             </div>
@@ -195,7 +209,7 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
                                     router.push(
                                         isAddPage
                                             ? `/classrooms/${classroomId}/forums/${postId}`
-                                            : `/classrooms/${classroomId}/forums/${postId}/add`
+                                            : `/classrooms/${classroomId}/forums/${postId}/add-reply`
                                     )
                                 }
                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -205,7 +219,7 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
                         </div>
 
                         <div className="space-y-4">
-                            {replies.length > 0 ? (
+                            {replies && replies.length > 0 ? (
                                 replies.map((reply) => (
                                     <ForumReply
                                         key={reply.id}
@@ -217,7 +231,7 @@ export default function ForumPostDetailClient({ classroomId, postId }: Props) {
                                 ))
                             ) : (
                                 <div className="text-center text-gray-500">
-                                    {capitalizeFirstWord(`${t('no')} ${t('reply')}`)}
+                                    {capitalizeFirstWord(`${t("none")} ${t("reply")}`)}
                                 </div>
                             )}
                         </div>

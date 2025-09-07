@@ -40,11 +40,11 @@ export default function CreatePostClient({ classroomId }: Props) {
         const errors: FieldErrors = {};
 
         if (!post.title?.trim()) {
-            errors.title = 'Tiêu đề không được để trống';
+            errors.title = t("empty-error");
         }
 
         if (!post.content?.trim()) {
-            errors.content = 'Nội dung không được để trống';
+            errors.content = t("empty-error");
         }
 
         setFieldErrors(errors);
@@ -75,7 +75,7 @@ export default function CreatePostClient({ classroomId }: Props) {
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
 
-                router.push(`/classrooms/${classroomId}/forums?newPost=${encodeURIComponent(JSON.stringify(res.data))}`);
+                router.push(`/classrooms/${classroomId}/forums`);
             } catch (ex: any) {
                 if (ex.response?.status === 400 && Array.isArray(ex.response.data)) {
                     const errors: FieldErrors = {};
@@ -84,7 +84,7 @@ export default function CreatePostClient({ classroomId }: Props) {
                     });
                     setFieldErrors(errors);
                 } else {
-                    setMsg("Lỗi khi tạo bài đăng");
+                    setMsg(t("error-message"));
                 }
             } finally {
                 setLoading(false);
@@ -157,7 +157,7 @@ export default function CreatePostClient({ classroomId }: Props) {
                                     }
                                 }}
                                 className="w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4
-                                         file:rounded-full file:border-0 file:text-sm file:font-semibold
+                                         file:rounded-full file:border-0 file:text-sm
                                          file:bg-primary file:text-white hover:file:bg-primary-dark"
                             />
 

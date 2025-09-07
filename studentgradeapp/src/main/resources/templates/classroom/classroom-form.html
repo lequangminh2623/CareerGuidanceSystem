@@ -3,10 +3,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Lớp học</title>
-    <th:block th:replace="base :: bootstrap"></th:block>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <p th:replace="base :: header"></p>
+    <p th:replace="~{base :: header}"></p>
     <main class="flex-grow-1 container mt-5">
         <div class="row g-3">
             <h2 class="col-md-10" th:text="${classroom.id == null ? 'Thêm lớp học' : 'Cập nhật lớp học'}"></h2>
@@ -29,22 +29,22 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label">Giảng viên:</label>
-                    <select th:field="*{lecturer.id}" id="lecturerSelect" class="form-select"
-                            th:classappend="${#fields.hasErrors('lecturer')} ? 'is-invalid'">
-                        <option th:each="l : ${lecturers}" 
+                    <label class="form-label">Giáo viên:</label>
+                    <select th:field="*{teacher.id}" id="teacherSelect" class="form-select"
+                            th:classappend="${#fields.hasErrors('teacher')} ? 'is-invalid'">
+                        <option th:each="l : ${teachers}"
                                 th:value="${l.id}" 
                                 th:text="${l.id + ' - ' + l.lastName + ' ' + l.firstName}">
                         </option>
                     </select>
-                    <div class="invalid-feedback" th:errors="*{lecturer}"></div>
+                    <div class="invalid-feedback" th:errors="*{teacher}"></div>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Môn học:</label>
                     <select th:field="*{course.id}" id="courseSelect" class="form-select"
                             th:classappend="${#fields.hasErrors('course')} ? 'is-invalid'">
-                        <option th:each="c : ${courses}" 
+                        <option th:each="c : ${courses}"
                                 th:value="${c.id}" 
                                 th:text="${c.name}">
                         </option>
@@ -171,7 +171,7 @@
             </div>
         </form>
     </main>
-    <p th:replace="base :: footer"></p>
+    <p th:replace="~{base :: footer}"></p>
     <script th:src="@{/js/classroom.js}"></script>
 
 </body>

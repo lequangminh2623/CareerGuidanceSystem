@@ -21,10 +21,9 @@ interface Summary {
 interface SemesterTableProps {
     semesterTitle: string;
     subjects: Subject[];
-    summary: Summary | null;
 }
 
-const SemesterTable = ({ semesterTitle, subjects, summary }: SemesterTableProps) => {
+const SemesterTable = ({ semesterTitle, subjects }: SemesterTableProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const { t } = useTranslation();
 
@@ -74,17 +73,6 @@ const SemesterTable = ({ semesterTitle, subjects, summary }: SemesterTableProps)
                         </tbody>
                     </table>
                 </div>
-
-                {summary && (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <strong>Điểm trung bình tích lũy hệ 4:</strong> {summary.gpa}
-                        </div>
-                        <div>
-                            <strong>Số tín chỉ tích lũy:</strong> {summary.credits}
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

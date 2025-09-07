@@ -29,7 +29,7 @@ public class ClassroomDTO {
 
     private Semester semester;
 
-    private User lecturer;
+    private User teacher;
 
     public ClassroomDTO() {
     }
@@ -40,7 +40,7 @@ public class ClassroomDTO {
         this.gradeStatus = classroom.getGradeStatus();
         this.course = classroom.getCourse();
         this.semester = classroom.getSemester();
-        this.lecturer = classroom.getLecturer();
+        this.teacher = classroom.getTeacher();
     }
 
 }

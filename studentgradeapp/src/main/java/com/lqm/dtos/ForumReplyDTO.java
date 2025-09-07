@@ -32,9 +32,9 @@ public class ForumReplyDTO {
 
     private Date updatedDate;
 
-    private String user;
+    private User user;
 
-    private int parentId;
+    private Integer parentId;
 
     @JsonIgnore
     private MultipartFile file;
@@ -48,23 +48,8 @@ public class ForumReplyDTO {
         this.image = reply.getImage();
         this.createdDate = reply.getCreatedDate();
         this.updatedDate = reply.getUpdatedDate();
-        this.user = String.format("%d - %s", reply.getUser().getId(), reply.getUser().getFirstName());
+        this.user = reply.getUser();
         this.parentId = reply.getParent() != null ? reply.getParent().getId() : null;
-    }
-
-    // ForumReplyDTO.java
-
-    public ForumReply toEntity(int postId, User user) {
-        ForumReply reply = new ForumReply();
-        ForumPost post = new ForumPost();
-        post.setId(postId);
-
-        reply.setForumPost(post);
-        reply.setUser(user);
-        reply.setContent(this.content);
-        reply.setFile(this.file); // nếu có
-
-        return reply;
     }
 
 }

@@ -76,7 +76,6 @@ public class ApiUserController {
 
         // Tạo User entity từ DTO
         User user = userDTO.toEntity();
-        user.setActive(true);
 
         User saved = userService.saveUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);

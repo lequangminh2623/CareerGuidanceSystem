@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Thêm/Cập nhật phản hồi</title>
-    <th:block th:replace="base :: bootstrap"></th:block>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <p th:replace="base :: header"></p>
+    <p th:replace="~{base :: header}"></p>
     <main class="flex-grow-1 container mt-5">
         <h2 class="text-center text-primary mb-4"
             th:text="${reply.id == null ? 'Thêm phản hồi mới' : 'Cập nhật phản hồi'}">
@@ -36,15 +36,13 @@
                              class="mt-2"
                              style="max-width: 200px;" />
                     </a>
-
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Người phản hồi:</label>
                     <select th:field="*{user.id}" id="userSelect" class="form-select"
                             th:classappend="${#fields.hasErrors('user')} ? 'is-invalid'" >
-                        <option value="">-- Chọn phản hồi --</option>
-                        <option th:each="u : ${users}" 
+                        <option th:each="u : ${users}"
                                 th:value="${u.id}" 
                                 th:text="${u.id + ' - ' + u.lastName + ' ' + u.firstName}">
                         </option>
@@ -56,8 +54,7 @@
                     <label class="form-label">Bài đăng:</label>
                     <select th:field="*{forumPost.id}" id="postSelect" class="form-select" 
                             th:classappend="${#fields.hasErrors('forumPost')} ? 'is-invalid'" >
-                        <option value="">-- Chọn bài đăng --</option>
-                        <option th:each="p : ${forumPosts}" 
+                        <option th:each="p : ${forumPosts}"
                                 th:value="${p.id}" 
                                 th:text="${p.id} + ' - ' + ${p.title}">
                         </option>
@@ -70,7 +67,7 @@
                     <select th:field="*{parent.id}" id="replySelect" class="form-select"
                             th:classappend="${#fields.hasErrors('parent')} ? 'is-invalid'" >
                         <option value="">-- Chọn phản hồi --</option>
-                        <option th:each="r : ${replies}" 
+                        <option th:each="r : ${replies}"
                                 th:value="${r.id}" 
                                 th:text="${r.id} + ' - ' + ${r.content}">
                         </option>
@@ -78,12 +75,9 @@
                     <div class="invalid-feedback" th:errors="*{parent}"></div>
                 </div>
 
-
             </div>
 
             <input type="hidden" th:field="*{id}" />
-            <input type="hidden" th:field="*{image}" />
-
 
             <div>
                 <button type="submit" class="btn btn-success">
@@ -93,7 +87,7 @@
             </div>
         </form>
     </main>
-    <p th:replace="base :: footer"></p>
+    <p th:replace="~{base :: footer}"></p>
     <script th:src="@{/js/forum.js}"></script>
 </body>
 </html>

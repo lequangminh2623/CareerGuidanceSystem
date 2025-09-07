@@ -18,8 +18,7 @@ public class ReplySpecification {
                 // Tìm kiếm theo từ khóa nội dung
                 String kw = params.get("kw");
                 if (kw != null && !kw.isEmpty()) {
-                    String likePattern = "%" + kw.trim().toLowerCase() + "%";
-                    predicates.add(cb.like(cb.lower(root.get("content")), likePattern));
+                    predicates.add(cb.like(cb.lower(root.get("content").as(String.class)), "%" + kw.toLowerCase() + "%"));
                 }
 
                 // Lọc theo userId

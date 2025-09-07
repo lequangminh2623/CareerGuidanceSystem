@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { authApis, endpoints } from '@/lib/utils/api';
@@ -9,13 +9,11 @@ import { useTranslation } from "react-i18next";
 import { capitalizeFirstWord } from "@/lib/utils";
 
 interface Post {
-    id: string;
-    title?: string;
-    content?: string;
+    title: string;
+    content: string;
     image?: string;
-    createdDate?: string;
-    updatedDate?: string;
     [key: string]: string | undefined;
+
 }
 
 interface FieldErrors {
@@ -30,14 +28,47 @@ interface Props {
 }
 
 export default function EditPostClient({ classroomId, postId }: Props) {
-    const [post, setPost] = useState<Post>({} as Post);
+    const [post, setPost] = useState<Post>({ title: '', content: '', image: '' });
     const imageRef = useRef<HTMLInputElement>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [msg, setMsg] = useState<string>("");
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-    const [previewImage, setPreviewImage] = useState<string | null>(post.image || null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
     const router = useRouter();
     const { t } = useTranslation();
+
+    // Fetch existing post data
+    useEffect(() => {
+        const fetchPost = async () => {
+            if (loading) return;
+            try {
+                setLoading(true);
+                const response = await authApis().get(endpoints['forum-post'](postId));
+                console.log('Post data received:', response.data);
+
+                const postData = response.data;
+
+                setPost({
+                    title: postData.title || '',
+                    content: postData.content || '',
+                    image: postData.image || ''
+                });
+
+                if (postData.image) {
+                    setPreviewImage(postData.image);
+                }
+            } catch (error) {
+                console.error('Failed to fetch post:', error);
+                setMsg(t("error-message"));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (postId) {
+            fetchPost();
+        }
+    }, [postId]);
 
     const setState = (value: string, field: string) => {
         setPost(prev => ({ ...prev, [field]: value }));
@@ -47,11 +78,11 @@ export default function EditPostClient({ classroomId, postId }: Props) {
         const errors: FieldErrors = {};
 
         if (!post.title?.trim()) {
-            errors.title = 'Tiêu đề không được để trống';
+            errors.title = t("empty-error");
         }
 
         if (!post.content?.trim()) {
-            errors.content = 'Nội dung không được để trống';
+            errors.content = t("empty-error");
         }
 
         setFieldErrors(errors);
@@ -79,13 +110,13 @@ export default function EditPostClient({ classroomId, postId }: Props) {
                 }
 
                 await authApis().patch(
-                    endpoints['forum-post-detail'](post.id),
+                    endpoints['forum-post'](postId),
                     form,
                     { headers: { "Content-Type": "multipart/form-data" } }
                 );
 
-                alert("Cập nhật bài đăng thành công!");
-                router.back();
+                alert(t("success-message"));
+                router.push(`/classrooms/${classroomId}/forums/${postId}`);
             } catch (ex: any) {
                 if (ex.response?.status === 400 && Array.isArray(ex.response.data)) {
                     const errors: FieldErrors = {};
@@ -94,13 +125,15 @@ export default function EditPostClient({ classroomId, postId }: Props) {
                     });
                     setFieldErrors(errors);
                 } else {
-                    setMsg("Lỗi khi cập nhật bài đăng");
+                    setMsg(t("error-message"));
                 }
             } finally {
                 setLoading(false);
             }
         }
     };
+
+    if (loading) return <MySpinner />;
 
     return (
         <div className="container mx-auto px-4 py-6 min-h-screen">
@@ -125,7 +158,7 @@ export default function EditPostClient({ classroomId, postId }: Props) {
                             </label>
                             <input
                                 type="text"
-                                value={post.title || ''}
+                                value={post.title}
                                 onChange={(e) => setState(e.target.value, "title")}
                                 placeholder={t('enter')}
                                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
@@ -142,7 +175,7 @@ export default function EditPostClient({ classroomId, postId }: Props) {
                             </label>
                             <textarea
                                 rows={5}
-                                value={post.content || ''}
+                                value={post.content}
                                 onChange={(e) => setState(e.target.value, "content")}
                                 placeholder={t('enter')}
                                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary
@@ -188,7 +221,7 @@ export default function EditPostClient({ classroomId, postId }: Props) {
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 type="button"
-                                onClick={() => router.back()}
+                                onClick={() => router.push(`/classrooms/${classroomId}/forums/${postId}`)}
                                 disabled={loading}
                                 className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg
                                          hover:bg-gray-600 transition-colors disabled:opacity-50"
