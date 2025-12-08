@@ -1,0 +1,108 @@
+services:
+  # ===== Discovery Service =====
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    networks:
+      - micro-net
+
+  # # ===== Config Service =====
+  # config-service:
+  #   build: ./config-service
+  #   container_name: config-service
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: prod
+  #   depends_on:
+  #     - discovery-service
+  #   ports:
+  #     - "8888:8888"
+  #   networks:
+  #     - micro-net
+
+  # ===== API Gateway =====
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      JWT_SECRET: "6F7Kel6lvN1Olgn31EBbOGv4O7jhMA2dM+1H6D08dh0FpDXJW9f+whbzSuID44h1vE9HsQpeavDwVoxCWGcw5w=="
+    depends_on:
+      - discovery-service
+    ports:
+      - "8080:8080"
+    networks:
+      - micro-net
+
+  # ===== PostgreSQL User DB =====
+  postgres-user:
+    image: postgres:15
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./user-service/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - micro-net
+
+  # ===== User Service =====
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/user_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      CLOUDINARY_SECRET: "CaUz3ettt7PWfRWiAr03SD6fkzc"
+      GOOGLE_CLIENT_SECRET: "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"
+    depends_on:
+      - discovery-service
+      # - config-service
+      - postgres-user
+    ports:
+      - "8081:8080"
+    networks:
+      - micro-net
+
+  # ===== PostgreSQL Academic DB =====
+  postgres-academic:
+    image: postgres:15
+    container_name: postgres-academic
+    environment:
+      POSTGRES_DB: academic_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./academic-service/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - micro-net
+
+  # ===== Academic Service =====
+  academic-service:
+    build: ./academic-service
+    container_name: academic-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-academic:5432/academic_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      - discovery-service
+      # - config-service
+      - postgres-academic
+    ports:
+      - "8082:8080"
+    networks:
+      - micro-net
+
+# ===== Network =====
+networks:
+  micro-net:
+    driver: bridge

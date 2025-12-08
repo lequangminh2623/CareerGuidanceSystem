@@ -195,6 +195,6 @@ next-env.d.ts
 .history
 .ionide
 
-application.properties
+.yml
 
 # End of https://www.toptal.com/developers/gitignore/api/java,nextjs,intellij,visualstudiocode

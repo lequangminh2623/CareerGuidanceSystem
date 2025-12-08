@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+    <head>
+        <title>Danh sách lớp học</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <p th:replace="~{base :: header}"></p>
+    <main class="flex-grow-1 container mt-5">
+        <h2 class="mb-4">Danh sách lớp học</h2>
+
+        <form th:action="@{/classrooms}" method="get" class="row g-3 align-items-center">
+            <div class="col-md-9">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label>
+                            <input type="text" name="kw" class="form-control" placeholder="Tìm theo tên..." th:value="${kw}"/>
+                        </label>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Lọc</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-end">
+                <a th:href="@{/classrooms/add}" class="btn btn-success">+ Thêm lớp học</a>
+            </div>
+        </form>
+
+        <hr />
+        
+        <div class="p-3 my-3 border rounded-3">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên lớp</th>
+                        <th>Khối lớp</th>
+                        <th>Năm học</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${classrooms}">
+                        <td th:text="${c.name}"></td>
+                        <td th:text="${c.gradeName}"></td>
+                        <td th:text="${c.yearName}"></td>
+                        <td>
+                            <a th:href="@{'/classrooms/' + ${c.id}}" class="btn btn-warning btn-sm">✏️</a>
+                            <button class="btn btn-danger btn-sm"
+                                    th:data-url="@{/classrooms/}"
+                                    th:data-id="${c.id}"
+                                    onclick="deleteHandler(this)">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation" th:if="${totalPages > 0}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link"
+                       th:href="@{'/classrooms'(page=${currentPage - 1}, kw=${kw})}"
+                       th:classappend="${currentPage == 1} ? ' disabled'"
+                       aria-label="Previous">
+                        <span aria-hidden="true"><</span>
+                    </a>
+                </li>
+
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a class="page-link"
+                       th:href="@{'/classrooms'(page=${i}, kw=${kw})}"
+                       th:classappend="${i == currentPage} ? ' active'">
+                        <span th:text="${i}"></span>
+                    </a>
+                </li>
+
+                <li class="page-item">
+                    <a class="page-link"
+                       th:href="@{'/classrooms'(page=${currentPage + 1}, kw=${kw})}"
+                       th:classappend="${currentPage == totalPages} ? ' disabled'"
+                       aria-label="Next">
+                        <span aria-hidden="true">></span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </main>
+    <p th:replace="~{base :: footer}"></p>
+    <script th:src="@{/js/delete.js}"></script>
+</body>
+</html>
