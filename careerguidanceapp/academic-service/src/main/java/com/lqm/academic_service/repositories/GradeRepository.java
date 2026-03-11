@@ -12,19 +12,23 @@ import java.util.UUID;
 
 @Repository
 public interface GradeRepository extends JpaRepository<Grade, UUID> {
-    @Query("SELECT g FROM Grade g " +
-            "WHERE g.year.id = :yearId " +
-            "AND (:kw IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))" +
-            "ORDER BY g.name")
+    @Query("""
+            SELECT g FROM Grade g
+            WHERE g.year.id = :yearId
+            AND (:kw IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+            ORDER BY g.name
+    """)
     List<Grade> findByYearId(
             @Param("yearId") UUID yearId,
             @Param("kw") String kw
     );
 
-    @Query("SELECT g FROM Grade g " +
-            "WHERE (:kw IS NULL OR LOWER(CONCAT(g.year.name, ' - ', g.name))" +
-            "LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))" +
-            "ORDER BY g.year.name desc, g.name")
+    @Query("""
+            SELECT g FROM Grade g
+            WHERE (:kw IS NULL OR LOWER(CONCAT(g.year.name, ' - ', g.name))
+            LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+            ORDER BY g.year.name desc, g.name
+    """)
     List<Grade> findAllByKeyword(@Param("kw") String kw);
 
     boolean existsByNameAndYearIdAndIdNot(

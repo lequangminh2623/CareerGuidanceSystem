@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title th:text="${post.id == null ? 'Thêm bài đăng' : 'Cập nhật bài đăng'}">Bài đăng Diễn đàn</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/form-common.css}"/>
+    <style>
+        body { background-color: #F0F2F5; }
+        .form-card { border: none; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .form-header { background: #fff; padding: 20px 24px; border-bottom: 1px solid #f0f0f0; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .form-title { font-weight: 700; color: #262626; margin: 0; }
+
+        .img-preview { border-radius: 8px; border: 1px solid #d9d9d9; padding: 4px; background: #fafafa; object-fit: cover; }
+        .textarea-content { min-height: 200px; resize: vertical; }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container py-5" style="max-width: 900px;">
+
+    <div class="card form-card">
+        <div class="form-header">
+            <h5 class="form-title">
+                <i class="fas" th:classappend="${post.id == null} ? 'fa-plus-circle text-primary' : 'fa-edit text-warning'"></i>
+                <span th:text="${post.id == null ? 'Thêm mới Bài đăng Diễn đàn' : 'Cập nhật Bài đăng'}"></span>
+            </h5>
+            <a th:href="@{/posts}" class="btn btn-light border text-muted btn-sm">
+                <i class="fas fa-times me-1"></i> Đóng
+            </a>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+
+            <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div th:text="${errorMessage}">Error message</div>
+            </div>
+
+            <form method="post" th:action="@{/posts}" th:object="${post}" enctype="multipart/form-data">
+
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{image}" /> <div class="row g-4">
+
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Tiêu đề bài đăng <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                            <span class="input-group-text bg-white" th:classappend="${#fields.hasErrors('title')} ? 'border-danger text-danger'">
+                                <i class="fas fa-heading"></i>
+                            </span>
+                        <input type="text" class="form-control" th:field="*{title}" placeholder="Nhập tiêu đề thật thu hút..."
+                               th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" />
+                        <div class="invalid-feedback" th:errors="*{title}"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Phân môn (Section) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                            <span class="input-group-text bg-white" th:classappend="${#fields.hasErrors('sectionId')} ? 'border-danger text-danger'">
+                                <i class="fas fa-book-open"></i>
+                            </span>
+                        <select th:field="*{sectionId}" class="form-select" th:classappend="${#fields.hasErrors('sectionId')} ? 'is-invalid'">
+                            <option value="">-- Chọn phân môn --</option>
+                            <option th:each="f : ${forums}"
+                                    th:value="${f.id}"
+                                    th:text="${f.subjectName ?: 'Section ' + f.id}">
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{sectionId}"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Người đăng <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                            <span class="input-group-text bg-white" th:classappend="${#fields.hasErrors('ownerId')} ? 'border-danger text-danger'">
+                                <i class="fas fa-user-edit"></i>
+                            </span>
+                        <select th:field="*{ownerId}" class="form-select" th:classappend="${#fields.hasErrors('ownerId')} ? 'is-invalid'">
+                            <option value="">-- Chọn người đăng --</option>
+                            <option th:each="u : ${users}"
+                                    th:value="${u.id}"
+                                    th:text="${u.lastName + ' ' + u.firstName}">
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{ownerId}"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Hình ảnh đính kèm</label>
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <input type="file" class="form-control" th:field="*{file}" accept="image/png, image/jpeg, image/jpg, image/gif" id="imageInput"/>
+                            <div class="form-text text-muted small mt-1">Hỗ trợ các định dạng: JPG, PNG, GIF. Kích thước tối đa 5MB.</div>
+                        </div>
+
+                        <div class="col-md-4 text-center mt-3 mt-md-0" th:if="${post.image != null and !post.image.isEmpty()}">
+                            <span class="d-block small text-muted mb-1">Ảnh hiện tại:</span>
+                            <a th:href="${post.image}" target="_blank">
+                                <img th:src="${post.image}" class="img-preview shadow-sm" style="max-height: 80px;" alt="Hình ảnh bài đăng"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Nội dung bài viết <span class="text-danger">*</span></label>
+                    <textarea class="form-control textarea-content" th:field="*{content}" placeholder="Bạn đang nghĩ gì? Ghi rõ nội dung bài thảo luận tại đây..."
+                              th:classappend="${#fields.hasErrors('content')} ? 'is-invalid'"></textarea>
+                    <div class="invalid-feedback" th:errors="*{content}"></div>
+                </div>
+
+            </div>
+
+                <div class="mt-5 pt-3 border-top d-flex justify-content-end gap-2">
+                    <a th:href="@{/posts}" class="btn btn-light border px-4">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                        <i class="fas fa-save me-2"></i>
+                        <span th:text="${post.id == null ? 'Lưu Bài Đăng' : 'Cập nhật Bài Đăng'}"></span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+
+<script>
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                // Nếu chưa có thẻ img preview, tạo mới. Nếu có rồi thì đổi src.
+                let existingPreview = document.querySelector('.img-preview');
+                if (existingPreview) {
+                    existingPreview.src = e.target.result;
+                } else {
+                    let col4 = document.querySelector('.col-md-8').nextElementSibling;
+                    if(!col4 || !col4.classList.contains('col-md-4')) {
+                        let newDiv = document.createElement('div');
+                        newDiv.className = 'col-md-4 text-center mt-3 mt-md-0';
+                        newDiv.innerHTML = `<span class="d-block small text-muted mb-1">Ảnh xem trước:</span><img src="${e.target.result}" class="img-preview shadow-sm" style="max-height: 80px;" alt="Preview"/>`;
+                        document.querySelector('#imageInput').parentElement.parentElement.appendChild(newDiv);
+                    }
+                }
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+</script>
+
+</body>
+</html>

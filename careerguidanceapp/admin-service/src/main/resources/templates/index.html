@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Dashboard Tổng quan</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const SERVER_STATS_DATA = /*[[${stats}]]*/ {};
+        /*]]>*/
+    </script>
+    <script th:src="@{/js/index.js}"></script>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+<div th:replace="~{base :: header}"></div>
+
+<div class="container-fluid py-4">
+
+    <div class="row">
+        <div class="col-12">
+            <h2 class="page-title">Tổng quan hệ thống</h2>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card border-l-primary">
+                <div class="stat-label">Tổng người dùng</div>
+                <h2 class="stat-value" th:text="${stats['totalUsers'] ?: 0}">0</h2>
+                <i class="bi bi-people-fill stat-icon-bg text-primary"></i>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card border-l-info">
+                <div class="stat-label">
+                    Học sinh mới (<span th:text="${latestYear}">Nay</span>)
+                </div>
+                <h2 class="stat-value" th:text="${latestCount ?: 0}">0</h2>
+                <i class="bi bi-person-plus-fill stat-icon-bg text-info"></i>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card border-l-success">
+                <div class="stat-label">Đang hoạt động</div>
+                <h2 class="stat-value" th:text="${stats['byStatus'] != null ? stats['byStatus']['active'] : 0}">0</h2>
+                <i class="bi bi-activity stat-icon-bg text-success"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+
+            <div class="chart-card mb-4">
+                <div class="chart-header">
+                    <h5 class="chart-title">Cơ cấu người dùng</h5>
+                </div>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="roleChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title">Trạng thái tài khoản</h5>
+                </div>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="text-center mt-2 small text-muted">
+                    Tỷ lệ tài khoản Hoạt động vs Vô hiệu hóa
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="chart-card h-100">
+                <div class="chart-header">
+                    <h5 class="chart-title">Tốc độ tăng trưởng học sinh</h5>
+                    <select class="form-select form-select-sm" style="width: 120px; border-color: #eee;">
+                        <option>Theo năm</option>
+                    </select>
+                </div>
+                <div style="height: 450px; width: 100%;">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{base :: footer}"></div>
+
+</body>
+</html>

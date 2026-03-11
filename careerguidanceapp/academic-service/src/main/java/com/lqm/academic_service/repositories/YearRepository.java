@@ -13,8 +13,10 @@ import java.util.UUID;
 @Repository
 public interface YearRepository extends JpaRepository<Year, UUID> {
 
-    @Query("SELECT s FROM Year s " +
-            "WHERE (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))")
+    @Query("""
+            SELECT s FROM Year s
+            WHERE (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+    """)
     Page<Year> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
 
     boolean existsByNameAndIdNot(String name, UUID id);

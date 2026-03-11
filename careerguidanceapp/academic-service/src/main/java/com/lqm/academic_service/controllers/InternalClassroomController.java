@@ -1,66 +1,49 @@
 package com.lqm.academic_service.controllers;
 
-import com.lqm.academic_service.dtos.ClassroomRequestDTO;
-import com.lqm.academic_service.dtos.ClassroomResponseDTO;
+import com.lqm.academic_service.clients.UserClient;
+import com.lqm.academic_service.dtos.ClassroomDetailsResponseDTO;
+import com.lqm.academic_service.dtos.UserResponseDTO;
 import com.lqm.academic_service.mappers.ClassroomMapper;
 import com.lqm.academic_service.models.Classroom;
+import com.lqm.academic_service.models.StudentClassroom;
 import com.lqm.academic_service.services.ClassroomService;
+import com.lqm.academic_service.services.StudentClassroomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/internal/secure/classrooms")
+@RequiredArgsConstructor
 public class InternalClassroomController {
 
     private final ClassroomService classroomService;
+    private final StudentClassroomService studentClassroomService;
     private final ClassroomMapper classroomMapper;
-
-    @GetMapping
-    public Page<ClassroomResponseDTO> getClassrooms(
-            @RequestParam Map<String, String> params,
-            Pageable pageable) {
-        return classroomService.getClassrooms(params, pageable)
-                .map(classroomMapper::toClassroomResponseDTO);
-    }
+    private final UserClient userClient;
 
     @GetMapping("/{id}")
-    public ClassroomRequestDTO getClassroomRequestById(@PathVariable UUID id) {
+    public ClassroomDetailsResponseDTO getClassroomDetailsResponseById(@PathVariable UUID id) {
         Classroom classroom = classroomService.getClassroomWithStudents(id);
-        return classroomMapper.toClassroomRequestDTO(classroom);
+        return classroomMapper.toClassroomDetailsResponseDTO(classroom);
     }
 
-    @PostMapping
-    public ClassroomResponseDTO saveClassroom(@RequestBody ClassroomRequestDTO dto) {
-        UUID id = dto.id();
-        Classroom classroom = id != null
-                ? classroomService.getClassroomWithStudents(id)
-                : new Classroom();
-
-        classroomMapper.updateEntity(classroom, dto);
-        Classroom savedClassroom = classroomService.saveClassroom(classroom, dto.gradeId(), dto.studentIds());
-
-        return classroomMapper.toClassroomResponseDTO(savedClassroom);
+    @GetMapping("/{classroomId}/students")
+    public Page<UserResponseDTO> getStudentsInClassroom(@PathVariable UUID classroomId,
+                                                        @RequestParam Map<String, String> params) {
+        params.put("page", "");
+        return userClient.getUsers(studentClassroomService.getStudentClassroomsByClassroomId(classroomId).stream()
+                .map(StudentClassroom::getStudentId).toList(), params);
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteClassroom(@PathVariable("id") UUID id) {
-        classroomService.deleteClassroom(id);
-    }
-
-    @DeleteMapping("/{classroomId}/students/{studentId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeStudent(
-            @PathVariable UUID classroomId,
-            @PathVariable UUID studentId) {
-        classroomService.removeStudentFromClassroom(classroomId, studentId);
+    @PostMapping("/{classroomId}/students/non-exist")
+    public List<UUID> getNonExistingStudentIds(
+            @PathVariable("classroomId") UUID classroomId,
+            @RequestBody List<UUID> studentIds) {
+        return classroomService.getNonExistingStudentIds(classroomId, studentIds);
     }
 }
-

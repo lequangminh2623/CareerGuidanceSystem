@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="pagination(pageData)" class="card-footer bg-white border-top-0 py-3" th:if="${pageData.totalPages > 0}">
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-end mb-0">
+
+            <li class="page-item" th:classappend="${pageData.first} ? ' disabled'">
+                <a class="page-link"
+                   th:href="${currentUriBuilder.replaceQueryParam('page', 1).toUriString()}">
+                    <i class="fas fa-angle-double-left small"></i>
+                </a>
+            </li>
+
+            <li class="page-item" th:classappend="${pageData.first} ? ' disabled'">
+                <a class="page-link"
+                   th:href="${currentUriBuilder.replaceQueryParam('page', pageData.number).toUriString()}">
+                    <i class="fas fa-chevron-left small"></i>
+                </a>
+            </li>
+
+            <th:block th:with="current=${pageData.number + 1},
+                                   minPage=${current > 2 ? current - 2 : 1},
+                                   maxPage=${current + 2 < pageData.totalPages ? current + 2 : pageData.totalPages}">
+                <li class="page-item" th:each="i : ${#numbers.sequence(minPage, maxPage)}"
+                    th:classappend="${i == current} ? ' active'">
+                    <a class="page-link" th:text="${i}"
+                       th:href="${currentUriBuilder.replaceQueryParam('page', i).toUriString()}">
+                    </a>
+                </li>
+            </th:block>
+
+            <li class="page-item" th:classappend="${pageData.last} ? ' disabled'">
+                <a class="page-link"
+                   th:href="${currentUriBuilder.replaceQueryParam('page', pageData.number + 2).toUriString()}">
+                    <i class="fas fa-chevron-right small"></i>
+                </a>
+            </li>
+
+            <li class="page-item" th:classappend="${pageData.last} ? ' disabled'">
+                <a class="page-link"
+                   th:href="${currentUriBuilder.replaceQueryParam('page', pageData.totalPages).toUriString()}">
+                    <i class="fas fa-angle-double-right small"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
+</html>

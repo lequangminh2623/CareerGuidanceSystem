@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 public class JwtConfig {
 
     private static String SECRET;
-    private static long EXPIRATION_MS;
 
     @Value("${jwt.secret}")
     public void setSecret(String secret) {

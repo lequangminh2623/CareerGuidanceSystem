@@ -10,7 +10,6 @@ import com.lqm.user_service.utils.PageableUtil;
 import com.lqm.user_service.validators.WebAppValidator;
 import java.util.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,23 +35,25 @@ public class ApiUserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserDetailsResponseDTO> getProfile(HttpServletRequest request) {
-        User user = userService.getCurrentUser(request);
+    public ResponseEntity<UserDetailsResponseDTO> getProfile() {
+        User user = userService.getCurrentUser();
         UserDetailsResponseDTO userResponseDTO = userMapper.toUserDetailsResponseDTO(user);
+
         return ResponseEntity.ok(userResponseDTO);
     }
 
-
     //đường dẫn thay đổi
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<UserResponseDTO>> listUsers(
-            @RequestParam Map<String, String> params
-    ) {
-        Pageable pageable = pageableUtil.getPageable(params.get("page"), PageSize.USER_PAGE_SIZE, List.of("lastName:asc", "firstName:asc"));
+    public ResponseEntity<Page<UserResponseDTO>> getUsers(@RequestParam Map<String, String> params) {
+        Pageable pageable = pageableUtil.getPageable(
+                params.getOrDefault("page", "1"),
+                PageSize.USER_PAGE_SIZE,
+                List.of("lastName:asc", "firstName:asc")
+        );
+        Page<User> userPage = userService.getUsers(List.of(), params, pageable);
+        Page<UserResponseDTO> userDTOPage = userPage.map(userMapper::toUserResponseDTO);
 
-        Page<User> pages = userService.getUsers(List.of(), params, pageable);
-
-        return ResponseEntity.ok(pages.map(userMapper::toUserResponseDTO));
+        return ResponseEntity.ok(userDTOPage);
     }
 
 }

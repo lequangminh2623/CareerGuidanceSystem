@@ -16,7 +16,7 @@ public class JwtUtil {
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(email)
-                .claim("roles", role)
+                .claim("role", role)
                 .expirationTime(new Date(System.currentTimeMillis() + JwtConfig.getExpirationMs()))
                 .issueTime(new Date())
                 .build();

@@ -8,6 +8,5 @@ import java.util.UUID;
 public record ClassroomResponseDTO(
         UUID id,
         String name,
-        String gradeName,
-        String yearName
+        Integer studentCount
 ){}

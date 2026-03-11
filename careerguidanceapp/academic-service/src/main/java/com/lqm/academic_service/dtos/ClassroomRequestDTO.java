@@ -1,5 +1,6 @@
 package com.lqm.academic_service.dtos;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.util.List;
@@ -11,6 +12,7 @@ public record ClassroomRequestDTO(
 
         String name,
 
+        @NotNull(message = "classroom.grade.notNull")
         UUID gradeId,
 
         List<UUID> studentIds

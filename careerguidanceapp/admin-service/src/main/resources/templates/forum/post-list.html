@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Danh sách Bài đăng Diễn đàn</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <style>
+        body { background-color: #F0F2F5; }
+
+        .table-card { border-radius: 8px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .table thead th { background-color: #FAFAFA; color: #595959; font-weight: 600; text-transform: uppercase; font-size: 13px; padding: 16px; border-bottom: 1px solid #f0f0f0; }
+        .table tbody td { padding: 16px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
+
+        /* Link Badge cho phần Xem Phản hồi */
+        .link-badge.reply {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            background-color: #F0F5FF; /* Xanh tím nhạt */
+            color: #2F54EB;           /* Xanh tím đậm */
+            border: 1px solid transparent;
+        }
+        .link-badge.reply:hover {
+            background-color: #2F54EB;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container py-4">
+
+    <div class="page-header mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Quản lý Bài Đăng</h4>
+            <span class="text-muted small">Danh sách các bài thảo luận trên diễn đàn môn học</span>
+        </div>
+    </div>
+
+    <div class="filter-bar d-flex justify-content-between align-items-center mb-3">
+        <form th:action="@{/posts}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+            <div class="d-flex gap-2 w-100" style="max-width: 1100px;">
+
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <input type="text" name="kw" class="form-control border-start-0 ps-0"
+                           placeholder="Tìm kiếm tiêu đề..." th:value="${params['kw']}"/>
+                </div>
+
+                <div style="width: 200px;">
+                    <select name="ownerId" class="form-select user-select2">
+                        <option value="">-- Người đăng --</option>
+                        <option th:if="${selectedOwner != null}"
+                                th:value="${selectedOwner.id}"
+                                th:text="${selectedOwner.lastName + ' ' + selectedOwner.firstName}"
+                                selected></option>
+                    </select>
+                </div>
+
+                <div style="width: 425px;">
+                    <select name="sectionId" class="form-select section-select2">
+                        <option value="">-- Diễn đàn --</option>
+                        <option th:if="${selectedSection != null}"
+                                th:value="${selectedSection.id}"
+                                th:text="${selectedSection.subjectName + ' - ' + selectedSection.classroomName + ' (' + selectedSection.gradeName + ', ' + selectedSection.semesterName + ' ' + selectedSection.yearName + ')'}"
+                                selected></option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-outline-primary" style="border-color: #d9d9d9; color: #1890FF; white-space: nowrap;">
+                    <i class="fas fa-filter me-1"></i> Lọc
+                </button>
+
+                <a th:if="${(params['kw'] != null && params['kw'] != '') || (params['ownerId'] != null && params['ownerId'] != '') || (params['sectionId'] != null && params['sectionId'] != '')}"
+                   th:href="@{/posts}" class="btn btn-light text-muted border" title="Xóa bộ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </form>
+
+        <a th:href="@{/posts/add}" class="btn btn-primary shadow-sm px-3">
+            <i class="fas fa-plus me-2"></i> Thêm bài đăng
+        </a>
+    </div>
+
+    <div class="card table-card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th class="ps-4">Tiêu đề bài viết</th>
+                    <th>Phân môn (Section)</th>
+                    <th>Người đăng</th>
+                    <th>Thời gian</th>
+                    <th class="text-center">Thảo luận</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${posts.content}">
+
+                    <td class="ps-4">
+                        <div class="fw-bold text-dark" style="max-width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" th:text="${p.title}">
+                            Tiêu đề bài viết
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-light text-dark border">
+                            <i class="fas fa-book-open text-primary me-1"></i>
+                            <span th:text="${p.sectionName}">Toán Học</span>
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="text-muted small fw-medium">
+                            <i class="fas fa-user-edit me-1"></i><span th:text="${p.ownerName}">Nguyễn Văn A</span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="small text-muted mb-1" title="Ngày tạo">
+                            <i class="far fa-calendar-plus me-1 text-success"></i>
+                            <span th:text="${#temporals.format(p.createdDate, 'dd/MM/yyyy HH:mm')}"></span>
+                        </div>
+                        <div class="small text-muted" title="Cập nhật lần cuối">
+                            <i class="far fa-edit me-1 text-warning"></i>
+                            <span th:text="${#temporals.format(p.updatedDate, 'dd/MM/yyyy HH:mm')}"></span>
+                        </div>
+                    </td>
+
+                    <td class="text-center">
+                        <a th:href="@{'/posts/' + ${p.id} + '/replies'}" class="link-badge reply" title="Xem các phản hồi">
+                            <i class="fas fa-comments me-2"></i>Phản hồi
+                        </a>
+                    </td>
+
+                    <td class="text-end pe-4">
+                        <a th:href="@{'/posts/' + ${p.id}}" class="btn-icon text-primary me-2" title="Chỉnh sửa">
+                            <i class="fas fa-pen" style="font-size: 14px;"></i>
+                        </a>
+                        <button class="btn-icon delete text-danger border-0 bg-transparent"
+                                th:data-url="@{/posts/}"
+                                th:data-id="${p.id}"
+                                onclick="deleteHandler(this)" title="Xóa">
+                            <i class="fas fa-trash" style="font-size: 14px;"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr th:if="${posts.totalElements == 0}">
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-comment-slash mb-3" style="font-size: 32px; opacity: 0.5;"></i>
+                            <p class="mb-0">Chưa có bài đăng nào trên hệ thống.</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:replace="~{fragments/pagination :: pagination(pageData=${posts})}"></div>
+
+    </div>
+
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+<script th:src="@{/js/delete.js}"></script>
+
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script th:inline="javascript">
+    $(document).ready(function () {
+
+        // Hàm tạo cấu hình chung cho AJAX Select2
+        function createSelect2Config(url, placeholderText) {
+            return {
+                placeholder: placeholderText,
+                allowClear: true,
+                width: '100%', // Ép Select2 giãn đầy thẻ div bọc ngoài
+                language: {
+                    inputTooShort: () => "Nhập từ khóa để tìm...",
+                    searching: () => "Đang tìm kiếm...",
+                    noResults: () => "Không tìm thấy kết quả"
+                },
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return {
+                            term: params.term || '',
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results,
+                            pagination: { more: data.hasMore }
+                        };
+                    },
+                    cache: true
+                }
+            };
+        }
+
+        // Khởi tạo Select2 cho Người đăng
+        $('.user-select2').select2(
+            createSelect2Config('/posts/users/search', '-- Người đăng --')
+        );
+
+        // Khởi tạo Select2 cho Diễn đàn (Section)
+        $('.section-select2').select2(
+            createSelect2Config('/posts/sections/search', '-- Diễn đàn --')
+        );
+
+    });
+</script>
+</html>

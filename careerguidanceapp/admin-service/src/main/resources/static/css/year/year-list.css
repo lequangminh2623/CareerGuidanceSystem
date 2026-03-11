@@ -1,0 +1,44 @@
+.year-box {
+    display: inline-flex;
+    align-items: center;
+    background-color: #F9FAFB;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #EAECF0;
+    transition: all 0.2s;
+}
+.year-box:hover {
+    border-color: #1890FF;
+    background-color: #E6F7FF;
+}
+.year-text {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: #101828;
+}
+.year-icon {
+    color: #1890FF;
+    margin-right: 10px;
+    font-size: 16px;
+}
+/* Style cho Học kỳ (Màu xanh) */
+.link-badge.semester {
+    background-color: #E6F7FF;
+    color: #1890FF;
+    border: 1px solid transparent;
+}
+.link-badge.semester:hover {
+    background-color: #1890FF;
+    color: #fff;
+}
+/* Style cho Khối lớp (Màu tím nhạt hoặc Cyan) */
+.link-badge.grade {
+    background-color: #F9F0FF;
+    color: #722ED1;
+    border: 1px solid transparent;
+}
+.link-badge.grade:hover {
+    background-color: #722ED1;
+    color: #fff;
+}

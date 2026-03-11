@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Phân công môn học</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}"/>
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}"/>
+    <link rel="stylesheet" th:href="@{/css/section/section-list.css}"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container-fluid px-4 py-4">
+    <div class="row g-4">
+
+        <div class="col-lg-3 col-md-4">
+            <div th:replace="~{fragments/sidebar :: grade-sidebar(baseUrl='/classrooms')}"></div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-2">
+                        <i class="fas fa-chalkboard-teacher me-2 text-primary"></i> Phân công Giáo viên
+                    </h4>
+                    <span class="badge-class me-2">Lớp: <span th:text="${classroomName}">10A1</span></span>
+                    <span class="text-muted small">Thiết lập giáo viên giảng dạy cho từng môn của lớp</span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary shadow-sm" id="btnAddRow">
+                        <i class="fas fa-plus me-1"></i> Thêm phân công
+                    </button>
+                    <a th:href="@{/classrooms(gradeId=${params['gradeId']})}" class="btn btn-light border shadow-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${errorMessage}"></span>
+            </div>
+
+            <form th:action="@{/classrooms/{classroomId}/sections(classroomId=${classroomId}, gradeId=${params['gradeId']})}" method="post">
+                <div class="card table-card">
+                    <div class="table-responsive" style="min-height: 300px;">
+                        <table class="table mb-0 align-middle" id="sectionTable">
+                            <thead>
+                            <tr>
+                                <th class="ps-4">Môn học</th>
+                                <th>Học kỳ</th>
+                                <th style="width: 270px;">Giáo viên phụ trách</th>
+                                <th>Cấu hình liên quan</th>
+                                <th class="text-center pe-4" style="width: 80px;">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody id="section-table-body">
+
+                            <tr th:each="sec, stat : ${sections.content}">
+                                <th:block th:with="
+                                            curr=${curriculums != null ? curriculums.get(sec.curriculumId) : null},
+                                            teacher=${teachers != null && sec.teacherId != null ? teachers.get(sec.teacherId) : null}">
+
+                                    <input type="hidden" th:name="|sections[${stat.index}].id|" th:value="${sec.id}"/>
+                                    <input type="hidden" th:name="|sections[${stat.index}].classroomId|" th:value="${sec.classroomId}"/>
+                                    <input type="hidden" class="existing-curriculum" th:name="|sections[${stat.index}].curriculumId|" th:value="${sec.curriculumId}"/>                                    <input type="hidden" th:name="|sections[${stat.index}].scoreStatus|" th:value="${sec.scoreStatus}"/>
+
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="subject-icon"><i class="fas fa-book-open"></i></div>
+                                            <span class="fw-bold text-dark" th:text="${curr != null ? curr.subjectName : 'Đang cập nhật...'}">Toán học</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-semester">
+                                            <i class="fas fa-clock me-1"></i><span th:text="${curr != null ? curr.semesterName : '-'}">Học kỳ 1</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-chalkboard-teacher text-muted"></i></span>
+                                            <select class="form-select teacher-select2" th:name="|sections[${stat.index}].teacherId|">
+                                                <option th:if="${sec.teacherId != null}" th:value="${sec.teacherId}" th:text="${teacher != null ? (teacher.lastName + ' ' + teacher.firstName) : 'Giáo viên hiện tại'}" selected></option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{'/transcripts/' + ${sec.id}(gradeId=${params['gradeId']})}"
+                                           class="link-badge transcript" title="Quản lý điểm">
+                                            <i class="fa-solid fa-tasks me-2"></i>Quản lý điểm
+                                        </a>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <button type="button" class="btn-icon delete"
+                                                th:data-url="@{|/classrooms/${params['classroomId']}/sections/|}"
+                                                th:data-id="${sec.id}"
+                                                onclick="deleteHandler(this)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </th:block>
+                            </tr>
+
+                            <tr id="emptyRow" th:if="${#lists.isEmpty(sections.content)}">
+                                <td colspan="4" class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox mb-3" style="font-size: 24px; opacity: 0.5;"></i>
+                                    <p class="mb-0">Lớp học này chưa có chương trình môn học nào. Hãy bấm "Thêm phân công"!</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 p-3">
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                            <i class="fas fa-save me-2"></i> Lưu phân công
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+
+<template id="newRowTemplate">
+    <tr>
+        <input type="hidden" name="sections[__INDEX__].classroomId" th:value="${params['classroomId']}"/>
+        <input type="hidden" name="sections[__INDEX__].scoreStatus" value="Draft"/>
+
+        <td colspan="2" class="ps-4">
+            <select class="form-select new-curriculum" name="sections[__INDEX__].curriculumId" required>
+                <option value="">-- Chọn Môn học & Học kỳ --</option>
+                <option th:each="curr : ${curriculums.values()}"
+                        th:value="${curr.id}"
+                        th:text="${curr.subjectName + ' - ' + curr.semesterName}">
+                </option>
+            </select>
+        </td>
+
+        <td>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="fas fa-chalkboard-teacher text-muted"></i></span>
+                <select class="form-select teacher-select2-dynamic" name="sections[__INDEX__].teacherId">
+                    <option value="">Tìm và chọn giáo viên...</option>
+                </select>
+            </div>
+        </td>
+        <td class="text-center pe-4">
+            <button type="button" class="btn-icon delete btn-remove-row" title="Hủy">
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script th:inline="javascript">
+    window.CLASSROOM_ID = /*[[${params['classroomId']}]]*/ 'defaultId';
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script th:src="@{/js/delete.js}"></script>
+<script th:src="@{/js/section/section.js}"></script>
+</body>
+</html>

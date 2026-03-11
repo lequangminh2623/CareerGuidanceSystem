@@ -1,0 +1,40 @@
+.transcript-header {
+    background: linear-gradient(135deg, #1890FF 0%, #0050b3 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    padding: 24px;
+}
+
+.info-pill {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.table-card { border-radius: 0 0 8px 8px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+/* Cập nhật Tiêu đề bảng sang tông xanh nhạt */
+.table thead th {
+    background-color: #E6F7FF;
+    color: #0050b3;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    vertical-align: middle;
+    border-bottom: 2px solid #BAE7FF;
+}
+.table tbody td { vertical-align: middle; padding: 12px; }
+
+/* Cột nhập điểm: Focus viền xanh biển */
+.score-input { width: 70px !important; text-align: center; font-weight: 500; border: 1px solid #d9d9d9; transition: all 0.2s; }
+.score-input:focus { border-color: #1890FF; box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); outline: none; }
+
+/* Nút thêm/xóa cột: Chuyển sang xanh biển */
+.btn-add-col { background-color: #E6F7FF; color: #1890FF; border: 1px dashed #1890FF; font-size: 12px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+.btn-add-col:hover { background-color: #1890FF; color: #fff; }
+.btn-remove-col { color: #dc3545; font-size: 12px; cursor: pointer; padding: 4px; transition: 0.2s; }
+.btn-remove-col:hover { color: #a71d2a; transform: scale(1.1); }

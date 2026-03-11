@@ -1,0 +1,5 @@
+.subject-icon {
+    width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+    background-color: #E6F7FF; color: #1890FF; border-radius: 8px; margin-right: 12px;
+}
+.subject-name { font-weight: 600; color: #262626; }

@@ -1,6 +1,7 @@
 package com.lqm.user_service.services.impl;
 
 import com.lqm.user_service.exceptions.ResourceNotFoundException;
+import com.lqm.user_service.exceptions.UnauthorizedException;
 import com.lqm.user_service.models.Role;
 import com.lqm.user_service.models.Student;
 import com.lqm.user_service.models.User;
@@ -10,13 +11,11 @@ import com.lqm.user_service.services.CloudinaryService;
 import com.lqm.user_service.services.UserService;
 import com.lqm.user_service.specifications.UserSpecification;
 import jakarta.annotation.Nonnull;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -38,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final MessageSource messageSource;
+    private final UserRepository userRepository;
 
     @Override
     public User getUserById(UUID id) {
@@ -61,12 +62,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<User> getUsers(List<UUID> ids, Map<String, String> params, Pageable pageable) {
-        Specification<User> paramSpec = UserSpecification.filterByParams(params);
-        Specification<User> idSpec = UserSpecification.hasIdIn(ids);
-        Specification<User> finalSpec = idSpec.and(paramSpec);
-
-        return userRepo.findAll(finalSpec, pageable);
+        Specification<User> spec = UserSpecification.filterByParams(params).and(UserSpecification.hasIdIn(ids));
+        return userRepo.findAll(spec, pageable);
     }
 
     @Override
@@ -78,25 +77,20 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode("1"));
         }
 
-        // Set defaults
-        if (user.getId() == null) {
-            user.setCreatedDate(LocalDateTime.now());
-        }
         if (user.getRole() == null) {
             user.setRole(Role.ROLE_STUDENT);
         }
         if (user.getActive() == null) {
             user.setActive(true);
         }
-        user.setUpdatedDate(LocalDateTime.now());
 
         // STUDENT
         if (Role.ROLE_STUDENT.equals(user.getRole())) {
-            Student s = Student.builder().code(code).build();
+            Student s = new Student();
             if (user.getId() != null) {
                 s = studentRepo.findById(user.getId()).orElse(s);
             }
-
+            s.setCode(code);
             s.setUser(user);
             user.setStudent(s);
         } else {
@@ -128,9 +122,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getCurrentUser(HttpServletRequest request) {
-        String email = request.getHeader("X-User-Email");
-        if (email == null) return null;
+    public User getCurrentUser() {
+        String email = (String) Objects.requireNonNull(SecurityContextHolder.getContext()
+                        .getAuthentication())
+                .getPrincipal();
+
+        if (email == null) {
+            throw new UnauthorizedException(
+                    messageSource.getMessage("user.notLoggedIn", null, Locale.getDefault())
+            );
+        }
 
         return userRepo.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -138,6 +139,23 @@ public class UserServiceImpl implements UserService {
                 ));
     }
 
+    public Map<String, Object> getUserStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+
+        stats.put("totalUsers", userRepository.countBy());
+
+        stats.put("byRole", userRepository.countUserByRole().stream()
+                .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1])));
+
+        stats.put("byStatus", userRepository.countUserByStatus().stream()
+                .collect(Collectors.toMap(row -> (Boolean) row[0] ? "active" : "deactive", row -> row[1])));
+
+        stats.put("studentGrowth", userRepository.countStudentGrowthByYear().stream()
+                .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1])));
+
+        return stats;
+
+    }
 
 }
 

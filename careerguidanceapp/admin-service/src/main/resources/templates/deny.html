@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Không có quyền truy cập</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/deny.css}">
+</head>
+<body>
+
+<div class="position-relative">
+    <div class="error-code">403</div>
+
+    <div class="error-container">
+        <svg class="error-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15V17M6 10V8C6 4.68629 8.68629 2 12 2C15.3137 2 18 4.68629 18 8V10" stroke="#1890FF" stroke-width="1.5" stroke-linecap="round"/>
+            <rect x="5" y="10" width="14" height="12" rx="4" fill="#E6F7FF" stroke="#1890FF" stroke-width="1.5"/>
+            <circle cx="12" cy="16" r="2" fill="#1890FF"/>
+        </svg>
+
+        <h1 class="error-title">Truy cập bị từ chối</h1>
+        <p class="error-desc">
+            Xin lỗi, bạn không có quyền truy cập vào tài nguyên này.<br>
+            Vui lòng liên hệ quản trị viên hoặc quay lại trang chủ.
+        </p>
+
+        <a th:href="@{/login}" class="btn-home">
+            Quay lại Đăng nhập
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

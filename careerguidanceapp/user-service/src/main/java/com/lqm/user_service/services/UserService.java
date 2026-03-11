@@ -23,6 +23,8 @@ public interface UserService extends UserDetailsService {
 
     boolean existDuplicateUser(String email, UUID excludeId);
 
-    User getCurrentUser(HttpServletRequest request);
+    User getCurrentUser();
+
+    Map<String, Object> getUserStatistics();
 }
 

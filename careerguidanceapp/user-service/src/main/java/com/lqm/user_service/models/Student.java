@@ -14,11 +14,6 @@ import java.util.UUID;
 @Builder
 @Data
 @Table(name = "students")
-@NamedQueries({
-        @NamedQuery(name = "Student.findAll", query = "SELECT s FROM Student s"),
-        @NamedQuery(name = "Student.findById", query = "SELECT s FROM Student s WHERE s.id = :id"),
-        @NamedQuery(name = "Student.findByCode", query = "SELECT s FROM Student s WHERE s.code = :code")
-})
 public class Student implements Serializable {
     @Id
     @Column(name = "id", updatable = false, nullable = false)

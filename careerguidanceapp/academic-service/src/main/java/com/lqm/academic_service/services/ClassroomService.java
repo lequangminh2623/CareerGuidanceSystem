@@ -14,19 +14,21 @@ public interface ClassroomService {
 
     Classroom saveClassroom(Classroom classroom, UUID gradeId, List<UUID> studentIds);
 
-    Classroom getClassroomById(UUID id);
-
     void deleteClassroom(UUID id);
 
     Classroom getClassroomWithStudents(UUID id);
 
+    Classroom getClassroomById(UUID id);
+
     void removeStudentFromClassroom(UUID id, UUID studentId);
 
-    boolean existsDuplicateClassroom(String name, UUID semesterId, UUID excludeId);
+    boolean existDuplicateClassroom(String name, UUID semesterId, UUID excludeId);
 
-    boolean existsStudentInOtherClassroom(UUID studentId, UUID gradeId, UUID excludeClassroomId);
+    boolean existClassroomById(UUID id);
 
-    boolean existStudentInClassroom(UUID studentId, UUID id);
+    List<UUID> getStudentsInOtherClassrooms(List<UUID> studentIds, UUID yearId, UUID excludeClassroomId);
+
+    List<UUID> getNonExistingStudentIds(UUID classroomId, List<UUID> studentIds);
 
     Page<Classroom> getClassroomsByStudent(UUID studentId, Map<String, String> params, Pageable pageable);
 

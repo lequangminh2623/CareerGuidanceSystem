@@ -1,0 +1,72 @@
+:root {
+    --primary-blue: #1890FF;
+    --secondary-blue: #69C0FF;
+    --primary-light: #E6F7FF;
+    --text-primary: #262626;
+    --text-secondary: #8C8C8C;
+    --bg-body: #F0F2F5;
+    --nav-height: 64px;
+    --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+}
+
+.navbar-custom {
+    background-color: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    height: var(--nav-height);
+    padding: 0;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-blue) !important;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-nav .nav-link {
+    color: #595959;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 8px 16px !important;
+    border-radius: 6px;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-nav .nav-link i {
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-blue);
+    background-color: rgba(24, 144, 255, 0.05);
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--primary-blue) !important;
+    background-color: var(--primary-light);
+    font-weight: 600;
+}
+
+.nav-item.dropdown .nav-link {
+    color: var(--text-primary);
+}
+
+footer {
+    background-color: #fff;
+    border-top: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+.hover-link:hover {
+    color: var(--primary-blue) !important;
+}

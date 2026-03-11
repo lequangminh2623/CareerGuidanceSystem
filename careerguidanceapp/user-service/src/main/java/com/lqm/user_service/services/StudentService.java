@@ -5,4 +5,6 @@ import java.util.UUID;
 public interface StudentService {
 
     boolean existDuplicateStudent(String code, UUID userId);
+
+    boolean existStudentById(UUID id);
 }

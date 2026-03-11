@@ -67,7 +67,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/secure/**").authenticated()
-                        .requestMatchers("/api/internal/secure/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
+                        .requestMatchers("/api/internal/admin/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
                         .anyRequest().authenticated()
                 );
 
@@ -116,7 +116,9 @@ public class SecurityConfig {
             SemesterRequestDTOValidator semesterRequestDTOValidator,
             GradeRequestDTOValidator gradeRequestDTOValidator,
             SubjectRequestDTOValidator subjectRequestDTOValidator,
-            ClassroomRequestDTOValidator classroomRequestDTOValidator
+            ClassroomRequestDTOValidator classroomRequestDTOValidator,
+            CurriculumRequestDTOValidator curriculumRequestDTOValidator,
+            SectionListRequestValidator sectionListRequestValidator
     ) {
         Set<Validator> springValidators = new HashSet<>();
         springValidators.add(yearRequestDTOValidator);
@@ -124,6 +126,8 @@ public class SecurityConfig {
         springValidators.add(gradeRequestDTOValidator);
         springValidators.add(subjectRequestDTOValidator);
         springValidators.add(classroomRequestDTOValidator);
+        springValidators.add(curriculumRequestDTOValidator);
+        springValidators.add(sectionListRequestValidator);
 
         return new WebAppValidator(beanValidator, springValidators);
     }

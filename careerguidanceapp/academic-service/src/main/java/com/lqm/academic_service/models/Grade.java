@@ -18,20 +18,16 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @Table(name = "grades")
-@NamedQueries({
-        @NamedQuery(name = "Grade.findAll", query = "SELECT g FROM Grade g"),
-        @NamedQuery(name = "Grade.findById", query = "SELECT g FROM Grade g WHERE g.id = :id"),
-        @NamedQuery(name = "Grade.findByName", query = "SELECT g FROM Grade g WHERE g.name = :name"),
-})
 public class Grade implements Serializable {
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     @EqualsAndHashCode.Include
     @ToString.Include
     private UUID id;
 
-    @Column(name = "name", nullable = false, length = 8)
+    @Column(name = "name", nullable = false)
     @Enumerated(EnumType.STRING)
     @ToString.Include
     private GradeType name;

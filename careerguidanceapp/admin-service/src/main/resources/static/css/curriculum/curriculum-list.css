@@ -1,0 +1,15 @@
+.badge-subject {
+    background-color: #E6F7FF;
+    color: #1890FF;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.badge-semester {
+    background-color: #F0F5FF;
+    color: #2F54EB;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}

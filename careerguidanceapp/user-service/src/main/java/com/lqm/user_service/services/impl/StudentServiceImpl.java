@@ -16,4 +16,9 @@ public class StudentServiceImpl implements StudentService {
     public boolean existDuplicateStudent(String code, UUID userId) {
         return studentRepo.existsByCodeAndUserIdNot(code, userId);
     }
+
+    @Override
+    public boolean existStudentById(UUID id) {
+        return studentRepo.existsById(id);
+    }
 }

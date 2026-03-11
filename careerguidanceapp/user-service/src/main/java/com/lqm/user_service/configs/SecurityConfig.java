@@ -3,7 +3,7 @@ package com.lqm.user_service.configs;
 import com.lqm.user_service.filters.AuthFilter;
 import com.lqm.user_service.models.Role;
 import com.lqm.user_service.validators.UserLoginDTOValidator;
-import com.lqm.user_service.validators.UserRequestDTOValidator;
+import com.lqm.user_service.validators.AdminUserRequestDTOValidator;
 import com.lqm.user_service.validators.WebAppValidator;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +37,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableTransactionManagement
 @ComponentScan(basePackages = {
-        "com.lqm.user_service.clients",
         "com.lqm.user_service.controllers",
         "com.lqm.user_service.repositories",
         "com.lqm.user_service.services",
@@ -63,7 +62,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/secure/**").authenticated()
-                        .requestMatchers("/api/internal/secure/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
+                        .requestMatchers("/api/internal/auth/**").permitAll()
+                        .requestMatchers("/api/internal/secure/**").authenticated()
+                        .requestMatchers("/api/internal/admin/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
                         .anyRequest().authenticated()
                 );
 
@@ -109,9 +110,9 @@ public class SecurityConfig {
     public WebAppValidator webAppValidator(
             jakarta.validation.Validator beanValidator,
             UserLoginDTOValidator userLoginDTOValidator,
-            UserRequestDTOValidator userRequestDTOValidator) {
+            AdminUserRequestDTOValidator adminUserRequestDTOValidator) {
         Set<Validator> springValidators = new HashSet<>();
-        springValidators.add(userRequestDTOValidator);
+        springValidators.add(adminUserRequestDTOValidator);
         springValidators.add(userLoginDTOValidator);
 
         return new WebAppValidator(beanValidator, springValidators);

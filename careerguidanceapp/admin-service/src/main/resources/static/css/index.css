@@ -1,0 +1,78 @@
+.page-title {
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    border-left: 4px solid var(--primary-blue);
+    padding-left: 12px;
+}
+
+/* Style cho Card thống kê (Stat Card) */
+.stat-card {
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.stat-icon-bg {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    font-size: 80px;
+    opacity: 0.05;
+    transform: rotate(-15deg);
+}
+
+/* Định danh màu riêng cho từng card để nhấn mạnh */
+.border-l-primary { border-left: 4px solid var(--primary-blue); }
+.border-l-success { border-left: 4px solid #52C41A; } /* Màu xanh lá dịu hơn */
+.border-l-info    { border-left: 4px solid #13C2C2; } /* Màu Cyan */
+
+/* Style cho Card chứa biểu đồ */
+.chart-card {
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}

@@ -14,7 +14,11 @@ import java.util.UUID;
 public interface SubjectRepository extends JpaRepository<Subject, UUID> {
     boolean existsByNameAndIdNot(String name, UUID excludeId);
 
-    @Query("SELECT s FROM Subject s " +
-            "WHERE (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))")
+    @Query("""
+            SELECT s FROM Subject s
+            WHERE (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+    """)
     Page<Subject> findAllByKeyword(@Param("kw") String kw, Pageable pageable);
+
+    Subject findByName(String name);
 }

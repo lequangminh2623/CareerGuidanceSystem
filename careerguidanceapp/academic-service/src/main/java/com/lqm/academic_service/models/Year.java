@@ -19,15 +19,10 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @Table(name = "years")
-@NamedQueries({
-        @NamedQuery(name = "Year.findAll", query = "SELECT y FROM Year y"),
-        @NamedQuery(name = "Year.findById", query = "SELECT y FROM Year y WHERE y.id = :id"),
-        @NamedQuery(name = "Year.findByName", query = "SELECT y FROM Year y WHERE y.name = :name"),
-})
 public class Year implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     @EqualsAndHashCode.Include
     @ToString.Include
@@ -42,7 +37,6 @@ public class Year implements Serializable {
     @Setter(AccessLevel.NONE)
     @JsonIgnore
     @OneToMany(mappedBy = "year", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Include
     private Set<Semester> semesterSet = new LinkedHashSet<>();
 
     @Builder.Default

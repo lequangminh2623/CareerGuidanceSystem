@@ -15,6 +15,8 @@ public interface SubjectService {
 
     Subject getSubjectById(UUID id);
 
+    Subject getSubjectByName(String name);
+
     void deleteSubjectById(UUID id);
 
     boolean existDuplicateSubject(String name, UUID excludeId);

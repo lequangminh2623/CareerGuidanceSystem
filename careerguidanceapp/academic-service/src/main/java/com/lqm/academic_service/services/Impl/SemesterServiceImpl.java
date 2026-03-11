@@ -3,6 +3,7 @@ package com.lqm.academic_service.services.Impl;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
 import com.lqm.academic_service.models.Semester;
 import com.lqm.academic_service.models.SemesterType;
+import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.repositories.SemesterRepository;
 import com.lqm.academic_service.services.SemesterService;
 import com.lqm.academic_service.services.YearService;
@@ -20,7 +21,6 @@ public class SemesterServiceImpl implements SemesterService {
 
     private final SemesterRepository semesterRepo;
     private final MessageSource messageSource;
-    private final YearService yearService;
 
     @Override
     public List<Semester> getSemestersByYearId(UUID id, Map<String, String> params) {
@@ -29,16 +29,15 @@ public class SemesterServiceImpl implements SemesterService {
     }
 
     @Override
-    public Semester saveSemester(Semester semester, UUID yearId) {
-        semester.setYear(yearService.getYearById(yearId));
-        semesterRepo.save(semester);
-        return semester;
+    public Semester saveSemester(Semester semester, Year year) {
+        semester.setYear(year);
+        return semesterRepo.save(semester);
     }
 
     @Override
     public Semester getSemesterById(UUID id) {
         return semesterRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
-                messageSource.getMessage("user.notFound", null, Locale.getDefault()))
+                messageSource.getMessage("semester.notFound", null, Locale.getDefault()))
         );
     }
 

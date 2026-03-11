@@ -1,0 +1,63 @@
+.form-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.form-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #262626;
+    margin: 0;
+}
+
+.table thead th {
+    background-color: #FAFAFA;
+    color: #595959;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    padding: 12px;
+}
+
+.btn-icon-del {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    color: #8C8C8C;
+    transition: all 0.2s;
+}
+
+.btn-icon-del:hover {
+    background-color: #FFF1F0;
+    color: #F5222D;
+}
+
+/* Custom cho thẻ Select nhiều dòng */
+.custom-select-box {
+    height: 250px !important;
+    overflow-y: auto;
+    font-size: 14px;
+    padding: 8px;
+}
+.custom-select-box option {
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.custom-select-box option:hover {
+    background-color: #F0F2F5;
+}
+.custom-select-box option:checked {
+    background-color: #E6F7FF;
+    color: #1890FF;
+    border-color: #91D5FF;
+}

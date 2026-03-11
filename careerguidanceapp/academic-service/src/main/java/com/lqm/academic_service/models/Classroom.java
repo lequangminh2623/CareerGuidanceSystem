@@ -3,6 +3,7 @@ package com.lqm.academic_service.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 
 import java.io.Serializable;
 import java.util.*;
@@ -17,14 +18,9 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @Table(name = "classrooms")
-@NamedQueries({
-        @NamedQuery(name = "Classroom.findAll", query = "SELECT c FROM Classroom c"),
-        @NamedQuery(name = "Classroom.findById", query = "SELECT c FROM Classroom c WHERE c.id = :id"),
-        @NamedQuery(name = "Classroom.findByName", query = "SELECT c FROM Classroom c WHERE c.name = :name"),
-})
 public class Classroom implements Serializable {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     @EqualsAndHashCode.Include
     @ToString.Include
@@ -43,7 +39,21 @@ public class Classroom implements Serializable {
     @Builder.Default
     @Setter(AccessLevel.NONE)
     @OneToMany(mappedBy = "classroom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Section> sectionSet = new LinkedHashSet<>();
+
+    @Builder.Default
+    @Setter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "classroom", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentClassroom> studentClassroomSet = new LinkedHashSet<>();
+
+    @Formula("(SELECT COUNT(*) FROM students_classrooms sc WHERE sc.classroom_id = id)")
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private Integer studentCount;
+
+    public Integer getStudentCount() {
+        return studentCount != null ? studentCount : 0;
+    }
 
     public void addStudent(StudentClassroom studentClassroom) {
         if (studentClassroom == null) return;

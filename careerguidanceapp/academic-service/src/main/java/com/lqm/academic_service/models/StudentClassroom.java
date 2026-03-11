@@ -14,12 +14,11 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-@Table(name = "students_classrooms",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "classroom_id"}))
+@Table(name = "students_classrooms")
 public class StudentClassroom implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     @ToString.Include
     private UUID id;

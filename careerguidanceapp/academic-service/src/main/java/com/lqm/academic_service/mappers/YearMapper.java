@@ -12,7 +12,5 @@ public interface YearMapper {
 
     YearRequestDTO toYearRequestDTO(Year year);
 
-    @Mapping(target = "semesterSet", ignore = true)
-    @Mapping(target = "gradeSet", ignore = true)
     Year toEntity(YearRequestDTO yearRequestDTO);
 }

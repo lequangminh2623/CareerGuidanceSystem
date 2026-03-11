@@ -25,7 +25,7 @@ public class JwtUtil {
         }
 
         String email = signedJWT.getJWTClaimsSet().getSubject();
-        String role = signedJWT.getJWTClaimsSet().getStringClaim("roles");
+        String role = signedJWT.getJWTClaimsSet().getStringClaim("role");
 
         Map<String, String> claims = new HashMap<>();
         claims.put("email", email);

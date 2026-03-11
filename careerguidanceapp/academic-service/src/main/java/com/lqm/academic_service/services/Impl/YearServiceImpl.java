@@ -1,10 +1,14 @@
 package com.lqm.academic_service.services.Impl;
 
-import com.lqm.academic_service.dtos.AcademicResponseDTO;
-import com.lqm.academic_service.dtos.YearRequestDTO;
+import com.lqm.academic_service.configs.GradeConfig;
+import com.lqm.academic_service.configs.SemesterConfig;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
+import com.lqm.academic_service.models.Grade;
+import com.lqm.academic_service.models.Semester;
 import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.repositories.YearRepository;
+import com.lqm.academic_service.services.GradeService;
+import com.lqm.academic_service.services.SemesterService;
 import com.lqm.academic_service.services.YearService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -21,8 +25,12 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 public class YearServiceImpl implements YearService {
-    
+
+    private final SemesterConfig semesterConfig;
+    private final GradeConfig gradeConfig;
     private final YearRepository yearRepo;
+    private final SemesterService semesterService;
+    private final GradeService gradeService;
     private final MessageSource messageSource;
 
     @Override
@@ -33,7 +41,18 @@ public class YearServiceImpl implements YearService {
 
     @Override
     public Year saveYear(Year year) {
-        return yearRepo.save(year);
+        boolean isNew = (year.getId() == null);
+        Year savedYear = yearRepo.save(year);
+        if (isNew && savedYear.getId() != null) {
+            semesterConfig.getRequiredSemesters().forEach(semesterType -> semesterService.saveSemester(
+                    Semester.builder().name(semesterType).build(), savedYear)
+            );
+            gradeConfig.getRequiredGrades().forEach(gradeType -> gradeService.saveGrade(
+                    Grade.builder().name(gradeType).build(), savedYear)
+            );
+        }
+
+        return savedYear;
     }
 
     @Override

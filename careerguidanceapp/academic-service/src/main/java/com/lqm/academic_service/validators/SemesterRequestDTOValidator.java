@@ -27,16 +27,16 @@ public class SemesterRequestDTOValidator implements Validator, SupportsClass {
 
     @Override
     public void validate(@Nonnull Object target, @Nonnull Errors errors) {
-        SemesterRequestDTO SemesterRequestDTO = (SemesterRequestDTO) target;
+        SemesterRequestDTO semester = (SemesterRequestDTO) target;
 
-        if (SemesterRequestDTO.name() == null || SemesterRequestDTO.name().trim().isEmpty()) {
+        if (semester.name() == null || semester.name().trim().isEmpty()) {
             errors.rejectValue("name", "semester.name.notNull");
 
         }
 
         if (!errors.hasFieldErrors()
-                && semesterService.existDuplicateSemester(SemesterType.fromSemesterName(SemesterRequestDTO.name()),
-                    SemesterRequestDTO.id(), SemesterRequestDTO.yearId())) {
+                && semesterService.existDuplicateSemester(SemesterType.fromSemesterName(semester.name()),
+                    semester.id(), semester.yearId())) {
             errors.rejectValue("name", "semester.unique");
         }
     }

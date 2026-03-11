@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Danh sách Lớp học</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/classroom/classroom-list.css}" />
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container py-4">
+    <div class="row g-4">
+
+        <div class="col-lg-3 col-md-4">
+            <div th:replace="~{fragments/sidebar :: grade-sidebar(baseUrl='/classrooms')}"></div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+            <div class="page-header">
+                <div>
+                    <h4 class="fw-bold mb-1">Danh sách Lớp học</h4>
+                    <span class="text-muted small">Quản lý và phân công lớp học cho khối</span>
+                </div>
+            </div>
+
+            <div th:if="${params['gradeId'] != null}">
+
+                <div class="filter-bar">
+                    <form th:action="@{/classrooms}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+                        <input type="hidden" name="gradeId" th:value="${params['gradeId']}"/>
+
+                        <div class="input-group" style="max-width: 400px;">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                            <input type="text" name="kw" class="form-control border-start-0 ps-0"
+                                   placeholder="Tìm theo tên lớp..."
+                                   th:value="${params['kw']}"/>
+                            <button type="submit" class="btn btn-outline-primary"
+                                    style="border-color: #d9d9d9; color: #2F54EB; white-space: nowrap;">
+                                <i class="fas fa-filter me-1"></i> Lọc
+                            </button>
+                        </div>
+                    </form>
+
+                    <a th:href="@{/classrooms/add(gradeId=${params['gradeId']})}" class="btn btn-primary shadow-sm px-3">
+                        <i class="fas fa-plus me-2"></i> Thêm lớp học
+                    </a>
+                </div>
+
+                <div class="card table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th class="ps-4 text-start">Tên lớp</th>
+                                <th>Sĩ số</th>
+                                <th>Cấu hình liên quan</th>
+                                <th class="text-end pe-4">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${classrooms.content}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="class-icon">
+                                            <i class="fas fa-chalkboard-teacher"></i>
+                                        </div>
+                                        <span class="class-name" th:text="${c.name}">10A1</span>
+                                    </div>
+                                </td>
+
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="quantity-icon">
+                                            <i class="fas fa-user-friends"></i>
+                                        </div>
+                                        <span class="quantity-name" th:text="${c.studentCount}">0</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <a th:href="@{'/classrooms/' + ${c.id} + '/sections'(gradeId=${params['gradeId']})}"
+                                       class="link-badge section" title="Phân công giáo viên bộ môn">
+                                        <i class="fa-solid fa-tasks me-2"></i>Phân giảng
+                                    </a>
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <a th:href="@{'/classrooms/' + ${c.id}(gradeId=${params['gradeId']})}" class="btn-icon" title="Chỉnh sửa">
+                                        <i class="fas fa-pen" style="font-size: 14px;"></i>
+                                    </a>
+                                    <button class="btn-icon delete"
+                                            th:data-url="@{/classrooms/}"
+                                            th:data-id="${c.id}"
+                                            onclick="deleteHandler(this)"
+                                            title="Xóa">
+                                        <i class="fas fa-trash" style="font-size: 14px;"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${classrooms.totalElements == 0}">
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-chalkboard mb-3" style="font-size: 24px; opacity: 0.5;"></i>
+                                        <p class="mb-0">Chưa có lớp học nào trong khối này.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:replace="~{fragments/pagination :: pagination(pageData=${classrooms})}"></div>
+
+                </div>
+            </div>
+
+            <div th:if="${params['gradeId'] == null}" class="card border-0 shadow-sm" style="min-height: 400px;">
+                <div class="empty-state">
+                    <div class="bg-light rounded-circle p-4 mb-3">
+                        <i class="fas fa-arrow-left text-primary" style="font-size: 32px;"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Vui lòng chọn Khối lớp</h5>
+                    <p class="small">Chọn một khối lớp từ menu bên trái để xem danh sách lớp học.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+<script th:src="@{/js/delete.js}"></script>
+
+</body>
+</html>

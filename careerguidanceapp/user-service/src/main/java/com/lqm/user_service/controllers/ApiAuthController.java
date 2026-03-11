@@ -1,8 +1,9 @@
 package com.lqm.user_service.controllers;
 
 import com.lqm.user_service.dtos.UserLoginDTO;
-import com.lqm.user_service.dtos.UserRequestDTO;
+import com.lqm.user_service.dtos.AdminUserRequestDTO;
 import com.lqm.user_service.dtos.UserDetailsResponseDTO;
+import com.lqm.user_service.dtos.UserRequestDTO;
 import com.lqm.user_service.mappers.UserMapper;
 import com.lqm.user_service.models.User;
 import com.lqm.user_service.services.AuthService;
@@ -52,8 +53,9 @@ public class ApiAuthController {
             @RequestPart(value = "file", required = false) MultipartFile file
     ) {
         User user = userMapper.toEntity(userRequestDTO);
-        User savedUser = userService.saveUser(user, file, userRequestDTO.getCode());
+        User savedUser = userService.saveUser(user, file, userRequestDTO.code());
         UserDetailsResponseDTO userDetailsResponseDTO = userMapper.toUserDetailsResponseDTO(savedUser);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(userDetailsResponseDTO);
     }
 

@@ -1,5 +1,6 @@
 package com.lqm.user_service.validators;
 
+import com.lqm.user_service.dtos.AdminUserRequestDTO;
 import com.lqm.user_service.dtos.UserRequestDTO;
 import com.lqm.user_service.services.StudentService;
 import com.lqm.user_service.services.UserService;
@@ -18,53 +19,49 @@ public class UserRequestDTOValidator implements Validator, SupportsClass {
 
     @Override
     public Class<?> getSupportedClass() {
-        return UserRequestDTO.class;
+        return AdminUserRequestDTO.class;
     }
 
     @Override
     public boolean supports(@Nonnull Class<?> clazz) {
-        return UserRequestDTO.class.isAssignableFrom(clazz);
+        return AdminUserRequestDTO.class.isAssignableFrom(clazz);
     }
 
     @Override
     public void validate(@Nonnull Object target, @Nonnull Errors errors) {
-        UserRequestDTO userRequestDTO = (UserRequestDTO) target;
+        UserRequestDTO dto = (UserRequestDTO) target;
 
-        if (userRequestDTO.getFirstName() == null || userRequestDTO.getFirstName().trim().isEmpty()) {
+        if (dto.firstName() == null || dto.firstName().trim().isEmpty()) {
             errors.rejectValue("firstName", "user.firstName.notNull");
         }
 
-        if (userRequestDTO.getLastName() == null || userRequestDTO.getLastName().trim().isEmpty()) {
+        if (dto.lastName() == null || dto.lastName().trim().isEmpty()) {
             errors.rejectValue("lastName", "user.lastName.notNull");
         }
 
-        if (userRequestDTO.getEmail() == null || userRequestDTO.getEmail().trim().isEmpty()) {
+        if (dto.email() == null || dto.email().trim().isEmpty()) {
             errors.rejectValue("email", "user.email.notNull");
         }
-        if (userRequestDTO.getRole() == null || userRequestDTO.getRole().trim().isEmpty()) {
-            errors.rejectValue("role", "user.role.notNull");
+
+        if (dto.password() == null || dto.password().trim().isEmpty()) {
+            errors.rejectValue("password", "user.password.notNull");
         }
 
         if (!errors.hasFieldErrors("email")) {
-            boolean existEmail = userService.existDuplicateUser(userRequestDTO.getEmail(), null);
+            boolean existEmail = userService.existDuplicateUser(dto.email(), dto.id());
             if (existEmail) {
                 errors.rejectValue("email", "user.email.unique");
             }
         }
-
-        if (userRequestDTO.getPassword() == null || userRequestDTO.getPassword().trim().isEmpty()) {
-            errors.rejectValue("password", "user.password.notNull");
-        }
-
-        if (userRequestDTO.getCode() == null || userRequestDTO.getCode().trim().isEmpty()) {
+        if ((dto.code() == null || dto.code().trim().isEmpty())) {
             errors.rejectValue("code", "user.student.code.notNull");
         } else {
-            boolean existCode = studentService.existDuplicateStudent(userRequestDTO.getCode(), null);
+            boolean existCode = studentService.existDuplicateStudent(dto.code(), dto.id());
             if (existCode) {
                 errors.rejectValue("code", "user.student.code.unique");
             }
         }
 
+
     }
 }
-

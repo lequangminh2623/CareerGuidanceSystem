@@ -14,16 +14,20 @@ import java.util.UUID;
 @Repository
 public interface SemesterRepository extends JpaRepository<Semester, UUID> {
 
-    @Query("SELECT s FROM Semester s " +
-            "WHERE s.year.id = :yearId " +
-            "AND (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))" +
-            "ORDER BY s.name")
+    @Query("""
+            SELECT s FROM Semester s
+            WHERE s.year.id = :yearId
+            AND (:kw IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+            ORDER BY s.name
+    """)
     List<Semester> findByYearId(@Param("yearId") UUID yearId, @Param("kw") String kw);
 
-    @Query("SELECT s FROM Semester s " +
-            "WHERE (:kw IS NULL OR LOWER(CONCAT(s.year.name, ' - ', s.name))" +
-            "LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))" +
-            "ORDER BY s.year.name desc, s.name")
+    @Query("""
+            SELECT s FROM Semester s
+            WHERE (:kw IS NULL OR LOWER(CONCAT(s.year.name, ' - ', s.name))
+            LIKE LOWER(CONCAT('%', CAST(:kw AS STRING), '%')))
+            ORDER BY s.year.name desc, s.name
+    """)
     List<Semester> findAllByKeyword(@Param("kw") String kw);
 
     boolean existsByNameAndYearIdAndIdNot(SemesterType name, UUID yearId, UUID id);

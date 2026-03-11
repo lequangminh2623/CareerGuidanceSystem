@@ -17,14 +17,16 @@ public interface UserMapper {
     UserDetailsResponseDTO toUserDetailsResponseDTO(User user);
 
     //ignore id only for apis
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", expression = "java(user.getRole() != null ? user.getRole().getRoleName() : null)")
     @Mapping(target = "code", expression = "java(user.getStudent() != null ? user.getStudent().getCode() : null)")
-    UserRequestDTO toUserRequestDTO(User user);
+    AdminUserRequestDTO toAdminUserRequestDTO(User user);
 
     @Mapping(target = "student", ignore = true)
     @Mapping(target = "role",
-            expression = "java(com.lqm.user_service.models.Role.fromRoleName(userRequestDTO.getRole()))")
+            expression = "java(com.lqm.user_service.models.Role.fromRoleName(adminUserRequestDTO.role()))")
+    User toEntity(AdminUserRequestDTO adminUserRequestDTO);
+
+    @Mapping(target = "student", ignore = true)
     User toEntity(UserRequestDTO userRequestDTO);
 
 }

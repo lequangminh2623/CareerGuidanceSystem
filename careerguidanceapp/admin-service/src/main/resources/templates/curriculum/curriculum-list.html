@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Chương trình đào tạo</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/curriculum/curriculum-list.css}" />
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container py-4">
+    <div class="row g-4">
+
+        <div class="col-lg-3 col-md-4">
+            <div th:replace="~{fragments/sidebar :: grade-sidebar(baseUrl='/curriculums')}"></div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
+            <div class="page-header">
+                <div>
+                    <h4 class="fw-bold mb-1">Chương trình đào tạo</h4>
+                    <span class="text-muted small">Quản lý phân công môn học cho từng khối</span>
+                </div>
+            </div>
+
+            <div th:if="${params['gradeId'] != null}">
+
+                <div class="filter-bar">
+                    <form th:action="@{/curriculums}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+                        <input type="hidden" name="gradeId" th:value="${params['gradeId']}"/>
+                        <div class="d-flex gap-2 w-100" style="max-width: 500px;">
+                            <select name="semesterId" class="form-select" th:if="${semesters != null}">
+                                <option value="" th:selected="${params['semesterId'] == null || params['semesterId'] == ''}">-- Tất cả Học kỳ --</option>
+                                <option th:each="s : ${semesters}" th:value="${s.id}" th:text="${s.name}" th:selected="${params['semesterId'] == s.id.toString()}"></option>
+                            </select>
+
+                            <select name="subjectId" class="form-select">
+                                <option value="" th:selected="${params['subjectId'] == null || params['subjectId'] == ''}">-- Tất cả Môn học --</option>
+                                <option th:each="sub : ${subjects}" th:value="${sub.id}" th:text="${sub.name}" th:selected="${params['subjectId'] == sub.id.toString()}"></option>
+                            </select>
+
+                            <button type="submit" class="btn btn-outline-primary" style="border-color: #d9d9d9; color: #2F54EB; white-space: nowrap;">
+                                <i class="fas fa-filter me-1"></i> Lọc
+                            </button>
+
+                            <a th:if="${(params['semesterId'] != null && params['semesterId'] != '') || (params['subjectId'] != null && params['subjectId'] != '')}"
+                               th:href="@{/curriculums(gradeId=${params['gradeId']})}" class="btn btn-light text-muted border" title="Xóa bộ lọc">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <a th:href="@{/curriculums/add(gradeId=${params['gradeId']})}" class="btn btn-primary shadow-sm px-3" style="background-color: #2F54EB; border-color: #2F54EB;">
+                        <i class="fas fa-plus me-2"></i> Thêm chương trình
+                    </a>
+                </div>
+
+                <div class="card table-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                            <tr>
+                                <th class="ps-4">Môn học</th>
+                                <th>Học kỳ</th>
+                                <th class="text-end pe-4">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${curriculums.content}">
+                                <td class="ps-4"><span class="badge-subject"><i class="fas fa-book-open me-1"></i><span th:text="${c.subjectName}">Toán</span></span></td>
+                                <td><span class="badge-semester"><i class="fas fa-clock me-1"></i><span th:text="${c.semesterName}">Học kỳ 1</span></span></td>
+                                <td class="text-end pe-4">
+                                    <a th:href="@{'/curriculums/' + ${c.id}(gradeId=${params['gradeId']})}" class="btn-icon" title="Chỉnh sửa"><i class="fas fa-pen" style="font-size: 14px;"></i></a>
+                                    <button class="btn-icon delete" th:data-url="@{/curriculums/}" th:data-id="${c.id}" onclick="deleteHandler(this)" title="Xóa"><i class="fas fa-trash" style="font-size: 14px;"></i></button>
+                                </td>
+                            </tr>
+                            <tr th:if="${curriculums.totalElements == 0}">
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="text-muted"><i class="fas fa-inbox mb-3" style="font-size: 24px; opacity: 0.5;"></i><p class="mb-0">Chưa có môn học nào được phân công cho khối này.</p></div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:replace="~{fragments/pagination :: pagination(pageData=${curriculums})}"></div>
+
+                </div>
+            </div>
+
+            <div th:if="${params['gradeId'] == null}" class="card border-0 shadow-sm" style="min-height: 400px;">
+                <div class="empty-state">
+                    <div class="bg-light rounded-circle p-4 mb-3">
+                        <i class="fas fa-arrow-left text-primary" style="font-size: 32px;"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Vui lòng chọn Khối lớp</h5>
+                    <p class="small">Chọn một khối lớp từ menu bên trái để xem và quản lý chương trình đào tạo.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+<script th:src="@{/js/delete.js}"></script>
+
+</body>
+</html>

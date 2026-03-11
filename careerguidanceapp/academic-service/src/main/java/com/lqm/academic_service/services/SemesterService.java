@@ -2,6 +2,7 @@ package com.lqm.academic_service.services;
 
 import com.lqm.academic_service.models.Semester;
 import com.lqm.academic_service.models.SemesterType;
+import com.lqm.academic_service.models.Year;
 
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ public interface SemesterService {
 
     List<Semester> getSemestersByYearId(UUID year_id, Map<String, String> params);
 
-    Semester saveSemester(Semester semester, UUID yearId);
+    Semester saveSemester(Semester semester, Year year);
 
     Semester getSemesterById(UUID id);
 

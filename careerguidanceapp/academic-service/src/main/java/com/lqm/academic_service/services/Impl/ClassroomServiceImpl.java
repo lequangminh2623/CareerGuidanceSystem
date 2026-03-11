@@ -1,12 +1,15 @@
 package com.lqm.academic_service.services.Impl;
 
+import com.lqm.academic_service.clients.ScoreClient;
+import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
 import com.lqm.academic_service.exceptions.BadRequestException;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
-import com.lqm.academic_service.models.Classroom;
-import com.lqm.academic_service.models.StudentClassroom;
+import com.lqm.academic_service.models.*;
 import com.lqm.academic_service.repositories.ClassroomRepository;
+import com.lqm.academic_service.repositories.SectionRepository;
 import com.lqm.academic_service.repositories.StudentClassroomRepository;
 import com.lqm.academic_service.services.ClassroomService;
+import com.lqm.academic_service.services.CurriculumService;
 import com.lqm.academic_service.services.GradeService;
 import com.lqm.academic_service.specifications.ClassroomSpecification;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Transactional
 @RequiredArgsConstructor
@@ -27,6 +31,9 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final MessageSource messageSource;
     private final StudentClassroomRepository studentClassroomRepo;
     private final GradeService gradeService;
+    private final SectionRepository sectionRepo;
+    private final CurriculumService curriculumService;
+    private final ScoreClient scoreClient;
 
     @Override
     public Page<Classroom> getClassrooms(Map<String, String> params, Pageable pageable) {
@@ -36,18 +43,60 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     @Override
     public Classroom saveClassroom(Classroom classroom, UUID gradeId, List<UUID> studentIds) {
+        boolean isNew = (classroom.getId() == null);
+        if (studentIds == null) studentIds = new ArrayList<>();
+
+        Set<UUID> oldStudentIds = isNew || classroom.getStudentClassroomSet() == null
+                ? Collections.emptySet()
+                : classroom.getStudentClassroomSet().stream()
+                .map(StudentClassroom::getStudentId)
+                .collect(Collectors.toSet());
+
+        List<UUID> newStudentIds = studentIds.stream()
+                .filter(id -> !oldStudentIds.contains(id)).toList();
+
+        List<UUID> finalStudentIds = studentIds;
+        List<UUID> removedStudentIds = oldStudentIds.stream()
+                .filter(id -> !finalStudentIds.contains(id)).toList();
+
         classroom.setStudentClassroomSet(studentIds);
         classroom.setGrade(gradeService.getGradeById(gradeId));
         Classroom savedClassroom = classroomRepo.save(classroom);
-        return this.getClassroomById(savedClassroom.getId());
-    }
 
-    @Override
-    public Classroom getClassroomById(UUID id) {
-        return classroomRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        messageSource.getMessage("classroom.notFound", null, Locale.getDefault()))
-                );
+        List<Section> sections;
+        if (isNew && savedClassroom.getId() != null) {
+            sections = this.initSectionForClassroom(savedClassroom, gradeId);
+        } else {
+            sections = classroom.getSectionSet() != null ? classroom.getSectionSet().stream().toList() : new ArrayList<>();
+        }
+
+        // GỌI ĐỒNG BỘ ĐIỂM 1 LẦN DUY NHẤT NẾU CÓ SỰ THAY ĐỔI
+        if (!sections.isEmpty() && (!newStudentIds.isEmpty() || !removedStudentIds.isEmpty())) {
+            List<UUID> sectionIds = sections.stream().map(Section::getId).toList();
+
+            SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
+                    sectionIds,
+                    newStudentIds,
+                    removedStudentIds
+            );
+
+            scoreClient.syncScoresForClassroom(syncRequest); // Gọi sang ScoreService
+        }
+
+        return savedClassroom;
+    }
+    private List<Section> initSectionForClassroom(Classroom classroom, UUID gradeId) {
+        List<Curriculum> curriculums = curriculumService.getCurriculums(
+                List.of(),
+                Map.of("gradeId", gradeId.toString()),
+                Pageable.unpaged()
+        ).toList();
+
+        List<Section> sections = curriculums.stream().map(
+                c -> Section.builder().classroom(classroom).curriculum(c).scoreStatus(ScoreStatusType.DRAFT).build()
+        ).toList();
+
+        return sectionRepo.saveAll(sections);
     }
 
     @Override
@@ -68,24 +117,50 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    public boolean existsDuplicateClassroom(String name, UUID gradeId, UUID excludeId) {
+    public Classroom getClassroomById(UUID id) {
+        return classroomRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
+                messageSource.getMessage("classroom.notFound", null, Locale.getDefault()))
+        );
+    }
+
+    @Override
+    public boolean existDuplicateClassroom(String name, UUID gradeId, UUID excludeId) {
         return classroomRepo.existsByNameAndGradeIdAndIdNot(name, gradeId, excludeId);
     }
 
     @Override
+    public boolean existClassroomById(UUID id) {
+        return classroomRepo.existsById(id);
+    }
+
+    @Override
     public void removeStudentFromClassroom(UUID classroomId, UUID studentId) {
+        Classroom classroom = this.getClassroomById(classroomId);
+        List<UUID> sectionIds = classroom.getSectionSet().stream().map(Section::getId).toList();
+        scoreClient.deleteScoreDetail(studentId, sectionIds);
         studentClassroomRepo.deleteByClassroomIdAndStudentId(classroomId, studentId);
     }
 
     @Override
-    public boolean existsStudentInOtherClassroom(UUID studentId, UUID gradeId, UUID excludeClassroomId) {
-        return studentClassroomRepo
-                .existsByStudentIdAndClassroom_Grade_IdAndClassroom_IdNot(studentId, gradeId, excludeClassroomId);
+    public List<UUID> getStudentsInOtherClassrooms(List<UUID> studentIds, UUID yearId, UUID excludeClassroomId) {
+        if (studentIds == null || studentIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return studentClassroomRepo.findStudentIdsInOtherClassrooms(
+                studentIds,
+                yearId,
+                excludeClassroomId
+        );
     }
 
     @Override
-    public boolean existStudentInClassroom(UUID studentId, UUID classroomId) {
-        return studentClassroomRepo.existsByStudentIdAndClassroomId(studentId, classroomId);
+    public List<UUID> getNonExistingStudentIds(UUID classroomId, List<UUID> studentIds) {
+        Set<UUID> existingIds = new HashSet<>(studentClassroomRepo.findExistingIds(classroomId, studentIds));
+
+        return studentIds.stream()
+                .distinct()
+                .filter(id -> !existingIds.contains(id))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -97,4 +172,5 @@ public class ClassroomServiceImpl implements ClassroomService {
 
         return classroomRepo.findAllByIdIn(classroomIds, pageable);
     }
+
 }

@@ -1,11 +1,13 @@
 package com.lqm.user_service.specifications;
 
+import com.lqm.user_service.models.Role;
 import com.lqm.user_service.models.User;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -14,32 +16,34 @@ public class UserSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (params != null) {
-                // 1. Lọc theo Từ khóa (kw)
-                String kw = params.get("kw");
-                if (kw != null && !kw.trim().isEmpty()) {
-                    String likeKw = "%" + kw.trim().toLowerCase() + "%";
+            if (params == null || params.isEmpty()) {
+                return cb.and(predicates.toArray(new Predicate[0]));
+            }
 
-                    predicates.add(
-                            cb.like(cb.lower(cb.concat(
-                                    cb.concat(root.get("lastName"), " "),
-                                    root.get("firstName"))
-                            ), likeKw)
-                    );
-                }
+            String kw = params.get("kw");
+            if (StringUtils.hasText(kw)) {
+                String likeKw = "%" + kw.trim().toLowerCase() + "%";
 
-                String rolesParam = params.get("role");
-                if (rolesParam != null && !rolesParam.trim().isEmpty()) {
-                    List<String> roles = Arrays.stream(rolesParam.split(","))
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .toList();
+                predicates.add(
+                        cb.or(cb.like(cb.lower(cb.concat(
+                                        cb.concat(root.get("lastName"), " "),
+                                        root.get("firstName"))
+                                ), likeKw),
+                                cb.like(cb.lower(root.get("student").get("code")), likeKw)
+                        )
+                );
+            }
 
-                    if (!roles.isEmpty()) {
-                        CriteriaBuilder.In<String> inClause = cb.in(root.get("role"));
-                        roles.forEach(inClause::value);
-                        predicates.add(inClause);
-                    }
+            String rolesParam = params.get("role");
+            if (rolesParam != null && !rolesParam.trim().isEmpty()) {
+                List<String> roles = Arrays.stream(rolesParam.split(","))
+                        .map(r -> Role.fromRoleName(r.trim()))
+                        .filter(Objects::nonNull)
+                        .map(Enum::name)
+                        .toList();
+
+                if (!roles.isEmpty()) {
+                    predicates.add(root.get("role").in(roles));
                 }
             }
 

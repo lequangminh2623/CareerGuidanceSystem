@@ -1,0 +1,46 @@
+.class-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #E6F7FF;
+    color: #1890FF;
+    border-radius: 8px;
+    margin-right: 12px;
+}
+
+.class-name {
+    font-weight: 600;
+    color: #262626;
+}
+
+.quantity-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #F6FFED;
+    color: #52C41A;
+    border-radius: 8px;
+    margin-right: 10px;
+    border: 1px solid #B7EB8F;
+}
+
+.quantity-name {
+    font-weight: 700;
+    color: #262626;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 15px;
+}
+
+.link-badge.section {
+    background-color: #FFE6F1;
+    color: #ff1842;
+    border: 1px solid transparent;
+}
+.link-badge.section:hover {
+    background-color: #ff1842;
+    color: #fff;
+}

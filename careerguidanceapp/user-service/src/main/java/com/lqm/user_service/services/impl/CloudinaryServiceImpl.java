@@ -38,7 +38,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     @Override
     public void deleteFile(String url) {
         String publicId = extractPublicId(url);
-        if (publicId == null || "i3pxjl44v4tucczr4roy".equals(publicId)) return;
+        if (publicId == null || "CareerGuidanceSystem/Avatar/download_kys5gs".equals(publicId)) return;
 
         try {
             Map<?, ?> res = cloudinary.uploader().destroy(
