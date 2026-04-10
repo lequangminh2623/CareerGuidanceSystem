@@ -4,7 +4,6 @@ import com.lqm.academic_service.dtos.AcademicResponseDTO;
 import com.lqm.academic_service.dtos.GradeDetailsResponseDTO;
 import com.lqm.academic_service.dtos.GradeRequestDTO;
 import com.lqm.academic_service.mappers.GradeMapper;
-import com.lqm.academic_service.models.Grade;
 import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.services.GradeService;
 import com.lqm.academic_service.services.YearService;

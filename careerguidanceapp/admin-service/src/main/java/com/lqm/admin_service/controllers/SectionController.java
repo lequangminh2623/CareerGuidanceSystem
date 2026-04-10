@@ -78,7 +78,7 @@ public class SectionController {
     @GetMapping
     public String listSections(Model model, @RequestParam Map<String, String> params, @PathVariable String classroomId) {
         populateModel(model, params, classroomId);
-        return "section/section-list";
+        return "section/list";
     }
 
     @PostMapping
@@ -90,7 +90,7 @@ public class SectionController {
 
         if (bindingResult.hasErrors()) {
             populateModel(model, params, classroomId);
-            return "section/section-list";
+            return "section/list";
         }
 
         try {
@@ -99,18 +99,19 @@ public class SectionController {
 
         } catch (ValidationException e) {
             if (e.getDetails() instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
                 Map<String, String> errors = (Map<String, String>) e.getDetails();
                 errors.forEach((field, message) -> {
                     bindingResult.rejectValue(field, "error.section", message);
                 });
             }
             populateModel(model, params, classroomId);
-            return "section/section-list";
+            return "section/list";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage", messageSource.getMessage("error", null, Locale.getDefault()));
             populateModel(model, params, classroomId);
-            return "section/section-list";
+            return "section/list";
         }
     }
 

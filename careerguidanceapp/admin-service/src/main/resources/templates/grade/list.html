@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <title>Quản lý Khối lớp</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/grade/grade-list.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <p th:replace="~{base :: header}"></p>
+    <main class="flex-grow-1 container py-5">
+        <div class="page-header mb-4">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}"
+                                class="text-decoration-none text-muted">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/years}" class="text-decoration-none text-muted">Năm
+                                học</a></li>
+                        <li class="breadcrumb-item active text-primary" aria-current="page">Khối lớp</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-black text-dark tracking-tight mb-1">Quản lý Khối lớp</h2>
+                <p class="text-secondary small fw-medium mb-0">
+                    Niên khóa: <span class="badge bg-indigo-soft text-indigo px-2 py-1 rounded"
+                        th:text="${yearDisplay.name}">2024-2025</span>
+                </p>
+            </div>
+            <a th:href="@{/years}" class="btn btn-light border text-muted shadow-sm rounded-xl">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại Năm học
+            </a>
+        </div>
+
+        <div
+            class="filter-bar border-0 shadow-sm mb-4 bg-white p-3 rounded-xl d-flex justify-content-between align-items-center">
+            <form th:action="@{/years/{id}/grades(id=${yearDisplay.id})}" method="get"
+                class="d-flex align-items-center flex-grow-1 me-3">
+                <div class="input-group input-group-merge w-100" style="max-width: 400px;">
+                    <span class="input-group-text bg-light border-0 px-3 text-muted">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="kw" class="form-control bg-light border-0 ps-0 py-2 fs-14 fw-medium"
+                        placeholder="Tìm kiếm khối lớp..." th:value="${params['kw']}" />
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-xl fw-bold">
+                        Lọc
+                    </button>
+                </div>
+            </form>
+
+            <a th:href="@{/years/{id}/grades/add(id=${yearDisplay.id})}"
+                class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-xl shadow-sm hover-translate-y">
+                <i class="fas fa-plus fs-14"></i>
+                <span class="fw-bold">Thêm khối lớp</span>
+            </a>
+        </div>
+
+        <div class="card table-card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Tên Khối lớp</th>
+                            <th>Năm học trực thuộc</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        <tr th:each="g : ${gradeDisplays}" class="transition-all duration-200">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-indigo-soft text-indigo p-3 rounded-4 line-height-1 shadow-sm">
+                                        <i class="fa-solid fa-layer-group fs-5"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark fs-15 ms-3" th:text="${g.name}">Khối 10</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="far fa-calendar-alt text-muted fs-14"></i>
+                                    <span class="text-secondary small fw-medium"
+                                        th:text="${yearDisplay.name}">2024-2025</span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a th:href="@{/grades/{gradeId}(gradeId=${g.id})}" class="btn-icon"
+                                        title="Chỉnh sửa">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </a>
+                                    <button class="btn-icon delete" th:data-url="@{/grades/}" th:data-id="${g.id}"
+                                        onclick="deleteHandler(this)" title="Xóa">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(gradeDisplays)}">
+                            <td colspan="3" class="text-center py-5">
+                                <div class="py-5">
+                                    <div class="bg-light d-inline-flex p-4 rounded-circle mb-4">
+                                        <i class="fas fa-cubes fs-1 text-muted opacity-25"></i>
+                                    </div>
+                                    <h4 class="fw-black text-secondary">Trống dữ liệu</h4>
+                                    <p class="text-muted fs-14">Chưa có khối lớp nào được tạo cho năm học này.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    </div>
+
+    <p th:replace="~{base :: footer}"></p>
+    <th:block th:replace="~{base :: scripts}"></th:block>
+    <script th:src="@{/js/delete.js}"></script>
+
+</body>
+
+</html>

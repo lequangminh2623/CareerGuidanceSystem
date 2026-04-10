@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(),
                 message,
                 details,
-                request.getRequestURI() // Lấy URI từ bean được tiêm vào
+                request.getRequestURI()
         );
         return new ResponseEntity<>(response, status);
     }

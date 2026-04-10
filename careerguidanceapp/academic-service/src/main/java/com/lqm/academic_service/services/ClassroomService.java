@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface ClassroomService {
 
-    Page<Classroom> getClassrooms(Map<String, String> params, Pageable pageable);
+    Page<Classroom> getClassrooms(List<UUID> ids, Map<String, String> params, Pageable pageable);
 
     Classroom saveClassroom(Classroom classroom, UUID gradeId, List<UUID> studentIds);
 
@@ -20,11 +20,7 @@ public interface ClassroomService {
 
     Classroom getClassroomById(UUID id);
 
-    void removeStudentFromClassroom(UUID id, UUID studentId);
-
     boolean existDuplicateClassroom(String name, UUID semesterId, UUID excludeId);
-
-    boolean existClassroomById(UUID id);
 
     List<UUID> getStudentsInOtherClassrooms(List<UUID> studentIds, UUID yearId, UUID excludeClassroomId);
 

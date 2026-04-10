@@ -17,18 +17,18 @@ import java.util.UUID;
 @Builder
 public class ScoreRequestDTO {
 
-    @NotNull
+    @NotNull(message = "{student.id.notNull}")
     private UUID studentId;
 
-    @DecimalMin(value = "0.0")
-    @DecimalMax(value = "10.0")
+    @DecimalMin(value = "0.0", message = "{score.invalid}")
+    @DecimalMax(value = "10.0", message = "{score.invalid}")
     private Double midtermScore;
 
-    @DecimalMin(value = "0.0")
-    @DecimalMax(value = "10.0")
+    @DecimalMin(value = "0.0", message = "{score.invalid}")
+    @DecimalMax(value = "10.0", message = "{score.invalid}")
     private Double finalScore;
 
-    @ValidExtraScores
+    @ValidExtraScores(message = "{score.invalid}")
     @Builder.Default
     private List<Double> extraScores = new ArrayList<>();
 }

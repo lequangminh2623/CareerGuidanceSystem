@@ -10,14 +10,14 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface GradeMapper {
 
-    @Mapping(target = "name", expression = "java(grade.getName().getGradeName())")
+    @Mapping(target = "name", source = "name.gradeName")
     AcademicResponseDTO toAcademicResponseDTO(Grade grade);
 
-    @Mapping(target = "name", expression = "java(grade.getName().getGradeName())")
+    @Mapping(target = "name", source = "name.gradeName")
     @Mapping(target = "yearName", source = "year.name")
     GradeDetailsResponseDTO toGradeDetailsResponseDTO(Grade grade);
 
-    @Mapping(target = "name", expression = "java(grade.getName().getGradeName())")
+    @Mapping(target = "name", source = "name.gradeName")
     @Mapping(target = "yearId", source = "year.id")
     GradeRequestDTO toGradeRequestDTO(Grade grade);
 

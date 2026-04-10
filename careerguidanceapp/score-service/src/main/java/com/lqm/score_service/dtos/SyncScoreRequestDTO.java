@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Builder
 public record SyncScoreRequestDTO(
-        List<UUID> sectionIds,
-        List<UUID> newStudentIds,
-        List<UUID> removedStudentIds
-) {}
+                List<UUID> sectionIds,
+                List<UUID> newStudentIds,
+                List<UUID> removedStudentIds) {
+}

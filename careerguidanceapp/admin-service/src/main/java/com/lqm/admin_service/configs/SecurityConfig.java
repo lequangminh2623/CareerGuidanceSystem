@@ -39,12 +39,12 @@ public class SecurityConfig {
     public SecurityFilterChain webSecurity(HttpSecurity http) {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/access-deny").permitAll()
+                        .requestMatchers("/login", "/css/**", "/js/**", "/access-deny", "/internal/**").permitAll()
                         .requestMatchers("/", "/users", "/users/**", "/classrooms", "/classrooms/**",
                                 "/subjects", "/subjects/**", "/years", "/years/**",
                                 "/semesters", "/semesters/**", "/grades", "/grades/**",
                                 "/curriculums", "/curriculums/**","/sections", "/sections/**",
-                                "/posts", "/posts/**", "/replies", "/replies/**",
+                                "/devices", "/devices/**", "/attendances", "/attendances/**",
                                 "/transcripts/**", "/fragments/**").hasRole("ADMIN")
                 )
                 .formLogin(form -> form.loginPage("/login")

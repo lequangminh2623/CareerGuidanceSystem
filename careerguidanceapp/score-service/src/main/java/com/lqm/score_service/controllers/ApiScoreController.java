@@ -24,35 +24,32 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/secure/scores")
-@CrossOrigin
 @RequiredArgsConstructor
 public class ApiScoreController {
-    
+
     private final UserClient userClient;
     private final ScoreService scoreService;
     private final SectionClient sectionClient;
     private final ScoreMapper scoreMapper;
     private final MessageSource messageSource;
 
-    @GetMapping("/currentStudent")
-    public ResponseEntity<?> getStudentScores( @RequestParam Map<String, String> params) {
+    @GetMapping("/current-student")
+    public ResponseEntity<?> getStudentScores(@RequestParam Map<String, String> params) {
         UserResponseDTO currentUser = userClient.getCurrentUser();
 
         if (currentUser.code() == null) {
             throw new ForbiddenException(
-                    messageSource.getMessage("forbidden", null, Locale.getDefault())
-            );
+                    messageSource.getMessage("forbidden", null, Locale.getDefault()));
         }
 
         params.put("studentId", currentUser.id().toString());
         List<ScoreDetail> scoreDetails = scoreService.getScoreDetails(params, Pageable.unpaged()).getContent();
         List<UUID> sectionIds = scoreDetails.stream().map(ScoreDetail::getSectionId).toList();
-        Page<SectionResponseDTO> sections = sectionClient.getSections(sectionIds, params);
-        Map<UUID, String> subjectNameMap = sections.getContent().stream()
-                .collect(Collectors.toMap(SectionResponseDTO::id, SectionResponseDTO::subjectName));
+        Page<SectionResponseDTO> sections = sectionClient.getSections(sectionIds, Map.of("page", ""));
+        Map<UUID, SectionResponseDTO> sectionMap = sections.getContent().stream()
+                .collect(Collectors.toMap(SectionResponseDTO::id, section -> section));
         List<StudentScoreResponseDTO> dtoList = scoreDetails.stream().map(
-                sd -> scoreMapper.toStudentScoreResponseDTO(sd, subjectNameMap.get(sd.getSectionId()))
-        ).toList();
+                sd -> scoreMapper.toStudentScoreResponseDTO(sd, sectionMap.get(sd.getSectionId()))).toList();
 
         return ResponseEntity.ok(dtoList);
     }

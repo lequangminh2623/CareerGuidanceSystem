@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<div th:fragment="pagination(pageData)" class="card-footer bg-white border-top-0 py-3" th:if="${pageData.totalPages > 0}">
+<div th:fragment="pagination(pageData)" class="card-footer bg-white border-top-0 py-3" th:if="${pageData != null and pageData.totalPages > 0}">
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-end mb-0">
 

@@ -9,5 +9,5 @@ import java.util.UUID;
 public record SyncScoreRequestDTO(
         List<UUID> sectionIds,
         List<UUID> newStudentIds,
-        List<UUID> removedStudentIds
-) {}
+        List<UUID> removedStudentIds) {
+}

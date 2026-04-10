@@ -64,6 +64,12 @@ public class GlobalExceptionHandler {
         return createResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
     }
 
+    // 6. Lỗi 403 Forbidden
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleForbidden(ForbiddenException ex) {
+        return createResponse(HttpStatus.FORBIDDEN, ex.getMessage(), null);
+    }
+
     // 7. Lỗi 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponseDTO> handleGeneralException(Exception ex) {
@@ -80,7 +86,7 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(),
                 message,
                 details,
-                request.getRequestURI() // Đã bổ sung trường path
+                request.getRequestURI()
         );
         return new ResponseEntity<>(response, status);
     }

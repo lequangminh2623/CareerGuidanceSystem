@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,7 +35,7 @@ public interface ScoreDetailRepository extends JpaRepository<ScoreDetail, UUID>,
             "AND (sd.midtermScore IS NULL " +
             "     OR sd.finalScore IS NULL " +
             "     OR (es IS NOT NULL AND es.score IS NULL))")
-    int countIncompleteScores(@Param("sectionId") String sectionId);
+    int countIncompleteScores(@Param("sectionId") UUID sectionId);
 
     void deleteAllByStudentIdAndSectionIdIn(UUID studentId, List<UUID> sectionIds);
 
@@ -45,4 +44,10 @@ public interface ScoreDetailRepository extends JpaRepository<ScoreDetail, UUID>,
     List<ScoreDetail> findBySectionId(UUID sectionId);
 
     void deleteAllBySectionIdInAndStudentIdIn(List<UUID> sectionIds, List<UUID> studentIds);
+
+    @EntityGraph(value = "extraScoreSet", type = EntityGraph.EntityGraphType.FETCH)
+    List<ScoreDetail> findByStudentId(UUID studentId);
+
+    @EntityGraph(value = "extraScoreSet", type = EntityGraph.EntityGraphType.FETCH)
+    List<ScoreDetail> findBySectionIdIn(List<UUID> sectionIds);
 }

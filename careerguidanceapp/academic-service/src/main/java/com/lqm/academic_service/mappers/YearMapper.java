@@ -4,9 +4,7 @@ import com.lqm.academic_service.dtos.AcademicResponseDTO;
 import com.lqm.academic_service.dtos.YearRequestDTO;
 import com.lqm.academic_service.models.Year;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface YearMapper {
     AcademicResponseDTO toAcademicResponseDTO(Year year);
 

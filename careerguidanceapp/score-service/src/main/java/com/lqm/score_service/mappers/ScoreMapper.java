@@ -1,6 +1,7 @@
 package com.lqm.score_service.mappers;
 
 import com.lqm.score_service.dtos.ScoreRequestDTO;
+import com.lqm.score_service.dtos.SectionResponseDTO;
 import com.lqm.score_service.dtos.StudentScoreResponseDTO;
 import com.lqm.score_service.models.ExtraScore;
 import com.lqm.score_service.models.ScoreDetail;
@@ -11,10 +12,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface ScoreMapper {
 
-    StudentScoreResponseDTO toStudentScoreResponseDTO(ScoreDetail entity, String studentNames);
+    @Mapping(target = "id", source = "entity.id")
+    @Mapping(target = "extraScores", source = "entity.extraScoreSet", qualifiedByName = "extraScoreToDouble")
+    @Mapping(target = "subjectName", source = "section.subjectName")
+    @Mapping(target = "classroomName", source = "section.classroomName")
+    @Mapping(target = "semesterName", source = "section.semesterName")
+    @Mapping(target = "yearName", source = "section.yearName")
+    StudentScoreResponseDTO toStudentScoreResponseDTO(ScoreDetail entity, SectionResponseDTO section);
 
     @Mapping(target = "extraScores", source = "extraScoreSet", qualifiedByName = "extraScoreToDouble")
     ScoreRequestDTO toScoreRequestDTO(ScoreDetail entity);
@@ -29,6 +36,9 @@ public interface ScoreMapper {
 
     @Named("mapExtraScoresWithIndex")
     default Set<ExtraScore> mapExtraScoresWithIndex(List<Double> scores) {
+        if (scores == null) {
+            return new LinkedHashSet<>();
+        }
         Set<ExtraScore> result = new LinkedHashSet<>();
         for (int i = 0; i < scores.size(); i++) {
             Double val = scores.get(i);

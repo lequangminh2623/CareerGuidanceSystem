@@ -1,17 +1,13 @@
 package com.lqm.academic_service.services.Impl;
 
-import com.lqm.academic_service.configs.SubjectConfig;
 import com.lqm.academic_service.models.Curriculum;
 import com.lqm.academic_service.models.Grade;
 import com.lqm.academic_service.models.Semester;
 import com.lqm.academic_service.models.Subject;
 import com.lqm.academic_service.repositories.CurriculumRepository;
 import com.lqm.academic_service.services.CurriculumService;
-import com.lqm.academic_service.services.GradeService;
-import com.lqm.academic_service.services.SemesterService;
-import com.lqm.academic_service.services.SubjectService;
 import com.lqm.academic_service.specifications.CurriculumSpecification;
-import com.lqm.academic_service.specifications.SectionSpecification;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -22,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class CurriculumServiceImpl implements CurriculumService {
 

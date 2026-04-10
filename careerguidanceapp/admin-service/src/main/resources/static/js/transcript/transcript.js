@@ -8,7 +8,7 @@ function addExtraColumn() {
     // Tính số lượng cột bổ sung hiện tại
     const currentCount = anyCell.querySelectorAll("input").length;
     if (currentCount >= MAX_EXTRA_COLUMNS) {
-        alert(`Chỉ được phép tối đa ${MAX_EXTRA_COLUMNS} cột điểm thường xuyên.`);
+        showAlert(`Chỉ được phép tối đa ${MAX_EXTRA_COLUMNS} cột điểm thường xuyên.`, "warning");
         return;
     }
 
@@ -49,8 +49,9 @@ function reindexExtraColumns() {
     });
 }
 
-function removeExtraColumn(index) {
-    if (confirm(`Bạn có chắc muốn xoá cột điểm thường xuyên thứ ${index + 1}?`)) {
+async function removeExtraColumn(index) {
+    const confirmed = await showConfirm(`Bạn có chắc muốn xoá cột điểm thường xuyên thứ ${index + 1}?`);
+    if (confirmed) {
         // Xóa input ở các hàng
         document.querySelectorAll(".extra-score-cells").forEach(cell => {
             const inputs = cell.querySelectorAll("input");
@@ -83,8 +84,6 @@ async function changeTranscriptStatus(selectElement) {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
-                // Nếu dự án có dùng Spring Security, bạn cần truyền thêm CSRF Token ở đây
-                // 'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
             },
             body: JSON.stringify({ status: newStatus })
         });
@@ -94,18 +93,18 @@ async function changeTranscriptStatus(selectElement) {
             selectElement.setAttribute('data-current-status', newStatus);
 
             // Xử lý UI: Khóa/Mở khóa các ô nhập điểm tùy theo trạng thái
-            toggleInputFields(newStatus === 'LOCKED');
+            toggleInputFields(newStatus === 'Locked');
 
-            alert('Đã thay đổi trạng thái bảng điểm thành ' + newStatus);
+            showAlert('Đã thay đổi trạng thái bảng điểm thành ' + newStatus, 'success');
         } else {
             // Thất bại: Trả lại giá trị cũ
             selectElement.value = oldStatus;
-            alert('Có lỗi xảy ra khi đổi trạng thái. Vui lòng thử lại!');
+            showAlert('Có lỗi xảy ra khi đổi trạng thái. Vui lòng thử lại!', 'danger');
         }
     } catch (error) {
         console.error('Error changing status:', error);
         selectElement.value = oldStatus;
-        alert('Lỗi kết nối đến máy chủ!');
+        showAlert('Lỗi kết nối đến máy chủ!', 'danger');
     } finally {
         selectElement.disabled = false;
     }
@@ -132,9 +131,9 @@ function toggleInputFields(isLocked) {
 }
 
 // Chạy thử hàm toggle 1 lần lúc mới load trang để khóa form nếu trạng thái ban đầu đã là LOCKED
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const statusSelect = document.getElementById('transcriptStatus');
-    if (statusSelect && statusSelect.value === 'LOCKED') {
+    if (statusSelect && statusSelect.value === 'Locked') {
         toggleInputFields(true);
     }
 });

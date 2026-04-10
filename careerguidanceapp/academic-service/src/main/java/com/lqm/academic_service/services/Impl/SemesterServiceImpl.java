@@ -6,7 +6,6 @@ import com.lqm.academic_service.models.SemesterType;
 import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.repositories.SemesterRepository;
 import com.lqm.academic_service.services.SemesterService;
-import com.lqm.academic_service.services.YearService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;

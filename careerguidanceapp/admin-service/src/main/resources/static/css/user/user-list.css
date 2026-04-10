@@ -1,45 +1,53 @@
 .user-avatar {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     object-fit: cover;
-    border-radius: 50%;
-    border: 1px solid #eee;
+    border-radius: 14px;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .badge-soft {
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 11px;
     display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .badge-soft-primary {
-    background-color: #E6F7FF;
-    color: #1890FF;
+    background-color: #f5f7ff;
+    color: #6366f1;
+    border: 1px solid #e0e7ff;
 }
 
 .badge-soft-warning {
-    background-color: #FFFBE6;
-    color: #FAAD14;
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fef3c7;
 }
 
 .badge-soft-secondary {
-    background-color: #F5F5F5;
-    color: #595959;
+    background-color: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
 }
 
 .user-code {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
     font-size: 11px;
-    color: #595959;
-    margin-top: 4px;
-    display: block;
-    background: #f9f9f9;
-    padding: 2px 6px;
-    border-radius: 4px;
+    color: #475569;
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 6px;
     width: fit-content;
-    border: 1px solid #eaeaea;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
 }
 
 .status-dot {
@@ -47,13 +55,14 @@
     width: 8px;
     border-radius: 50%;
     display: inline-block;
-    margin-right: 6px;
+    margin-right: 8px;
 }
 
 .status-active {
-    background-color: #52C41A;
+    background-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .status-inactive {
-    background-color: #BFBFBF;
+    background-color: #94a3b8;
 }

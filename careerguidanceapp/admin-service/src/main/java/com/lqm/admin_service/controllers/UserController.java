@@ -50,14 +50,14 @@ public class UserController {
         model.addAttribute("users", userDTOPage);
         model.addAttribute("params", params);
 
-        return "user/user-list";
+        return "user/list";
     }
 
     @GetMapping("/users/add")
     public String addUser(Model model) {
         model.addAttribute("user", AdminUserRequestDTO.builder().build());
 
-        return "user/user-form";
+        return "user/form";
     }
 
     @GetMapping("/users/{id}")
@@ -67,7 +67,7 @@ public class UserController {
 
         model.addAttribute("user", userDTO);
 
-        return "user/user-form";
+        return "user/form";
     }
 
     @PostMapping(path = "/users/save")
@@ -76,7 +76,7 @@ public class UserController {
                            @RequestPart(value = "file", required = false) MultipartFile file,
                            Model model) {
         if (bindingResult.hasErrors()) {
-            return "user/user-form";
+            return "user/form";
         }
 
         try {
@@ -89,13 +89,13 @@ public class UserController {
                 });
             }
 
-            return "user/user-form";
+            return "user/form";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage",
                     messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "user/user-form";
+            return "user/form";
         }
     }
 

@@ -3,7 +3,6 @@ package com.lqm.academic_service.controllers;
 import com.lqm.academic_service.dtos.AcademicResponseDTO;
 import com.lqm.academic_service.dtos.YearRequestDTO;
 import com.lqm.academic_service.mappers.YearMapper;
-import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.services.YearService;
 import com.lqm.academic_service.utils.PageSize;
 import com.lqm.academic_service.utils.PageableUtil;

@@ -1,16 +1,17 @@
-function deleteHandler(btn) {
+async function deleteHandler(btn) {
     const url = btn.dataset.url;
     const id = btn.dataset.id;
-    if (confirm("Bạn chắc chắn muốn xóa?")) {
+    const confirmed = await showConfirm("Bạn chắc chắn muốn xóa?");
+    if (confirmed) {
         fetch(`${url}${id}`, {
             method: 'DELETE'
         }).then(res => {
-            if (res.status === 204) {
-                alert("Xóa thành công!");
-                location.reload();
+            if (res.ok) {
+                showAlert("Xóa thành công!", "success");
+                setTimeout(() => location.reload(), 1500);
             } else {
                 return res.text().then(text => {
-                    alert(text);
+                    showAlert(text || "Có lỗi xảy ra khi xóa!", "danger");
                 });
             }
         });

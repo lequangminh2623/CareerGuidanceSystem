@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <title>Quản lý Năm học | Scholar Admin</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/year/year-list.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <p th:replace="~{base :: header}"></p>
+
+    <main class="flex-grow-1 container py-5">
+
+        <div class="page-header mb-4">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a th:href="@{/}"
+                                class="text-decoration-none text-muted">Dashboard</a></li>
+                        <li class="breadcrumb-item active text-primary" aria-current="page">Niên khóa</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-black text-dark tracking-tight mb-1">Quản lý Niên khóa</h2>
+                <p class="text-secondary small fw-medium mb-0">Thiết lập năm học và cấu trúc chương trình đào tạo</p>
+            </div>
+        </div>
+
+        <div
+            class="filter-bar border-0 shadow-sm mb-4 bg-white p-3 rounded-xl d-flex justify-content-between align-items-center">
+            <form th:action="@{/years}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+                <div class="input-group input-group-merge w-100" style="max-width: 450px;">
+                    <span class="input-group-text bg-light border-0 px-3 text-muted">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="kw" class="form-control bg-light border-0 ps-0 py-2 fs-14 fw-medium"
+                        placeholder="Tìm kiếm năm học..." th:value="${params['kw']}" />
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-xl fw-bold">Lọc</button>
+                </div>
+            </form>
+
+            <a th:href="@{/years/add}"
+                class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-xl shadow-sm hover-translate-y">
+                <i class="fa-solid fa-plus fs-14"></i>
+                <span class="fw-bold">Thêm năm học</span>
+            </a>
+        </div>
+
+        <div class="card table-card border-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Năm học</th>
+                            <th>Cấu hình liên quan</th>
+                            <th class="text-end pe-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        <tr th:each="y : ${years.content}" class="transition-all duration-200">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3 py-1">
+                                    <div class="bg-indigo-soft text-indigo p-3 rounded-4 line-height-1 shadow-sm">
+                                        <i class="fa-solid fa-calendar-days fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-black text-dark fs-16 tracking-tight mb-0" th:text="${y.name}">
+                                            2025-2026</div>
+                                        <div class="text-muted fs-11 fw-bold text-uppercase opacity-75">Academic Year
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a th:href="@{'/years/' + ${y.id} + '/semesters'}" class="link-badge semester"
+                                        title="Quản lý học kỳ">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>Học kỳ
+                                    </a>
+                                    <a th:href="@{'/years/' + ${y.id} + '/grades'}" class="link-badge grade"
+                                        title="Quản lý khối lớp">
+                                        <i class="fa-solid fa-layer-group"></i>Khối lớp
+                                    </a>
+                                </div>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a th:href="@{'/years/' + ${y.id}}" class="btn-icon" title="Chỉnh sửa">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button class="btn-icon delete" th:data-url="@{/years/}" th:data-id="${y.id}"
+                                        onclick="deleteHandler(this)" title="Xóa">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${years.totalElements == 0}">
+                            <td colspan="3" class="text-center py-5">
+                                <div class="py-5">
+                                    <div class="bg-light d-inline-flex p-4 rounded-circle mb-4">
+                                        <i class="fa-solid fa-calendar-xmark fs-1 text-muted opacity-25"></i>
+                                    </div>
+                                    <h4 class="fw-black text-secondary">Trống dữ liệu</h4>
+                                    <p class="text-muted fs-14">Hệ thống chưa có thông tin về niên khóa nào.</p>
+                                    <a th:href="@{/years/add}"
+                                        class="btn btn-primary btn-sm rounded-pill px-4 mt-2">Thiết lập năm học đầu
+                                        tiên</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container border-0 bg-transparent py-0">
+                <div th:replace="~{fragments/pagination :: pagination(pageData=${years})}"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <p th:replace="~{base :: footer}"></p>
+    <th:block th:replace="~{base :: scripts}"></th:block>
+    <script th:src="@{/js/delete.js}"></script>
+
+</body>
+
+</html>

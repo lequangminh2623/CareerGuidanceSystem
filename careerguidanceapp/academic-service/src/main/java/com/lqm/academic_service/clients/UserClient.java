@@ -1,5 +1,6 @@
 package com.lqm.academic_service.clients;
 
+import com.lqm.academic_service.dtos.UserMessageResponseDTO;
 import com.lqm.academic_service.dtos.UserResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,10 @@ public interface UserClient {
     @PostMapping
     Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
 
-    @GetMapping("/{id}")
-    UserResponseDTO getUserById(@PathVariable("id") UUID id);
+    @PostMapping("/messages")
+    Page<UserMessageResponseDTO> getUsersMessages(@RequestBody List<UUID> ids,@RequestParam Map<String, String> params);
+
+    @GetMapping("/current_user")
+    UserResponseDTO getCurrentUser();
 
 }

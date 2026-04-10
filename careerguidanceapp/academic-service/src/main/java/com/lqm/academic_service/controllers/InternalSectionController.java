@@ -2,10 +2,12 @@ package com.lqm.academic_service.controllers;
 
 import com.lqm.academic_service.dtos.SectionResponseDTO;
 import com.lqm.academic_service.mappers.SectionMapper;
-import com.lqm.academic_service.models.ScoreStatusType;
 import com.lqm.academic_service.models.Section;
+import com.lqm.academic_service.models.Subject;
 import com.lqm.academic_service.services.SectionService;
 import com.lqm.academic_service.services.StudentClassroomService;
+import com.lqm.academic_service.repositories.SectionRepository;
+import com.lqm.academic_service.repositories.SubjectRepository;
 import com.lqm.academic_service.utils.PageSize;
 import com.lqm.academic_service.utils.PageableUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +28,15 @@ public class InternalSectionController {
     private final PageableUtil pageableUtil;
     private final SectionMapper sectionMapper;
     private final StudentClassroomService studentClassroomService;
+    private final SectionRepository sectionRepository;
+    private final SubjectRepository subjectRepository;
 
     @PostMapping
     Page<SectionResponseDTO> getSections(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
         Page<Section> sectionPage = sectionService.getSections(ids, params, pageable);
         Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sectionPage.getContent());
 
@@ -65,14 +68,28 @@ public class InternalSectionController {
         return sectionService.isLockedSection(id);
     }
 
-    @PatchMapping("/{id}/lock")
-    void lockTranscript(@PathVariable("id") UUID id) {
-        sectionService.changeScoreStatus(id, ScoreStatusType.LOCKED);
-    }
-
     @GetMapping("/{id}/check")
     Boolean checkSectionExist(@PathVariable("id") UUID id) {
         return sectionService.existSectionById(id);
     }
 
+    @GetMapping("/by-teacher/{teacherId}")
+    List<SectionResponseDTO> getSectionsByTeacherId(@PathVariable("teacherId") UUID teacherId) {
+        List<Section> sections = sectionRepository.findByTeacherId(teacherId);
+        Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sections);
+        return sections.stream()
+                .map(s -> sectionMapper.toSectionResponseDTO(s, teacherMap))
+                .toList();
+    }
+
+    @GetMapping("/subjects/all")
+    List<SubjectResponseRecord> getAllSubjects() {
+        List<Subject> subjects = subjectRepository.findAll();
+        return subjects.stream()
+                .map(s -> new SubjectResponseRecord(s.getId(), s.getName()))
+                .toList();
+    }
+
+    public record SubjectResponseRecord(UUID id, String name) {}
 }
+

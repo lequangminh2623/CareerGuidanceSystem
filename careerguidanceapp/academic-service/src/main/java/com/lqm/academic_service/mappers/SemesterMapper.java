@@ -8,10 +8,10 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface SemesterMapper {
-    @Mapping(target = "name", expression = "java(semester.getName().getSemesterName())")
+    @Mapping(target = "name", source = "name.semesterName")
     AcademicResponseDTO toAcademicResponseDTO(Semester semester);
 
-    @Mapping(target = "name", expression = "java(semester.getName().getSemesterName())")
+    @Mapping(target = "name", source = "name.semesterName")
     @Mapping(target = "yearId", source = "year.id")
     SemesterRequestDTO toSemesterRequestDTO(Semester semester);
 

@@ -7,7 +7,5 @@ import lombok.Builder;
 
 @Builder
 public record ChangeStatusRequestDTO(
-        @NotNull(message = "Status cannot be null")
-        @EnumValue(enumClass = ScoreStatusType.class, message = "section.scoreStatus.invalid")
-        String status
-) {}
+        @NotNull(message = "{section.status.notNull}") @EnumValue(enumClass = ScoreStatusType.class, message = "{section.scoreStatus.invalid}") String status) {
+}

@@ -3,7 +3,6 @@ package com.lqm.academic_service.controllers;
 import com.lqm.academic_service.dtos.AcademicResponseDTO;
 import com.lqm.academic_service.dtos.SemesterRequestDTO;
 import com.lqm.academic_service.mappers.SemesterMapper;
-import com.lqm.academic_service.models.Semester;
 import com.lqm.academic_service.models.Year;
 import com.lqm.academic_service.services.SemesterService;
 import com.lqm.academic_service.services.YearService;

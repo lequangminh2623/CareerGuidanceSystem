@@ -47,6 +47,11 @@ public class UserSpecification {
                 }
             }
 
+            String activeParam = params.get("active");
+            if (activeParam != null && !activeParam.trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("active"), Boolean.parseBoolean(activeParam)));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }

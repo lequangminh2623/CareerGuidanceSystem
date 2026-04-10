@@ -67,9 +67,14 @@ public class ScoreDetail implements Serializable {
     @OrderBy("scoreIndex ASC")
     @Setter(AccessLevel.NONE)
     @ToString.Include
+    @Builder.Default
     private Set<ExtraScore> extraScoreSet = new LinkedHashSet<>();
 
     public void setExtraScoreSet(Set<ExtraScore> newExtraScores) {
+        if (this.extraScoreSet == null) {
+            this.extraScoreSet = new LinkedHashSet<>();
+        }
+
         if (newExtraScores == null || newExtraScores.isEmpty()) {
             this.extraScoreSet.clear(); // Xóa sạch nếu form gửi lên list rỗng
             return;

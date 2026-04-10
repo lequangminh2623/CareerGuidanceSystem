@@ -15,5 +15,8 @@ public record StudentScoreResponseDTO(
         Double midtermScore,
         Double finalScore,
         List<Double> extraScores,
-        String subjectName
+        String subjectName,
+        String classroomName,
+        String semesterName,
+        String yearName
 ) {}

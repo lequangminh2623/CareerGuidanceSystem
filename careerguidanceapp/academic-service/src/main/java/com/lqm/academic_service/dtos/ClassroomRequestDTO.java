@@ -8,12 +8,11 @@ import java.util.UUID;
 
 @Builder
 public record ClassroomRequestDTO(
-        UUID id,
+                UUID id,
 
-        String name,
+                String name,
 
-        @NotNull(message = "classroom.grade.notNull")
-        UUID gradeId,
+                @NotNull(message = "{classroom.grade.notNull}") UUID gradeId,
 
-        List<UUID> studentIds
-) {}
+                List<UUID> studentIds) {
+}

@@ -1,7 +1,6 @@
 package com.lqm.user_service.controllers;
 
 import com.lqm.user_service.dtos.UserLoginDTO;
-import com.lqm.user_service.dtos.AdminUserRequestDTO;
 import com.lqm.user_service.dtos.UserDetailsResponseDTO;
 import com.lqm.user_service.dtos.UserRequestDTO;
 import com.lqm.user_service.mappers.UserMapper;
@@ -22,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-//đường dẫn thay đổi
 public class ApiAuthController {
 
     private final AuthService authService;
@@ -30,7 +28,7 @@ public class ApiAuthController {
     private final WebAppValidator webAppValidator;
     private final UserMapper userMapper;
 
-    @InitBinder
+    @InitBinder({ "userLoginDTO", "data" })
     public void initBinder(WebDataBinder binder) {
         binder.setValidator(webAppValidator);
     }
@@ -50,8 +48,7 @@ public class ApiAuthController {
     @PostMapping(path = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> signup(
             @RequestPart("data") @Valid UserRequestDTO userRequestDTO,
-            @RequestPart(value = "file", required = false) MultipartFile file
-    ) {
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         User user = userMapper.toEntity(userRequestDTO);
         User savedUser = userService.saveUser(user, file, userRequestDTO.code());
         UserDetailsResponseDTO userDetailsResponseDTO = userMapper.toUserDetailsResponseDTO(savedUser);

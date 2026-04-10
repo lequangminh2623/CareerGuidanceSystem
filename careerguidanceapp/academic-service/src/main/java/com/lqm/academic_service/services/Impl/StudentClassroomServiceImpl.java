@@ -1,9 +1,11 @@
 package com.lqm.academic_service.services.Impl;
 
+import com.lqm.academic_service.models.Classroom;
 import com.lqm.academic_service.models.StudentClassroom;
 import com.lqm.academic_service.repositories.StudentClassroomRepository;
 import com.lqm.academic_service.services.StudentClassroomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,5 +27,13 @@ public class StudentClassroomServiceImpl implements StudentClassroomService {
     @Override
     public Boolean existStudentInClassroom(UUID studentId, UUID classroomId) {
         return studentClassroomRepo.existsByStudentIdAndClassroomId(studentId, classroomId);
+    }
+
+    @Override
+    public List<Classroom> getClassroomsByStudentId(UUID studentId) {
+        return studentClassroomRepo.findByStudentId(studentId, Pageable.unpaged())
+                .getContent().stream()
+                .map(StudentClassroom::getClassroom)
+                .toList();
     }
 }

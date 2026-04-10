@@ -3,7 +3,6 @@ package com.lqm.academic_service.controllers;
 import com.lqm.academic_service.dtos.AcademicResponseDTO;
 import com.lqm.academic_service.dtos.SubjectRequestDTO;
 import com.lqm.academic_service.mappers.SubjectMapper;
-import com.lqm.academic_service.models.Subject;
 import com.lqm.academic_service.services.SubjectService;
 import com.lqm.academic_service.utils.PageSize;
 import com.lqm.academic_service.utils.PageableUtil;

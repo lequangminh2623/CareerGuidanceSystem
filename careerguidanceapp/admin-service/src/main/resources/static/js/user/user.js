@@ -22,34 +22,29 @@ document.addEventListener("DOMContentLoaded", function () {
     toggleStudentCode();
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const input = document.getElementById('fileInput');
     const preview = document.getElementById('avatarPreview');
 
     // Kiểm tra element tồn tại để tránh lỗi null
     if (input && preview) {
-        input.addEventListener('change', function(event) {
+        input.addEventListener('change', function (event) {
             const file = event.target.files[0];
 
             if (file) {
                 // KIỂM TRA LOẠI FILE (Validate)
                 if (!file.type.startsWith('image/')) {
-                    alert('Vui lòng chỉ chọn file hình ảnh!');
+                    showAlert('Vui lòng chỉ chọn file hình ảnh!', 'warning');
                     input.value = ''; // Reset input
                     return;
                 }
 
                 // HIỂN THỊ ẢNH
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     preview.src = e.target.result;
-                    preview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
-            } else {
-                // Xử lý khi bỏ chọn
-                preview.src = '#';
-                preview.style.display = 'none';
             }
         });
     }

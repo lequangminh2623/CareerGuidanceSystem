@@ -44,12 +44,11 @@ public class ClassroomController {
                                 list -> {
                                     list.sort(Comparator.comparing(GradeDetailsResponseDTO::name));
                                     return list;
-                                }
-                        )
-                ));
+                                })));
     }
 
-    // Nạp danh sách các sinh viên ĐÃ CÓ trong lớp để hiển thị ở cột phải (Dual Listbox)
+    // Nạp danh sách các sinh viên ĐÃ CÓ trong lớp để hiển thị ở cột phải (Dual
+    // Listbox)
     @ModelAttribute("selectedStudents")
     public List<UserResponseDTO> populateSelectedStudents(@PathVariable(required = false) UUID id) {
         if (id == null) {
@@ -78,29 +77,29 @@ public class ClassroomController {
             model.addAttribute("classrooms", Page.empty());
         }
 
-        return "classroom/classroom-list";
+        return "classroom/list";
     }
 
     @GetMapping("/add")
     public String addClassroom(Model model, @RequestParam(required = false) UUID gradeId) {
         model.addAttribute("classroom", ClassroomRequestDTO.builder().gradeId(gradeId).build());
 
-        return "classroom/classroom-form";
+        return "classroom/form";
     }
 
     @GetMapping("/{id}")
     public String updateClassroom(@PathVariable UUID id, Model model) {
         model.addAttribute("classroom", classroomClient.getClassroomRequestById(id));
-        return "classroom/classroom-form";
+        return "classroom/form";
     }
 
     @PostMapping("")
     public String saveClassroom(@ModelAttribute("classroom") @Valid ClassroomRequestDTO classroomRequestDTO,
-                                BindingResult bindingResult,
-                                Model model) {
+            BindingResult bindingResult,
+            Model model) {
 
         if (bindingResult.hasErrors()) {
-            return "classroom/classroom-form";
+            return "classroom/form";
         }
 
         try {
@@ -109,6 +108,7 @@ public class ClassroomController {
 
         } catch (ValidationException e) {
             if (e.getDetails() instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
                 Map<String, String> errors = (Map<String, String>) e.getDetails();
 
                 errors.forEach((field, message) -> {
@@ -116,12 +116,12 @@ public class ClassroomController {
                 });
             }
 
-            return "classroom/classroom-form";
+            return "classroom/form";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage", messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "classroom/classroom-form";
+            return "classroom/form";
         }
     }
 
@@ -156,7 +156,6 @@ public class ClassroomController {
 
         return Map.of(
                 "results", results,
-                "hasMore", !userPage.isLast()
-        );
+                "hasMore", !userPage.isLast());
     }
 }

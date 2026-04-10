@@ -1,7 +1,9 @@
 package com.lqm.score_service.exceptions;
 
 import com.lqm.score_service.dtos.ExceptionResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -17,12 +19,13 @@ import java.util.Map;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j // Sử dụng logger thay vì printStackTrace
 public class GlobalExceptionHandler {
 
     private final MessageSource messageSource;
+    private final HttpServletRequest request; // Tiêm request để lấy path tự động
 
     // 1. Xử lý lỗi Validation (400)
-    // Chuyển đổi: [{"field": "a", "message": "b"}] -> {"a": "b"}
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponseDTO> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -36,15 +39,14 @@ public class GlobalExceptionHandler {
         return createResponse(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     }
 
-    // 2. Xử lý NonExistingUsersException (400)
-    // Trả về danh sách ID bị thiếu trong field 'details'
+    // 2. Xử lý User không tồn tại (400)
     @ExceptionHandler(NonExistingUsersException.class)
     public ResponseEntity<ExceptionResponseDTO> handleNonExistingUsersException(NonExistingUsersException ex) {
         Map<String, Object> details = Map.of("nonExistingUserIds", ex.getNonExistingIds());
         return createResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), details);
     }
 
-    // 3. Nhóm các lỗi 400 Bad Request chung (Logic, Argument...)
+    // 3. Nhóm các lỗi 400 Bad Request thông thường
     @ExceptionHandler({IllegalArgumentException.class, BadRequestException.class})
     public ResponseEntity<ExceptionResponseDTO> handleBadRequest(RuntimeException ex) {
         return createResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
@@ -68,22 +70,23 @@ public class GlobalExceptionHandler {
         return createResponse(HttpStatus.FORBIDDEN, ex.getMessage(), null);
     }
 
-    // 7. Lỗi 500 Internal Server Error
+    // 6. Lỗi 500 Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponseDTO> handleGeneralException(Exception ex) {
-        // Nên log lỗi ra console tại đây để debug
-        ex.printStackTrace();
-        return createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error: " + ex.getMessage(), null);
+        // Log chi tiết lỗi kèm URI để phục vụ truy vết (tracing)
+        log.error("Unhandled exception occurred at {}: ", request.getRequestURI(), ex);
+        return createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", null);
     }
 
-    // --- HELPER METHOD (Factory method để tạo Response) ---
+    // --- HELPER METHOD ---
     private ResponseEntity<ExceptionResponseDTO> createResponse(HttpStatus status, String message, Object details) {
         ExceptionResponseDTO response = new ExceptionResponseDTO(
                 LocalDateTime.now(),
                 status.value(),
-                status.getReasonPhrase(), // Tự động lấy text chuẩn (VD: "Bad Request")
+                status.getReasonPhrase(),
                 message,
-                details
+                details,
+                request.getRequestURI()
         );
         return new ResponseEntity<>(response, status);
     }

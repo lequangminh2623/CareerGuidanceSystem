@@ -1,7 +1,6 @@
 package com.lqm.user_service.services;
 
 import com.lqm.user_service.models.User;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

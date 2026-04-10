@@ -1,6 +1,7 @@
 package com.lqm.score_service.clients;
 
 import com.lqm.score_service.dtos.SectionResponseDTO;
+import com.lqm.score_service.dtos.SubjectResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,10 @@ public interface SectionClient {
     @GetMapping("/{id}/locked/check")
     Boolean isLockedTranscript(@PathVariable("id") UUID id);
 
-    @PatchMapping("/{id}/lock")
-    void lockTranscript(@PathVariable("id") UUID id);
+    @GetMapping("/by-teacher/{teacherId}")
+    List<SectionResponseDTO> getSectionsByTeacherId(@PathVariable("teacherId") UUID teacherId);
+
+    @GetMapping("/subjects/all")
+    List<SubjectResponseDTO> getAllSubjects();
 }
+

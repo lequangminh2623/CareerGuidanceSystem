@@ -1,6 +1,6 @@
 package com.lqm.user_service.controllers;
 
-import com.lqm.user_service.dtos.UserDetailsResponseDTO;
+import com.lqm.user_service.dtos.UserMessageResponseDTO;
 import com.lqm.user_service.dtos.UserResponseDTO;
 import com.lqm.user_service.mappers.UserMapper;
 import com.lqm.user_service.models.User;
@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,34 +34,34 @@ public class InternalUserController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
         Page<User> userPage = userService.getUsers(ids, params, pageable);
 
         return userPage.map(userMapper::toUserResponseDTO);
     }
 
-    @GetMapping("/details")
-    public Page<UserDetailsResponseDTO> getUsersDetails(@RequestBody List<UUID> ids,
-                                                        @RequestParam Map<String, String> params) {
+    @PostMapping("/messages")
+    public Page<UserMessageResponseDTO> getUsersMessages(@RequestBody List<UUID> ids,
+            @RequestParam Map<String, String> params) {
+        params = new HashMap<>(params);
+        params.put("active", "true");
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
         Page<User> users = userService.getUsers(ids, params, pageable);
 
-        return users.map(userMapper::toUserDetailsResponseDTO);
+        return users.map(userMapper::toUserMessageResponseDTO);
     }
-
-    @GetMapping("/{id}")
-    public UserResponseDTO getUserById(@PathVariable("id") UUID id) {
-        return userMapper.toUserResponseDTO(userService.getUserById(id));
-    }
-
+    
     @GetMapping("/{id}/exist")
     public Boolean checkStudentExistById(@PathVariable("id") UUID id) {
-        return studentService.existStudentById(id);
+        try {
+            User user = userService.getUserById(id);
+            return user.getActive() && studentService.existStudentById(id);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @GetMapping("/current_user")

@@ -1,6 +1,5 @@
 package com.lqm.user_service.validators;
 
-import com.lqm.user_service.dtos.AdminUserRequestDTO;
 import com.lqm.user_service.dtos.UserRequestDTO;
 import com.lqm.user_service.services.StudentService;
 import com.lqm.user_service.services.UserService;
@@ -19,12 +18,12 @@ public class UserRequestDTOValidator implements Validator, SupportsClass {
 
     @Override
     public Class<?> getSupportedClass() {
-        return AdminUserRequestDTO.class;
+        return UserRequestDTO.class;
     }
 
     @Override
     public boolean supports(@Nonnull Class<?> clazz) {
-        return AdminUserRequestDTO.class.isAssignableFrom(clazz);
+        return UserRequestDTO.class.isAssignableFrom(clazz);
     }
 
     @Override
@@ -61,7 +60,6 @@ public class UserRequestDTOValidator implements Validator, SupportsClass {
                 errors.rejectValue("code", "user.student.code.unique");
             }
         }
-
 
     }
 }

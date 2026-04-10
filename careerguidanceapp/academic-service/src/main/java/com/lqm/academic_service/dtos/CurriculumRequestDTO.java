@@ -9,12 +9,9 @@ import java.util.UUID;
 public record CurriculumRequestDTO(
         UUID id,
 
-        @NotNull
-        UUID gradeId,
+        @NotNull(message = "{grade.id.notNull}") UUID gradeId,
 
-        @NotNull
-        UUID semesterId,
+        @NotNull(message = "{semester.id.notNull}") UUID semesterId,
 
-        @NotNull
-        UUID subjectId
-) {}
+        @NotNull(message = "{subject.id.notNull}") UUID subjectId) {
+}

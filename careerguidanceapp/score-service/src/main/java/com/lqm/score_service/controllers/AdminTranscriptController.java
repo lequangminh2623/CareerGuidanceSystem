@@ -1,6 +1,6 @@
 package com.lqm.score_service.controllers;
 
-import com.lqm.score_service.dtos.ScoreListRequest;
+import com.lqm.score_service.dtos.ScoreListRequestDTO;
 import com.lqm.score_service.dtos.ScoreRequestDTO;
 import com.lqm.score_service.mappers.ScoreMapper;
 import com.lqm.score_service.models.ScoreDetail;
@@ -33,7 +33,7 @@ public class AdminTranscriptController {
     }
 
     @PostMapping("/{sectionId}")
-    public void saveScores(@RequestBody @Valid ScoreListRequest request,
+    public void saveScores(@RequestBody @Valid ScoreListRequestDTO request,
                            @PathVariable("sectionId") UUID sectionId) {
         List<ScoreDetail> scoreDetails = request.getScores().stream()
                 .map(dto -> scoreMapper.toEntity(dto, sectionId)).toList();

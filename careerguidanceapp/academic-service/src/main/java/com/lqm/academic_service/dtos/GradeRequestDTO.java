@@ -9,11 +9,9 @@ import java.util.UUID;
 
 @Builder
 public record GradeRequestDTO(
-        UUID id,
+                UUID id,
 
-        @EnumValue(enumClass = GradeType.class, message = "grade.name.invalid")
-        String name,
+                @EnumValue(enumClass = GradeType.class, message = "{grade.name.invalid}") String name,
 
-        @NotNull(message = "grade.year.notNull")
-        UUID yearId
-) {}
+                @NotNull(message = "{grade.year.notNull}") UUID yearId) {
+}

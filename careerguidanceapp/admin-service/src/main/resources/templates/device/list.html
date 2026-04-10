@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Quản lý Thiết bị</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+<main class="flex-grow-1 container py-4">
+
+    <div class="page-header mb-4">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item active text-primary" aria-current="page">Thiết bị</li>
+                </ol>
+            </nav>
+            <h2 class="fw-black text-dark tracking-tight mb-1">Quản lý Thiết bị</h2>
+            <p class="text-secondary small fw-medium mb-0">Giám sát và cấu hình các trạm điểm danh phần cứng</p>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger shadow-sm border-0 alert-dismissible fade show rounded-xl mb-4" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold" th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="filter-bar border-0 shadow-sm mb-4 bg-white p-3 rounded-xl d-flex justify-content-between align-items-center">
+        <form th:action="@{/devices}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+            <div class="input-group input-group-merge w-100" style="max-width: 450px;">
+                <span class="input-group-text bg-light border-0 px-3 text-muted">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" name="kw" class="form-control bg-light border-0 ps-0 py-2 fs-14 fw-medium"
+                       placeholder="Tìm kiếm ID thiết bị..." th:value="${params['kw']}"/>
+                <button type="submit" class="btn btn-primary px-4 py-2 rounded-xl fw-bold">
+                    Lọc
+                </button>
+            </div>
+        </form>
+
+        <a th:if="${params['kw'] != null && params['kw'] != ''}" th:href="@{/devices}" class="btn btn-light text-muted border-0 bg-light px-3 py-2 rounded-xl" title="Xóa bộ lọc">
+            <i class="fas fa-times"></i>
+        </a>
+    </div>
+
+    <div class="card table-card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                <tr>
+                    <th class="ps-4">ID Thiết bị</th>
+                    <th>Trạng thái</th>
+                    <th>Vị trí Lớp học</th>
+                    <th class="text-end pe-4">Hành động</th>
+                </tr>
+                </thead>
+                <tbody class="border-top-0">
+                <tr th:each="device : ${devices != null ? devices.content : {}}" class="transition-all duration-200">
+
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-indigo-soft text-indigo p-3 rounded-4 line-height-1 shadow-sm">
+                                <i class="fa-solid fa-microchip fs-5"></i>
+                            </div>
+                            <span class="fw-black text-dark fs-14 font-monospace letter-spacing-tight ms-3" th:text="${device.id()}">DEV-123</span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill"
+                             th:classappend="${device.isActive()} ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
+                            <i class="fas fa-circle" style="font-size: 6px;"></i>
+                            <span class="fw-black text-uppercase tracking-widest" style="font-size: 10px;"
+                                  th:text="${device.isActive()} ? 'Đang bật' : 'Tạm tắt'"></span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                             <div class="bg-light p-1.5 rounded-pill line-height-1" th:if="${device.classroomName != null}">
+                                <i class="fas fa-school text-muted fs-12"></i>
+                            </div>
+                            <span class="fw-bold fs-14"
+                                  th:classappend="${device.classroomName != null} ? 'text-dark' : 'text-danger opacity-50'"
+                                  th:text="${device.classroomName} ?: 'Chưa được gán'"></span>
+                        </div>
+                    </td>
+
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-1">
+                            <form th:action="@{/devices/{id}(id=${device.id()})}" method="post" class="d-inline">
+                                <input type="hidden" name="_method" value="PATCH">
+                                <input type="hidden" name="active" th:value="${!device.isActive()}">
+                                <button type="submit" class="btn-icon"
+                                        th:classappend="${device.isActive()} ? 'text-warning' : 'text-success'"
+                                        th:title="${device.isActive() ? 'Tạm tắt thiết bị' : 'Bật thiết bị'}">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                            </form>
+
+                            <button type="button" class="btn-icon delete"
+                                    th:data-url="@{/devices/}"
+                                    th:data-id="${device.id()}"
+                                    onclick="deleteHandler(this)" title="Xóa thiết bị">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr th:if="${devices == null or devices.totalElements == 0}">
+                    <td colspan="4" class="text-center py-5">
+                        <div class="py-5">
+                            <div class="bg-light d-inline-flex p-4 rounded-circle mb-4">
+                                <i class="fas fa-microchip fs-1 text-muted opacity-25"></i>
+                            </div>
+                            <h4 class="fw-black text-secondary">Trống dữ liệu</h4>
+                            <p class="text-muted fs-14">Hệ thống hiện chưa ghi nhận thiết bị phần cứng nào.</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container border-0 bg-transparent py-0">
+            <div th:if="${devices != null}" th:replace="~{fragments/pagination :: pagination(pageData=${devices})}"></div>
+        </div>
+    </div>
+
+</main>
+
+<p th:replace="~{base :: footer}"></p>
+<th:block th:replace="~{base :: scripts}"></th:block>
+<script th:src="@{/js/delete.js}"></script>
+
+</body>
+</html>

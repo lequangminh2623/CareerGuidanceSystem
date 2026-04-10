@@ -29,8 +29,8 @@ public class SemesterController {
 
     @GetMapping("/years/{yearId}/semesters")
     public String listSemesters(@PathVariable UUID yearId,
-                                @RequestParam Map<String, String> params,
-                                Model model) {
+            @RequestParam Map<String, String> params,
+            Model model) {
         AcademicResponseDTO year = yearClient.getYearResponseById(yearId);
         List<AcademicResponseDTO> semesters = semesterClient.getSemestersByYearId(yearId, params);
 
@@ -38,7 +38,7 @@ public class SemesterController {
         model.addAttribute("semesterDisplays", semesters);
         model.addAttribute("params", params);
 
-        return "semester/semester-list";
+        return "semester/list";
     }
 
     @GetMapping("/years/{yearId}/semesters/add")
@@ -49,7 +49,7 @@ public class SemesterController {
         model.addAttribute("semester", semesterRequestDTO);
         model.addAttribute("yearDisplay", year);
 
-        return "semester/semester-form";
+        return "semester/form";
     }
 
     @GetMapping("/semesters/{semesterId}")
@@ -60,17 +60,17 @@ public class SemesterController {
         model.addAttribute("semester", semester);
         model.addAttribute("yearDisplay", year);
 
-        return "semester/semester-form";
+        return "semester/form";
     }
 
     @PostMapping("/semesters")
     public String saveSemester(@ModelAttribute("semester") @Valid SemesterRequestDTO dto,
-                               BindingResult bindingResult,
-                               Model model) {
+            BindingResult bindingResult,
+            Model model) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("yearDisplay", yearClient.getYearResponseById(dto.yearId()));
-            return "semester/semester-form";
+            return "semester/form";
         }
 
         try {
@@ -89,12 +89,12 @@ public class SemesterController {
             }
 
             model.addAttribute("yearDisplay", yearClient.getYearResponseById(dto.yearId()));
-            return "semester/semester-form";
+            return "semester/form";
 
         } catch (Exception e) {
             model.addAttribute("yearDisplay", yearClient.getYearResponseById(dto.yearId()));
             model.addAttribute("errorMessage", messageSource.getMessage("error", null, Locale.getDefault()));
-            return "semester/semester-form";
+            return "semester/form";
         }
     }
 

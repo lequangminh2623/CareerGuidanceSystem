@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <title>Quản lý người dùng | Scholar Admin</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/user/user-list.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <p th:replace="~{base :: header}"></p>
+
+    <main class="flex-grow-1 container py-5">
+
+        <div class="page-header mb-4">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb small mb-0 font-weight-semibold">
+                        <li class="breadcrumb-item"><a th:href="@{/}"
+                                class="text-decoration-none text-muted">Dashboard</a></li>
+                        <li class="breadcrumb-item active text-primary" aria-current="page">Người dùng</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-black text-dark tracking-tight mb-1">Quản lý Người dùng</h2>
+                <p class="text-secondary small fw-medium mb-0">Hệ thống quản lý tài khoản, phân quyền và giám sát hoạt
+                    động</p>
+            </div>
+            <div class="d-none d-md-block">
+                <a th:href="@{/users/add}"
+                    class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-xl shadow-sm hover-translate-y">
+                    <i class="fa-solid fa-plus fs-6"></i>
+                    <span class="fw-bold">Thêm thành viên</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="filter-bar border-0 shadow-sm mb-4">
+            <form th:action="@{/users}" method="get" class="row g-3 w-100 align-items-center">
+                <div class="col-12 col-lg-5">
+                    <div class="input-group input-group-merge">
+                        <span class="input-group-text bg-light border-0 px-3 text-muted">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" name="kw" class="form-control bg-light border-0 ps-0 py-2 fs-14 fw-medium"
+                            placeholder="Tìm theo tên hoặc mã số..." th:value="${params['kw']}" />
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <select name="role"
+                        class="form-select bg-light border-0 py-2 fs-14 fw-bold text-dark cursor-pointer">
+                        <option value="" th:selected="${params['role'] == null || params['role'] == ''}">-- Tất cả vai
+                            trò --</option>
+                        <option value="Admin" th:selected="${params['role'] == 'Admin'}">Quản trị viên</option>
+                        <option value="Teacher" th:selected="${params['role'] == 'Teacher'}">Giáo viên</option>
+                        <option value="Student" th:selected="${params['role'] == 'Student'}">Học sinh</option>
+                    </select>
+                </div>
+
+                <div class="col-6 col-lg-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-xl fw-bold flex-grow-1">
+                        <i class="fa-solid fa-filter me-2 opacity-50"></i> Lọc dữ liệu
+                    </button>
+
+                    <a th:if="${(params['kw'] != null && params['kw'] != '') || (params['role'] != null && params['role'] != '')}"
+                        th:href="@{/users}" class="btn btn-outline-secondary px-3 py-2 rounded-xl" title="Xóa bộ lọc">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="card table-card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Thành viên</th>
+                            <th>Thông tin cơ bản</th>
+                            <th>Vai trò & Định danh</th>
+                            <th>Giới tính</th>
+                            <th>Trạng thái</th>
+                            <th>Thời gian cập nhật</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        <tr th:each="u : ${users.content}" class="transition-all duration-200">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="${u.avatar != null ? u.avatar : 'https://ui-avatars.com/api/?name=' + u.lastName + '+' + u.firstName + '&background=random&color=fff&size=128'}"
+                                        class="user-avatar" alt="Avatar">
+                                    <div class="status-indicator">
+                                        <span class="status-dot"
+                                            th:classappend="${u.active ? 'status-active' : 'status-inactive'}"></span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="fw-black text-dark mb-0 fs-15 tracking-tight"
+                                    th:text="${u.lastName + ' ' + u.firstName}">Nguyễn Văn A</div>
+                                <div class="text-muted fs-12 fw-medium" th:text="${u.email}">a@gmail.com</div>
+                            </td>
+
+                            <td>
+                                <div class="mb-2">
+                                    <span class="badge-soft"
+                                        th:classappend="${u.role == 'Admin' ? 'badge-soft-primary' :
+                                                  (u.role == 'Teacher' ? 'badge-soft-warning' : 'badge-soft-secondary')}"
+                                        th:text="${u.role == 'Admin' ? 'Quản trị viên' : (u.role == 'Teacher' ? 'Giáo viên' : 'Học sinh')}">
+                                    </span>
+                                </div>
+                                <div th:if="${u.code != null && u.code != ''}" class="user-code">
+                                    <span th:text="${u.code}"></span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="text-dark fw-bold fs-13">
+                                    <i th:class="${u.gender ? 'fa-solid fa-mars text-primary' : 'fa-solid fa-venus text-danger'}"
+                                        class="me-2 opacity-50"></i>
+                                    <span th:text="${u.gender ? 'Nam' : 'Nữ'}"></span>
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill"
+                                    th:classappend="${u.active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}">
+                                    <i class="fa-solid fa-circle" style="font-size: 6px;"></i>
+                                    <span class="fw-black text-uppercase tracking-widest" style="font-size: 10px;"
+                                        th:text="${u.active ? 'Hoạt động' : 'Đã khóa'}"></span>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="fs-12 text-dark fw-bold d-flex align-items-center gap-2">
+                                        <i class="fa-regular fa-clock text-muted" style="font-size: 11px;"></i>
+                                        <span th:text="${#temporals.format(u.updatedDate, 'dd/MM, yyyy')}"></span>
+                                    </div>
+                                    <div class="fs-11 text-muted fw-medium ms-4"
+                                        th:text="${#temporals.format(u.updatedDate, 'HH:mm')}"></div>
+                                </div>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a th:href="@{'/users/' + ${u.id}}" class="btn-icon" title="Chỉnh sửa hồ sơ">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button class="btn-icon delete" th:data-url="@{/users/}" th:data-id="${u.id}"
+                                        onclick="deleteHandler(this)" title="Xóa tài khoản">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${users.totalElements == 0}">
+                            <td colspan="7" class="text-center py-5">
+                                <div class="py-5">
+                                    <div class="bg-light d-inline-flex p-4 rounded-circle mb-4">
+                                        <i class="fa-solid fa-user-slash fs-1 text-muted opacity-25"></i>
+                                    </div>
+                                    <h4 class="fw-black text-secondary">Không tìm thấy kết quả</h4>
+                                    <p class="text-muted fs-14">Thử thay đổi từ khóa tìm kiếm hoặc vai trò người dùng.
+                                    </p>
+                                    <a th:href="@{/users}"
+                                        class="btn btn-outline-primary btn-sm rounded-pill px-4 mt-2">Xem tất cả</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container border-0 bg-transparent py-0">
+                <div th:replace="~{fragments/pagination :: pagination(pageData=${users})}"></div>
+            </div>
+        </div>
+
+        <!-- Mobile Fab Add -->
+        <a th:href="@{/users/add}"
+            class="btn btn-primary d-md-none position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+            style="width: 56px; height: 56px; z-index: 1000;">
+            <i class="fa-solid fa-plus fs-4"></i>
+        </a>
+
+    </main>
+
+    <p th:replace="~{base :: footer}"></p>
+
+    <script th:src="@{/js/user/user.js}"></script>
+    <th:block th:replace="~{base :: scripts}"></th:block>
+    <script th:src="@{/js/delete.js}"></script>
+
+</body>
+
+</html>

@@ -1,46 +1,25 @@
 .class-icon {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: #E6F7FF;
-    color: #1890FF;
-    border-radius: 8px;
-    margin-right: 12px;
+    background-color: var(--primary-light);
+    color: var(--primary-blue);
+    border-radius: 12px;
+    margin-right: 16px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    font-size: 1.1rem;
 }
 
 .class-name {
-    font-weight: 600;
-    color: #262626;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.025em;
 }
 
-.quantity-icon {
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #F6FFED;
-    color: #52C41A;
-    border-radius: 8px;
-    margin-right: 10px;
-    border: 1px solid #B7EB8F;
-}
-
-.quantity-name {
-    font-weight: 700;
-    color: #262626;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 15px;
-}
-
-.link-badge.section {
-    background-color: #FFE6F1;
-    color: #ff1842;
-    border: 1px solid transparent;
-}
-.link-badge.section:hover {
-    background-color: #ff1842;
-    color: #fff;
+.config-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }

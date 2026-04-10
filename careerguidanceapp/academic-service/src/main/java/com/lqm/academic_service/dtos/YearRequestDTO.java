@@ -7,7 +7,6 @@ import java.util.UUID;
 
 @Builder
 public record YearRequestDTO(
-        UUID id,
-        @Pattern(regexp = "^[0-9]{4}-[0-9]{4}$", message = "year.name.invalid")
-        String name
-) {}
+                UUID id,
+                @Pattern(regexp = "^[0-9]{4}-[0-9]{4}$", message = "{year.name.invalid}") String name) {
+}

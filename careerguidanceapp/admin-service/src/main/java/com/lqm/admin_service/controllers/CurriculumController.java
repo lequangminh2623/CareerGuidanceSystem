@@ -79,19 +79,19 @@ public class CurriculumController {
 
         model.addAttribute("curriculums", curriculumDTOPage);
 
-        return "curriculum/curriculum-list";
+        return "curriculum/list";
     }
 
     @GetMapping("/add")
     public String addCurriculum(Model model) {
         model.addAttribute("curriculum", CurriculumRequestDTO.builder().build());
-        return "curriculum/curriculum-form";
+        return "curriculum/form";
     }
 
     @GetMapping("/{id}")
     public String updateCurriculum(@PathVariable UUID id, Model model) {
         model.addAttribute("curriculum", curriculumClient.getCurriculumRequestById(id));
-        return "curriculum/curriculum-form";
+        return "curriculum/form";
     }
 
     @PostMapping
@@ -100,7 +100,7 @@ public class CurriculumController {
                                  Model model) {
 
         if (bindingResult.hasErrors()) {
-            return "curriculum/curriculum-form";
+            return "curriculum/form";
         }
 
         try {
@@ -109,19 +109,20 @@ public class CurriculumController {
 
         } catch (ValidationException e) {
             if (e.getDetails() instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
                 Map<String, String> errors = (Map<String, String>) e.getDetails();
 
                 errors.forEach((field, message) -> {
                     bindingResult.rejectValue(field, "error.curriculum", message);
                 });
             }
-            return "curriculum/curriculum-form";
+            return "curriculum/form";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage",
                     messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "curriculum/curriculum-form";
+            return "curriculum/form";
         }
     }
 

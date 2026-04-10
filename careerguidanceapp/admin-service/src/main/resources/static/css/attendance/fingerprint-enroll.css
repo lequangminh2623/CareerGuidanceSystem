@@ -1,0 +1,43 @@
+.enroll-header {
+    background: linear-gradient(135deg, #1890FF 0%, #0050b3 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    padding: 24px;
+}
+
+.info-pill {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.enroll-btn {
+    background-color: #F0F5FF;
+    color: #2F54EB;
+    border: 1px solid #ADC6FF;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.enroll-btn:hover {
+    background-color: #2F54EB;
+    color: white;
+    border-color: #2F54EB;
+    transform: translateY(-1px);
+}
+
+/* Hiệu ứng quét vân tay */
+@keyframes fingerprint-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px rgba(24,144,255,0.6)); }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+.icon-scanning {
+    animation: fingerprint-pulse 1.5s infinite ease-in-out;
+    font-size: 72px;
+    color: #1890FF;
+}

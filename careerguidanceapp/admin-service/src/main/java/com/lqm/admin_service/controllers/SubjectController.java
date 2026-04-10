@@ -26,7 +26,6 @@ public class SubjectController {
     private final SubjectClient subjectClient;
     private final MessageSource messageSource;
 
-
     @GetMapping("")
     public String listSubjects(Model model, @RequestParam Map<String, String> params) {
         Page<AcademicResponseDTO> subjectDTOPage = subjectClient.getSubjects(params);
@@ -34,29 +33,29 @@ public class SubjectController {
         model.addAttribute("subjects", subjectDTOPage);
         model.addAttribute("params", params);
 
-        return "subject/subject-list";
+        return "subject/list";
     }
 
     @GetMapping("/add")
     public String addSubject(Model model) {
         model.addAttribute("subject", SubjectRequestDTO.builder().build());
 
-        return "subject/subject-form";
+        return "subject/form";
     }
 
     @GetMapping("/{id}")
     public String updateSubject(Model model, @PathVariable UUID id) {
         model.addAttribute("subject", subjectClient.getSubjectRequestById(id));
 
-        return "subject/subject-form";
+        return "subject/form";
     }
 
     @PostMapping("")
     public String saveSubject(@ModelAttribute("subject") @Valid SubjectRequestDTO dto,
-                              BindingResult bindingResult,
-                              Model model) {
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
-            return "subject/subject-form";
+            return "subject/form";
         }
 
         try {
@@ -65,17 +64,16 @@ public class SubjectController {
 
         } catch (ValidationException e) {
             if (e.getDetails() instanceof Map<?, ?> errors) {
-                errors.forEach((field, message) ->
-                        bindingResult.rejectValue(field.toString(), "error.subject", message.toString())
-                );
+                errors.forEach((field, message) -> bindingResult.rejectValue(field.toString(), "error.subject",
+                        message.toString()));
             }
 
-            return "subject/subject-form";
+            return "subject/form";
         } catch (Exception e) {
             model.addAttribute("errorMessage",
                     messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "subject/subject-form";
+            return "subject/form";
         }
     }
 

@@ -14,7 +14,7 @@ public class JwtConfig {
         this.secret = secret;
     }
 
-    @Value("${jwt.expirationMs}")
+    @Value("${jwt.expiration-ms}")
     public void setExpirationMs(long expirationMs) {
         this.expirationMs = expirationMs;
     }

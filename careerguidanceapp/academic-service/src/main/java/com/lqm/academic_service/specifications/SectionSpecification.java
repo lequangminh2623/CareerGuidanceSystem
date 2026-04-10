@@ -25,8 +25,9 @@ public class SectionSpecification {
                 try {
                     UUID teacherId = UUID.fromString(teacherIdStr);
                     predicate = cb.and(predicate,
-                            cb.equal(root.get("teacher").get("id"), teacherId));
-                } catch (IllegalArgumentException ignored) {}
+                            cb.equal(root.get("teacherId"), teacherId));
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String classroomIdStr = params.get("classroomId");
@@ -35,7 +36,8 @@ public class SectionSpecification {
                     UUID classroomId = UUID.fromString(classroomIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("classroom").get("id"), classroomId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String curriculumIdStr = params.get("curriculumId");
@@ -44,7 +46,8 @@ public class SectionSpecification {
                     UUID curriculumId = UUID.fromString(curriculumIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("curriculum").get("id"), curriculumId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             return predicate;

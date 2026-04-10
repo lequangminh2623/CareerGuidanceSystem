@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(),
                 message,
                 details,
-                request.getRequestURI() // Đã thêm tham số path vào Record constructor
+                request.getRequestURI()
         );
         return new ResponseEntity<>(response, status);
     }

@@ -1,7 +1,6 @@
 package com.lqm.academic_service.validators;
 
 import com.lqm.academic_service.dtos.CurriculumRequestDTO;
-import com.lqm.academic_service.models.Curriculum;
 import com.lqm.academic_service.services.CurriculumService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;

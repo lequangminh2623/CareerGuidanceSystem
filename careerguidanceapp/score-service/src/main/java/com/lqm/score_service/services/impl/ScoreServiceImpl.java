@@ -55,8 +55,8 @@ import static com.lqm.score_service.specifications.ScoreDetailSpecification.filt
 @RequiredArgsConstructor
 public class ScoreServiceImpl implements ScoreService {
 
-    @Value("${max.extraGrades}")
-    private int MAX_EXTRA_GRADES;
+    @Value("${max.extraScores}")
+    private int MAX_EXTRA_SCORES;
     private final SectionClient sectionClient;
     private final ScoreDetailRepository scoreDetailRepo;
     private final ClassroomClient classroomClient;
@@ -80,8 +80,8 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public boolean isTranscriptFullyGraded(UUID sectionId) {
-        return scoreDetailRepo.countIncompleteScores(sectionId.toString()) == 0;
+    public boolean isTranscriptFullyScored(UUID sectionId) {
+        return scoreDetailRepo.countIncompleteScores(sectionId) == 0;
     }
 
     @Override
@@ -93,8 +93,7 @@ public class ScoreServiceImpl implements ScoreService {
 
             scoreDetailRepo.deleteAllBySectionIdInAndStudentIdIn(
                     request.sectionIds(),
-                    request.removedStudentIds()
-            );
+                    request.removedStudentIds());
         }
 
         // 2. THỰC HIỆN THÊM (Khởi tạo điểm cho học sinh mới)
@@ -107,7 +106,8 @@ public class ScoreServiceImpl implements ScoreService {
                 // Lấy số lượng cột extraScore lớn nhất hiện hành trong Section này
                 ScoreDetail sample = scoreDetailRepo.findFirstBySectionId(sectionId);
                 int currentMaxExtraScores = (sample != null && sample.getExtraScoreSet() != null)
-                        ? sample.getExtraScoreSet().size() : 0;
+                        ? sample.getExtraScoreSet().size()
+                        : 0;
 
                 for (UUID studentId : request.newStudentIds()) {
                     ScoreDetail scoreDetail = ScoreDetail.builder()
@@ -115,7 +115,8 @@ public class ScoreServiceImpl implements ScoreService {
                             .studentId(studentId)
                             .build();
 
-                    // Dùng LinkedHashSet thay vì HashSet để giữ đúng thứ tự của cột điểm (index 0, 1, 2)
+                    // Dùng LinkedHashSet thay vì HashSet để giữ đúng thứ tự của cột điểm (index 0,
+                    // 1, 2)
                     Set<ExtraScore> extraScores = new LinkedHashSet<>();
 
                     // Tạo từng ExtraScore, đánh index từ 0 đến currentMaxExtraScores - 1
@@ -148,41 +149,39 @@ public class ScoreServiceImpl implements ScoreService {
         SectionResponseDTO sectionResponseDTO = sectionClient.getSectionResponseById(sectionId);
 
         List<UUID> requestStudentIds = scoreRequests.stream().map(ScoreDetail::getStudentId).toList();
-        List<UUID> invalidStudentIds = classroomClient.getNonExistingStudentIds(sectionResponseDTO.classroomId(), requestStudentIds);
+        List<UUID> invalidStudentIds = classroomClient.getNonExistingStudentIds(sectionResponseDTO.classroomId(),
+                requestStudentIds);
         if (invalidStudentIds != null && !invalidStudentIds.isEmpty()) {
             throw new ResourceNotFoundException(
                     messageSource.getMessage("classroom.student.notIn", null, Locale.getDefault())
-                            + " " + invalidStudentIds.getFirst()
-            );
+                            + " " + invalidStudentIds.getFirst());
         }
 
         int max = calculateMaxColumns(scoreRequests);
-        if (max > MAX_EXTRA_GRADES) {
+        if (max > MAX_EXTRA_SCORES) {
             throw new IllegalArgumentException(
                     messageSource.getMessage("extraScore.exceed", null, Locale.getDefault())
-                            + " " + MAX_EXTRA_GRADES
-            );
+                            + " " + MAX_EXTRA_SCORES);
         }
 
         // 2. Chuyển Request thành Map
         Map<UUID, ScoreDetail> requestMap = scoreRequests.stream().collect(Collectors.toMap(
-                ScoreDetail::getStudentId, Function.identity(), (a, b) -> a
-        ));
+                ScoreDetail::getStudentId, Function.identity(), (a, b) -> a));
 
         Map<UUID, ScoreDetail> dbMap = scoreDetailRepo.findBySectionId(sectionId)
                 .stream()
                 .collect(Collectors.toMap(ScoreDetail::getStudentId, Function.identity()));
 
         // 4. Lấy danh sách học sinh để map
-        List<UUID> allStudentIds = classroomClient.getClassroomDetailsResponseById(sectionResponseDTO.classroomId()).studentIds();
+        List<UUID> allStudentIds = classroomClient.getClassroomDetailsResponseById(sectionResponseDTO.classroomId())
+                .studentIds();
         List<ScoreDetail> toSave = new ArrayList<>();
 
         for (UUID studentId : allStudentIds) {
             // Nếu DB chưa có thì mới tạo mới bằng Builder
             ScoreDetail dbScoreEntity = dbMap.getOrDefault(
                     studentId,
-                    ScoreDetail.builder().sectionId(sectionId).studentId(studentId).build()
-            );
+                    ScoreDetail.builder().sectionId(sectionId).studentId(studentId).build());
 
             // Lấy dữ liệu mới từ Form gửi lên
             ScoreDetail newRequestData = requestMap.get(studentId);
@@ -208,7 +207,8 @@ public class ScoreServiceImpl implements ScoreService {
 
     /**
      * Helper to:
-     * Calculate the max quantity of an extra score list and check exceed quantity limit.
+     * Calculate the max quantity of an extra score list and check exceed quantity
+     * limit.
      */
     private int calculateMaxColumns(List<ScoreDetail> scoreRequests) {
         int max = 0;
@@ -242,57 +242,62 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public void importGradesFromCsv(UUID sectionId, MultipartFile file) throws IOException {
+    public void importScoresFromCsv(UUID sectionId, MultipartFile file) throws IOException {
         SectionResponseDTO sectionResponseDTO = sectionClient.getSectionResponseById(sectionId);
 
         Map<String, UserResponseDTO> userMap = classroomClient.getStudentsInClassroom(
-                        sectionResponseDTO.classroomId(), Map.of()
-                ).getContent()
+                sectionResponseDTO.classroomId(), Map.of()).getContent()
                 .stream()
                 .collect(Collectors.toMap(UserResponseDTO::code, Function.identity()));
 
         CSVFormat format = CSVFormat.DEFAULT.builder()
-                .setHeader()
-                .setSkipHeaderRecord(true)
                 .setTrim(true)
                 .setIgnoreEmptyLines(true)
                 .get();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
-             CSVParser parser = CSVParser.parse(reader, format)) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+                CSVParser parser = CSVParser.parse(reader, format)) {
 
             List<ScoreDetail> reqs = new ArrayList<>();
+            boolean pastHeaders = false;
 
             for (CSVRecord record : parser) {
+                if (!pastHeaders) {
+                    if (record.size() > 0 && record.get(0).toLowerCase().contains("mã học sinh")) {
+                        pastHeaders = true;
+                    }
+                    continue;
+                }
+
                 long lineNo = record.getRecordNumber() + 1;
 
                 try {
                     String code = record.size() > 0 ? record.get(0) : null;
                     if (code == null || code.isBlank())
                         throw new IllegalArgumentException(
-                                messageSource.getMessage("student.code.missing", null, Locale.getDefault())
-                        );
+                                messageSource.getMessage("student.code.missing", null, Locale.getDefault()));
                     UUID sid = userMap.get(code).id();
 
                     String name = record.size() > 1 ? record.get(1) : null;
-                    if((userMap.get(code).lastName() + " " + userMap.get(code).firstName()).equals(name))
+                    if (!(userMap.get(code).lastName() + " " + userMap.get(code).firstName()).equals(name))
                         throw new IllegalArgumentException(
-                                messageSource.getMessage("student.name.incorrect", null, Locale.getDefault())
-                        );
+                                messageSource.getMessage("student.name.incorrect", null, Locale.getDefault()));
 
                     Double mid = record.size() > 2 ? parseDoubleSafe(record.get(2)) : null;
                     Double fin = record.size() > 3 ? parseDoubleSafe(record.get(3)) : null;
-                    ScoreDetail sd = ScoreDetail.builder().studentId(sid).midtermScore(mid).finalScore(fin).build();
+                    ScoreDetail sd = ScoreDetail.builder().sectionId(sectionId).studentId(sid).midtermScore(mid)
+                            .finalScore(fin).build();
                     Set<ExtraScore> ex = new LinkedHashSet<>();
                     for (int i = 4; i < record.size(); i++) {
-                        ex.add(ExtraScore.builder().score(parseDoubleSafe(record.get(i))).scoreIndex(i-4).scoreDetail(sd).build());
+                        ex.add(ExtraScore.builder().score(parseDoubleSafe(record.get(i))).scoreIndex(i - 4)
+                                .scoreDetail(sd).build());
                     }
 
-                    if (ex.size() > MAX_EXTRA_GRADES) {
+                    if (ex.size() > MAX_EXTRA_SCORES) {
                         throw new IllegalArgumentException(
                                 messageSource.getMessage("extraScore.exceed", null, Locale.getDefault())
-                                        + " " + MAX_EXTRA_GRADES
-                        );
+                                        + " " + MAX_EXTRA_SCORES);
                     }
                     sd.setExtraScoreSet(ex);
                     reqs.add(sd);
@@ -315,7 +320,8 @@ public class ScoreServiceImpl implements ScoreService {
      * Ném lỗi nếu chuỗi là số nhưng ngoài khoảng 0-10.
      **/
     private Double parseDoubleSafe(String v) {
-        if (v == null || v.trim().isEmpty()) return null;
+        if (v == null || v.trim().isEmpty())
+            return null;
         try {
             double d = Double.parseDouble(v.trim());
             if (d < 0 || d > 10) {
@@ -328,12 +334,15 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     private byte[] cachedFontBytes;
+    private byte[] cachedBoldFontBytes;
 
     @PostConstruct
     public void initFont() {
         try {
             ClassPathResource fontResource = new ClassPathResource("static/fonts/times.ttf");
             this.cachedFontBytes = fontResource.getInputStream().readAllBytes();
+            ClassPathResource boldFontResource = new ClassPathResource("static/fonts/timesbd.ttf");
+            this.cachedBoldFontBytes = boldFontResource.getInputStream().readAllBytes();
         } catch (IOException e) {
             System.err.println("Could not load custom font: " + e.getMessage());
         }
@@ -344,8 +353,8 @@ public class ScoreServiceImpl implements ScoreService {
             SectionResponseDTO section,
             List<ScoreDetail> scoreList,
             Map<UUID, UserResponseDTO> userMap,
-            int maxExtra
-    ) {}
+            int maxExtra) {
+    }
 
     private TranscriptData prepareTranscriptData(UUID sectionId) {
         // 1. Get Section Info
@@ -354,14 +363,13 @@ public class ScoreServiceImpl implements ScoreService {
         // 2. Get Scores
         List<ScoreDetail> scoreList = this.getScoreDetails(
                 Map.of("sectionId", sectionId.toString()),
-                Pageable.unpaged()
-        ).getContent();
+                Pageable.unpaged()).getContent();
 
         // 3. Get Students (Ensure we fetch ALL students, unpaged)
         Map<UUID, UserResponseDTO> userMap = classroomClient.getStudentsInClassroom(
-                        section.classroomId(),
-                        Map.of("page", "0", "size", "1000") // Ensure we get everyone
-                ).getContent()
+                section.classroomId(),
+                Map.of("page", "0", "size", "1000") // Ensure we get everyone
+        ).getContent()
                 .stream()
                 .collect(Collectors.toMap(UserResponseDTO::id, Function.identity()));
 
@@ -370,23 +378,35 @@ public class ScoreServiceImpl implements ScoreService {
         return new TranscriptData(section, scoreList, userMap, maxExtra);
     }
 
-
     // --- 2. CSV EXPORT ---
     @Override
     public byte[] generateScoreCsv(UUID sectionId) {
         TranscriptData data = prepareTranscriptData(sectionId);
 
-        List<String> headers = new ArrayList<>(List.of("Mã sinh viên", "Họ và tên", "Giữa kỳ", "Cuối kỳ"));
-        for (int i = 1; i <= data.maxExtra; i++) headers.add("Điểm bổ sung " + i);
+        List<String> headers = new ArrayList<>(List.of("Mã học sinh", "Họ và tên", "Điểm GK", "Điểm CK"));
+        for (int i = 1; i <= data.maxExtra; i++)
+            headers.add("Điểm TX " + i);
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+                PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
 
             writer.write('\ufeff'); // BOM for Excel
 
-            CSVFormat format = CSVFormat.DEFAULT.builder().setHeader(headers.toArray(new String[0])).get();
+            CSVFormat format = CSVFormat.DEFAULT;
 
             try (CSVPrinter printer = new CSVPrinter(writer, format)) {
+
+                // In metadata header
+                printer.printRecord("BẢNG ĐIỂM KẾT QUẢ HỌC TẬP");
+                printer.printRecord();
+                printer.printRecord("Lớp học:", data.section.classroomName(), "Khối lớp:", data.section.gradeName());
+                printer.printRecord("Học kỳ:", data.section.semesterName(), "Năm học:", data.section.yearName());
+                printer.printRecord("Giáo viên:", data.section.teacherName(), "Môn học:", data.section.subjectName());
+                printer.printRecord();
+
+                // In dòng tiêu đề bảng điểm
+                printer.printRecord(headers);
+
                 for (ScoreDetail score : data.scoreList) {
                     UserResponseDTO student = data.userMap.get(score.getStudentId());
 
@@ -427,65 +447,122 @@ public class ScoreServiceImpl implements ScoreService {
 
             // Font Handling (Use cached bytes)
             PdfFont font;
-            if (cachedFontBytes != null) {
-                font = PdfFontFactory.createFont(cachedFontBytes, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
+            PdfFont boldFont;
+            if (cachedFontBytes != null && cachedBoldFontBytes != null) {
+                font = PdfFontFactory.createFont(cachedFontBytes, com.itextpdf.io.font.PdfEncodings.IDENTITY_H,
+                        PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
+                boldFont = PdfFontFactory.createFont(cachedBoldFontBytes, com.itextpdf.io.font.PdfEncodings.IDENTITY_H,
+                        PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
             } else {
                 // Fallback - Warning: This will break Vietnamese characters
                 font = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_ROMAN);
+                boldFont = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.TIMES_BOLD);
             }
             document.setFont(font);
 
-            // Header Info
-            document.add(new Paragraph("BẢNG ĐIỂM TỔNG HỢP")
-                    .setBold().setFontSize(16).setTextAlignment(TextAlignment.CENTER));
+            // National Motto Header
+            Table headerTable = new Table(UnitValue.createPercentArray(new float[] { 1, 1 })).useAllAvailableWidth();
 
-            Table infoTable = new Table(UnitValue.createPercentArray(new float[]{1, 3})).useAllAvailableWidth();
-            addInfoRow(infoTable, "Môn học:", data.section.subjectName());
-            addInfoRow(infoTable, "Lớp:", data.section.classroomName());
-            addInfoRow(infoTable, "Giáo viên:", data.section.teacherName());
+            Cell leftCell = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER);
+            leftCell.add(new Paragraph("BỘ GIÁO DỤC VÀ ĐÀO TẠO").setFontSize(11));
+            leftCell.add(new Paragraph("Scholar").setFont(boldFont).setFontSize(11));
+
+            Cell rightCell = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER);
+            rightCell.add(new Paragraph("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM").setFont(boldFont).setFontSize(11));
+            rightCell.add(new Paragraph("Độc lập - Tự do - Hạnh phúc").setFont(boldFont).setFontSize(11));
+            rightCell.add(new Paragraph("-----------------------").setFontSize(11));
+
+            headerTable.addCell(leftCell);
+            headerTable.addCell(rightCell);
+            document.add(headerTable);
+            document.add(new Paragraph("\n"));
+
+            // Header Info
+            document.add(new Paragraph("BẢNG ĐIỂM KẾT QUẢ HỌC TẬP")
+                    .setFont(boldFont).setFontSize(17).setTextAlignment(TextAlignment.CENTER).setMarginBottom(10));
+
+            Table infoTable = new Table(UnitValue.createPercentArray(new float[] { 1, 3, 1, 3 }))
+                    .setWidth(UnitValue.createPercentValue(100))
+                    .setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+            addInfoRow(infoTable, "Lớp học:", data.section.classroomName(), boldFont);
+            addInfoRow(infoTable, "Khối lớp:", data.section.gradeName(), boldFont);
+            addInfoRow(infoTable, "Học kỳ:", data.section.semesterName(), boldFont);
+            addInfoRow(infoTable, "Năm học:", data.section.yearName(), boldFont);
+            addInfoRow(infoTable, "Giáo viên:", data.section.teacherName(), boldFont);
+            addInfoRow(infoTable, "Môn học:", data.section.subjectName(), boldFont);
             document.add(infoTable);
             document.add(new Paragraph("\n"));
 
             // Dynamic Table Columns
             // 1(STT) + 3(Code) + 6(Name) + 2(Mid) + 2(Final) + 2*Extras
             float[] colWidths = new float[5 + data.maxExtra];
-            colWidths[0] = 1f; colWidths[1] = 3f; colWidths[2] = 6f; colWidths[3] = 2f; colWidths[4] = 2f;
-            Arrays.fill(colWidths, 5, colWidths.length, 2f);
+            colWidths[0] = 1.2f;
+            colWidths[1] = 3.5f;
+            colWidths[2] = 6f;
+            colWidths[3] = 2.5f;
+            colWidths[4] = 2.5f;
+            Arrays.fill(colWidths, 5, colWidths.length, 2.5f);
 
             Table table = new Table(UnitValue.createPercentArray(colWidths)).useAllAvailableWidth();
 
             // Table Header
-            addHeaderCell(table, "STT");
-            addHeaderCell(table, "Mã SV");
-            addHeaderCell(table, "Họ và tên");
-            addHeaderCell(table, "GK");
-            addHeaderCell(table, "CK");
-            for (int i = 1; i <= data.maxExtra; i++) addHeaderCell(table, "TP" + i);
+            addHeaderCell(table, "STT", boldFont);
+            addHeaderCell(table, "Mã SV", boldFont);
+            addHeaderCell(table, "Họ và tên", boldFont);
+            addHeaderCell(table, "GK", boldFont);
+            addHeaderCell(table, "CK", boldFont);
+            for (int i = 1; i <= data.maxExtra; i++)
+                addHeaderCell(table, "TX" + i, boldFont);
 
             // Table Body
             int stt = 1;
+            boolean isOdd = false;
             for (ScoreDetail score : data.scoreList) {
+                isOdd = !isOdd;
                 UserResponseDTO student = data.userMap.get(score.getStudentId());
+                com.itextpdf.kernel.colors.Color bgColor = isOdd
+                        ? new com.itextpdf.kernel.colors.DeviceRgb(249, 250, 251)
+                        : ColorConstants.WHITE;
 
-                addCellCenter(table, String.valueOf(stt++));
-                addCellCenter(table, student != null ? student.code() : "N/A"); // Null check
+                addCellCenter(table, String.valueOf(stt++), bgColor);
+                addCellCenter(table, student != null ? student.code() : "N/A", bgColor); // Null check
 
                 // Fixed Name Logic: Combine Last + First
                 table.addCell(new Cell().add(new Paragraph(formatFullName(student)))
                         .setTextAlignment(TextAlignment.LEFT)
                         .setVerticalAlignment(VerticalAlignment.MIDDLE)
-                        .setPaddingLeft(4));
+                        .setPaddingLeft(6)
+                        .setPaddingTop(4)
+                        .setPaddingBottom(4)
+                        .setBorder(new com.itextpdf.layout.borders.SolidBorder(
+                                com.itextpdf.kernel.colors.ColorConstants.GRAY, 0.5f))
+                        .setBackgroundColor(bgColor));
 
-                addCellCenter(table, formatScore(score.getMidtermScore()));
-                addCellCenter(table, formatScore(score.getFinalScore()));
+                addCellCenter(table, formatScore(score.getMidtermScore()), bgColor);
+                addCellCenter(table, formatScore(score.getFinalScore()), bgColor);
 
                 List<Double> extras = getExtraScores(score);
                 for (int i = 0; i < data.maxExtra; i++) {
-                    addCellCenter(table, i < extras.size() ? formatScore(extras.get(i)) : "-");
+                    addCellCenter(table, i < extras.size() ? formatScore(extras.get(i)) : "-", bgColor);
                 }
             }
 
             document.add(table);
+
+            // Footer Signature
+            document.add(new Paragraph("\n"));
+            Table footerTable = new Table(UnitValue.createPercentArray(new float[] { 1, 1 })).useAllAvailableWidth();
+            footerTable.addCell(new Cell().setBorder(Border.NO_BORDER));
+
+            Cell signCell = new Cell().setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER);
+            LocalDateTime now = LocalDateTime.now();
+            signCell.add(new Paragraph(String.format("Ngày %02d tháng %02d năm %d", now.getDayOfMonth(),
+                    now.getMonthValue(), now.getYear())).setFontSize(11).setItalic());
+            signCell.add(new Paragraph("Giáo viên phụ trách").setFont(boldFont).setFontSize(12).setMarginBottom(50));
+            signCell.add(new Paragraph(data.section.teacherName() != null ? data.section.teacherName() : "")
+                    .setFont(boldFont).setFontSize(12));
+
+            footerTable.addCell(signCell);
             document.close();
             return baos.toByteArray();
         } catch (IOException e) {
@@ -493,26 +570,34 @@ public class ScoreServiceImpl implements ScoreService {
         }
     }
 
-// ================= HELPER METHODS =================
+    // ================= HELPER METHODS =================
 
-    private void addInfoRow(Table table, String label, String value) {
-        table.addCell(new Cell().add(new Paragraph(label).setBold()).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph(value != null ? value : "")).setBorder(Border.NO_BORDER));
+    private void addInfoRow(Table table, String label, String value, PdfFont boldFont) {
+        table.addCell(new Cell().add(new Paragraph(label).setFont(boldFont)).setBorder(Border.NO_BORDER).setPadding(2));
+        table.addCell(
+                new Cell().add(new Paragraph(value != null ? value : "")).setBorder(Border.NO_BORDER).setPadding(2));
     }
 
-    private void addHeaderCell(Table table, String text) {
+    private void addHeaderCell(Table table, String text, PdfFont boldFont) {
         table.addHeaderCell(new Cell()
-                .add(new Paragraph(text).setBold().setFontSize(10))
-                .setBackgroundColor(ColorConstants.LIGHT_GRAY)
+                .add(new Paragraph(text).setFont(boldFont).setFontSize(10).setFontColor(ColorConstants.WHITE))
+                .setBackgroundColor(new com.itextpdf.kernel.colors.DeviceRgb(41, 128, 185))
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(ColorConstants.DARK_GRAY, 1.5f))
                 .setTextAlignment(TextAlignment.CENTER)
-                .setVerticalAlignment(VerticalAlignment.MIDDLE));
+                .setVerticalAlignment(VerticalAlignment.MIDDLE)
+                .setPadding(6));
     }
 
-    private void addCellCenter(Table table, String text) {
+    private void addCellCenter(Table table, String text, com.itextpdf.kernel.colors.Color bgColor) {
         table.addCell(new Cell()
                 .add(new Paragraph(text).setFontSize(10))
                 .setTextAlignment(TextAlignment.CENTER)
-                .setVerticalAlignment(VerticalAlignment.MIDDLE));
+                .setVerticalAlignment(VerticalAlignment.MIDDLE)
+                .setBackgroundColor(bgColor)
+                .setBorder(new com.itextpdf.layout.borders.SolidBorder(com.itextpdf.kernel.colors.ColorConstants.GRAY,
+                        0.5f))
+                .setPaddingTop(4)
+                .setPaddingBottom(4));
     }
 
     private List<Double> getExtraScores(ScoreDetail score) {
@@ -527,7 +612,8 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     private String formatFullName(UserResponseDTO student) {
-        if (student == null) return "Unknown Student";
+        if (student == null)
+            return "Unknown Student";
         String last = student.lastName() != null ? student.lastName() : "";
         String first = student.firstName() != null ? student.firstName() : "";
         return (last + " " + first).trim();

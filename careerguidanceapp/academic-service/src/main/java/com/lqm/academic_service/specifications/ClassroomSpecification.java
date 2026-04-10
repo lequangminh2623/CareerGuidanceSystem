@@ -1,9 +1,13 @@
 package com.lqm.academic_service.specifications;
 
 import com.lqm.academic_service.models.Classroom;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,6 +37,15 @@ public class ClassroomSpecification {
             }
 
             return predicate;
+        };
+    }
+
+    public static Specification<Classroom> hasIdIn(List<UUID> classroomIds) {
+        return (Root<Classroom> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+            if (classroomIds == null || classroomIds.isEmpty()) {
+                return cb.isTrue(cb.literal(true));
+            }
+            return root.get("id").in(classroomIds);
         };
     }
 

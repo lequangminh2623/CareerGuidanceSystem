@@ -1,7 +1,6 @@
 package com.lqm.academic_service.specifications;
 
 import com.lqm.academic_service.models.Curriculum;
-import com.lqm.academic_service.models.Section;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;

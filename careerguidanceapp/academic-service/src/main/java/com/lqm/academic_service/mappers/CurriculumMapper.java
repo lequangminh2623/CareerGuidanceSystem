@@ -6,10 +6,10 @@ import com.lqm.academic_service.models.Curriculum;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface CurriculumMapper {
-    
-    @Mapping(target = "semesterName", expression = "java(curriculum.getSemester().getName().getSemesterName())")
+
+    @Mapping(target = "semesterName", source = "semester.name.semesterName")
     @Mapping(target = "subjectName", source = "subject.name")
     CurriculumResponseDTO toCurriculumResponseDTO(Curriculum curriculum);
 

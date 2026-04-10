@@ -29,8 +29,8 @@ public class GradeController {
 
     @GetMapping("/years/{yearId}/grades")
     public String listGrades(@PathVariable UUID yearId,
-                             @RequestParam Map<String, String> params,
-                             Model model) {
+            @RequestParam Map<String, String> params,
+            Model model) {
         AcademicResponseDTO year = yearClient.getYearResponseById(yearId);
         List<AcademicResponseDTO> grades = gradeClient.getGradesByYearId(yearId, params);
 
@@ -38,7 +38,7 @@ public class GradeController {
         model.addAttribute("gradeDisplays", grades);
         model.addAttribute("params", params);
 
-        return "grade/grade-list";
+        return "grade/list";
     }
 
     @GetMapping("/years/{yearId}/grades/add")
@@ -49,7 +49,7 @@ public class GradeController {
         model.addAttribute("grade", gradeRequestDTO);
         model.addAttribute("yearDisplay", year);
 
-        return "grade/grade-form";
+        return "grade/form";
     }
 
     @GetMapping("/grades/{gradeId}")
@@ -60,17 +60,17 @@ public class GradeController {
         model.addAttribute("grade", grade);
         model.addAttribute("yearDisplay", year);
 
-        return "grade/grade-form";
+        return "grade/form";
     }
 
     @PostMapping("/grades")
     public String saveGrade(@ModelAttribute("grade") @Valid GradeRequestDTO dto,
-                            BindingResult bindingResult,
-                            Model model) {
+            BindingResult bindingResult,
+            Model model) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("yearDisplay", yearClient.getYearResponseById(dto.yearId()));
-            return "grade/grade-form";
+            return "grade/form";
         }
 
         try {
@@ -79,6 +79,7 @@ public class GradeController {
 
         } catch (ValidationException e) {
             if (e.getDetails() instanceof Map<?, ?>) {
+                @SuppressWarnings("unchecked")
                 Map<String, String> errors = (Map<String, String>) e.getDetails();
 
                 errors.forEach((field, message) -> {
@@ -87,13 +88,13 @@ public class GradeController {
             }
             model.addAttribute("yearDisplay", yearClient.getYearResponseById(dto.yearId()));
 
-            return "grade/grade-form";
+            return "grade/form";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage",
                     messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "grade/grade-form";
+            return "grade/form";
         }
     }
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <title>Gán Thiết bị cho Lớp học</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/device/form.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<p th:replace="~{base :: header}"></p>
+
+    <main class="flex-grow-1 container py-4" style="max-width: 1200px;">
+        <div class="page-header mb-4 mt-2">
+            <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/classrooms(gradeId=${params['gradeId']})}" class="text-decoration-none text-muted">Lớp học</a></li>
+                    <li class="breadcrumb-item active text-primary" aria-current="page">Thiết bị</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="fw-black text-dark tracking-tight mb-1">
+                        Ghi danh <span class="text-indigo">Thiết bị Điểm danh</span>
+                    </h2>
+                    <p class="text-secondary small fw-medium mb-0">
+                        <i class="fas fa-link me-1"></i> Kết nối phần cứng với lớp học để ghi nhận vân tay
+                    </p>
+                </div>
+                <div>
+                    <a href="/devices" class="btn btn-white border px-4 py-2.5 rounded-xl fw-bold text-muted hover-translate-y">
+                        <i class="fas fa-microchip me-2 opacity-50"></i> Xem kho thiết bị
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i><span class="fw-bold" th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold" th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-xl overflow-hidden h-100">
+                    <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light p-2 rounded-3 text-secondary">
+                                <i class="fas fa-inbox fs-5"></i>
+                            </div>
+                            <div class="fw-black text-dark text-uppercase tracking-wider fs-13">Thiết bị khả dụng</div>
+                        </div>
+                        <span class="badge bg-indigo-soft text-indigo rounded-pill px-3 py-2 fw-black" th:text="${#lists.size(availableDevices)}">0</span>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div th:if="${#lists.isEmpty(availableDevices)}" class="text-center py-5">
+                            <div class="bg-light p-4 rounded-circle d-inline-block mb-3">
+                                <i class="fas fa-box-open text-muted fs-2 opacity-30"></i>
+                            </div>
+                            <p class="text-muted small fw-medium px-4">Hiện không có thiết bị nào đang ở trạng thái rảnh.</p>
+                        </div>
+
+                        <div class="list-group list-group-flush">
+                            <div th:each="device : ${availableDevices}" class="list-group-item p-4 border-0 border-bottom d-flex align-items-center justify-content-between hover-bg-light transition-all">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-indigo-soft p-3 rounded-circle text-indigo">
+                                        <i class="fas fa-microchip"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-black text-dark font-monospace fs-16 mb-1" th:text="${device.id()}">DEV-123</div>
+                                        <span class="badge rounded-pill px-2 py-1 fs-10 uppercase tracking-tighter"
+                                              th:classappend="${device.isActive()} ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger'">
+                                            <i class="fas me-1" th:classappend="${device.isActive()} ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                            <span th:text="${device.isActive()} ? 'ONLINE' : 'OFFLINE'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <form th:action="@{/classrooms/{classroomId}/devices/{deviceId}/assign(classroomId=${classroomId}, deviceId=${device.id()}, gradeId=${params['gradeId']})}" method="post" class="m-0">
+                                    <button type="submit" class="btn btn-indigo px-4 py-2 rounded-xl fw-bold hover-translate-y shadow-sm">
+                                        Gán Lớp <i class="fas fa-chevron-right ms-2 fs-10 opacity-50"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-xl overflow-hidden h-100 border-indigo-2 border-dashed" th:classappend="${assignedDevice != null ? 'bg-indigo-soft border-indigo shadow-primary-sm' : 'bg-white'}">
+                    <div class="card-header bg-transparent border-bottom-0 p-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-indigo p-2 rounded-3 text-white">
+                                <i class="fas fa-link-slash fs-5 text-white opacity-75"></i>
+                                <i class="fas fa-link fs-5" style="display:none"></i>
+                            </div>
+                            <div class="fw-black text-dark text-uppercase tracking-wider fs-13">Đang kết nối tại Lớp</div>
+                        </div>
+                        <span class="badge bg-indigo text-white rounded-pill px-3 py-2 fw-black" th:text="${assignedDevice != null ? '1' : '0'}">0</span>
+                    </div>
+
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center p-5 text-center">
+                        <div th:if="${assignedDevice == null}" class="py-4">
+                            <div class="bg-light p-4 rounded-circle d-inline-block mb-4">
+                                <i class="fas fa-plug text-muted fs-1 opacity-20"></i>
+                            </div>
+                            <h5 class="text-dark fw-black mb-2">Chưa gán thiết bị</h5>
+                            <p class="text-muted small px-4 mb-0">Lớp học này chưa có thiết bị điểm danh nào được cấu hình.</p>
+                        </div>
+
+                        <div th:if="${assignedDevice != null}" class="w-100">
+                            <div class="bg-white p-4 rounded-xl shadow-sm border mb-4 border-indigo">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-3 text-start">
+                                        <div class="bg-indigo p-3 rounded-circle text-white shadow-indigo">
+                                            <i class="fas fa-wifi"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-black text-indigo font-monospace fs-20 mb-1" th:text="${assignedDevice.id()}">DEV-999</div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-success rounded-pill px-2 py-1 fs-10 uppercase tracking-tighter">
+                                                    <i class="fas fa-broadcast-tower me-1"></i> CONNECTED
+                                                </span>
+                                                <span class="text-secondary small fw-medium" th:text="${assignedDevice.isActive() ? 'Sẵn sàng ghi nhận' : 'Mất kết nối'}"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form th:action="@{/classrooms/{classroomId}/devices/{deviceId}/unassign(classroomId=${classroomId}, deviceId=${assignedDevice.id()}, gradeId=${params['gradeId']})}"
+                                  method="post" class="m-0" id="unassignForm">
+                                <button type="button" onclick="confirmUnassign()" class="btn btn-danger px-5 py-3 rounded-xl fw-black shadow-danger hover-translate-y w-100">
+                                    <i class="fas fa-unlink me-2 opacity-50"></i> NGẮT KẾT NỐI KHỎI LỚP
+                                </button>
+                            </form>
+                            <script>
+                                async function confirmUnassign() {
+                                    const confirmed = await showConfirm('Bạn có chắc chắn muốn ngắt kết nối thiết bị này khỏi lớp học?');
+                                    if (confirmed) {
+                                        document.getElementById('unassignForm').submit();
+                                    }
+                                }
+                            </script>
+                            <p class="text-muted small mt-3 px-4">Thao tác này sẽ giải phóng thiết bị để sử dụng ở lớp học khác.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<p th:replace="~{base :: footer}"></p>
+<th:block th:replace="~{base :: scripts}"></th:block>
+</body>
+</html>

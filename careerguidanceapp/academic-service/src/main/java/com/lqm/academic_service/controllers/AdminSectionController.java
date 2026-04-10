@@ -62,6 +62,14 @@ public class AdminSectionController {
         return sectionPage.map(s -> sectionMapper.toSectionResponseDTO(s, teacherMap));
     }
 
+    @GetMapping("/{id}")
+    SectionResponseDTO getSectionResponseById(@PathVariable("id") UUID id) {
+        Section section = sectionService.getSectionById(id);
+        Map<UUID, String> teacherMap = sectionService.buildTeacherMap(List.of(section));
+
+        return sectionMapper.toSectionResponseDTO(section, teacherMap);
+    }
+
     @PostMapping
     public void saveSections(@RequestBody @Valid SectionListRequest sectionListRequest,
                              @RequestParam Map<String, String> params) {

@@ -1,9 +1,6 @@
 package com.lqm.admin_service.clients;
 
-import com.lqm.admin_service.dtos.ClassroomDetailsResponseDTO;
-import com.lqm.admin_service.dtos.ClassroomRequestDTO;
-import com.lqm.admin_service.dtos.ClassroomResponseDTO;
-import com.lqm.admin_service.dtos.UserResponseDTO;
+import com.lqm.admin_service.dtos.*;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -17,17 +14,17 @@ public interface ClassroomClient {
     @GetMapping
     Page<ClassroomResponseDTO> getClassrooms(@RequestParam Map<String, String> params);
 
-    @GetMapping("/{id}")
-    ClassroomRequestDTO getClassroomRequestById(@PathVariable("id") UUID id);
+    @GetMapping("/{id}/request")
+    ClassroomRequestDTO getClassroomRequestById(@PathVariable UUID id);
+
+    @GetMapping("/{id}/response")
+    ClassroomResponseDTO getClassroomResponseById(@PathVariable UUID id);
 
     @PostMapping
     void saveClassroom(@RequestBody ClassroomRequestDTO dto);
 
     @DeleteMapping("/{id}")
-    void deleteClassroom(@PathVariable("id") UUID id);
-
-    @GetMapping("/{id}")
-    ClassroomDetailsResponseDTO getClassroomDetailsResponseById(@PathVariable UUID id);
+    void deleteClassroom(@PathVariable UUID id);
 
     @GetMapping("/{id}/students")
     Page<UserResponseDTO> getStudentsInClassroom(@PathVariable UUID id, @RequestParam Map<String, String> params);

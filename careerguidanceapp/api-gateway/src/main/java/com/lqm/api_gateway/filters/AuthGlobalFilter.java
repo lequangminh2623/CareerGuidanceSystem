@@ -3,7 +3,6 @@ package com.lqm.api_gateway.filters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lqm.api_gateway.utils.JwtUtil;
 import jakarta.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -24,13 +23,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 
 @Component
-@RequiredArgsConstructor
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     private final ObjectMapper objectMapper;
-    @Value("${auth.gateway.security.ignored-paths[0]}")
     private final List<String> ignoredPaths;
 
+    // Tự viết Constructor như thế này:
+    public AuthGlobalFilter(
+            ObjectMapper objectMapper,
+            @Value("${auth.gateway.security.ignored-paths:}") List<String> ignoredPaths) {
+        this.objectMapper = objectMapper;
+        this.ignoredPaths = ignoredPaths;
+    }
     @Override
     @Nonnull
     public Mono<Void> filter(ServerWebExchange exchange, @Nonnull GatewayFilterChain chain) {

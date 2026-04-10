@@ -1,6 +1,6 @@
 package com.lqm.user_service.controllers;
 
-import com.lqm.user_service.dtos.UserResponseDTO;
+import com.lqm.user_service.dtos.UserMessageResponseDTO;
 import com.lqm.user_service.dtos.UserDetailsResponseDTO;
 import com.lqm.user_service.mappers.UserMapper;
 import com.lqm.user_service.models.User;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/secure")
-@CrossOrigin
 @RequiredArgsConstructor
 public class ApiUserController {
 
@@ -42,19 +41,18 @@ public class ApiUserController {
         return ResponseEntity.ok(userResponseDTO);
     }
 
-    //đường dẫn thay đổi
     @GetMapping(path = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<UserResponseDTO>> getUsers(@RequestParam Map<String, String> params) {
+    public ResponseEntity<Page<UserMessageResponseDTO>> getUsers(@RequestParam Map<String, String> params) {
+        params = new HashMap<>(params);
+        params.put("active", "true");
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of("lastName:asc", "firstName:asc")
-        );
+                List.of("lastName:asc", "firstName:asc"));
         Page<User> userPage = userService.getUsers(List.of(), params, pageable);
-        Page<UserResponseDTO> userDTOPage = userPage.map(userMapper::toUserResponseDTO);
+        Page<UserMessageResponseDTO> userDTOPage = userPage.map(userMapper::toUserMessageResponseDTO);
 
         return ResponseEntity.ok(userDTOPage);
     }
 
 }
-

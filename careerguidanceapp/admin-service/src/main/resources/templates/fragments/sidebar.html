@@ -7,44 +7,36 @@
     </div>
 
     <div class="p-2">
-        <div class="accordion" id="gradeAccordion">
+        <div class="accordion" id="gradeAccordion" th:if="${not #maps.isEmpty(groupedGrades)}">
             <div class="accordion-item border-0 mb-1" th:each="entry, iterStat : ${groupedGrades}">
                 <th:block th:with="isExpanded=${(params['gradeId'] == null && iterStat.index == 0) || (params['gradeId'] != null && #lists.contains(entry.value.![id.toString()], params['gradeId']))}">
-
                     <h2 class="accordion-header" th:id="'heading' + ${iterStat.index}">
                         <button class="accordion-button rounded-2"
                                 th:classappend="${!isExpanded} ? 'collapsed'"
                                 type="button" data-bs-toggle="collapse"
-                                th:data-bs-target="'#collapse' + ${iterStat.index}"
-                                th:aria-expanded="${isExpanded}"
-                                th:aria-controls="'collapse' + ${iterStat.index}">
+                                th:data-bs-target="'#collapse' + ${iterStat.index}">
                             <i class="far fa-calendar-alt me-2 opacity-50"></i>
                             <span th:text="${entry.key}">2025-2026</span>
                         </button>
                     </h2>
-
-                    <div th:id="'collapse' + ${iterStat.index}"
-                         class="accordion-collapse collapse"
-                         th:classappend="${isExpanded} ? 'show'"
-                         th:aria-labelledby="'heading' + ${iterStat.index}"
-                         data-bs-parent="#gradeAccordion">
+                    <div th:id="'collapse' + ${iterStat.index}" class="accordion-collapse collapse" th:classappend="${isExpanded} ? 'show'">
                         <div class="accordion-body p-0 py-1">
                             <div class="list-group list-group-flush">
-                                <a th:each="g : ${entry.value}"
-                                   th:href="@{${baseUrl}(gradeId=${g.id})}"
-                                   class="grade-menu-item"
-                                   th:classappend="${params['gradeId'] != null && params['gradeId'] == g.id.toString()} ? 'active'">
-                                    <i class="fas fa-layer-group me-2" style="font-size: 12px;"></i>
+                                <a th:each="g : ${entry.value}" th:href="@{${baseUrl}(gradeId=${g.id})}"
+                                   class="grade-menu-item" th:classappend="${params['gradeId'] == g.id.toString()} ? 'active'">
                                     <span th:text="${g.name}">Khối 10</span>
                                 </a>
                             </div>
                         </div>
                     </div>
-
                 </th:block>
             </div>
         </div>
+
+        <div th:if="${#maps.isEmpty(groupedGrades)}" class="text-center py-4 text-muted">
+            <i class="fas fa-folder-open d-block mb-2 opacity-25" style="font-size: 2rem;"></i>
+            <small>Chưa có khối lớp nào</small>
+        </div>
     </div>
-</div>
-</body>
+</div></body>
 </html>

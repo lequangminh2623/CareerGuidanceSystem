@@ -50,13 +50,19 @@ public class AdminClassroomController {
                 List.of()
         );
 
-        return classroomService.getClassrooms(params, pageable).map(classroomMapper::toClassroomResponseDTO);
+        return classroomService.getClassrooms(List.of(), params, pageable).map(classroomMapper::toClassroomResponseDTO);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/request")
     public ClassroomRequestDTO getClassroomRequestById(@PathVariable UUID id) {
         Classroom classroom = classroomService.getClassroomWithStudents(id);
         return classroomMapper.toClassroomRequestDTO(classroom);
+    }
+
+    @GetMapping("/{id}/response")
+    public ClassroomResponseDTO getClassroomResponseById(@PathVariable UUID id) {
+        Classroom classroom = classroomService.getClassroomById(id);
+        return classroomMapper.toClassroomResponseDTO(classroom);
     }
 
     @PostMapping

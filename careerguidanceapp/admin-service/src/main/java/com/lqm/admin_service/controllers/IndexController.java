@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Controller
@@ -38,6 +37,7 @@ public class IndexController {
             Map<String, Object> stats = response.getBody();
 
             // Lấy Map studentGrowth từ response
+            @SuppressWarnings("unchecked")
             Map<String, Object> growthMap = (Map<String, Object>) stats.get("studentGrowth");
 
             String latestYear = "0";

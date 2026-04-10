@@ -1,72 +1,159 @@
 :root {
-    --primary-blue: #1890FF;
-    --secondary-blue: #69C0FF;
-    --primary-light: #E6F7FF;
-    --text-primary: #262626;
-    --text-secondary: #8C8C8C;
-    --bg-body: #F0F2F5;
-    --nav-height: 64px;
-    --card-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02);
+    --primary-blue: #6366f1; /* Indigo from login */
+    --secondary-blue: #3b82f6;
+    --primary-light: #f5f7ff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --bg-body: #f8fafc;
+    --nav-height: 72px;
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --nav-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 body {
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-body);
     color: var(--text-primary);
+    line-height: 1.5;
 }
 
 .navbar-custom {
     background-color: #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    box-shadow: var(--nav-shadow);
     height: var(--nav-height);
     padding: 0;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .navbar-brand {
-    font-weight: 700;
-    color: var(--primary-blue) !important;
-    font-size: 18px;
+    font-weight: 800;
+    font-size: 22px;
+    background: linear-gradient(to right, #6366f1, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
+    letter-spacing: -0.025em;
+}
+
+.brand-icon-box {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: white !important;
+    -webkit-text-fill-color: white !important;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
 }
 
 .navbar-nav .nav-link {
-    color: #595959;
-    font-weight: 500;
-    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 14.5px;
     padding: 8px 16px !important;
-    border-radius: 6px;
-    margin: 0 4px;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    margin: 0 2px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .navbar-nav .nav-link i {
     font-size: 16px;
-    margin-bottom: 2px;
+    opacity: 0.7;
 }
 
 .navbar-nav .nav-link:hover {
     color: var(--primary-blue);
-    background-color: rgba(24, 144, 255, 0.05);
+    background-color: #f1f5f9;
 }
 
 .navbar-nav .nav-link.active {
     color: var(--primary-blue) !important;
     background-color: var(--primary-light);
-    font-weight: 600;
+}
+
+.navbar-nav .nav-link.active i {
+    opacity: 1;
 }
 
 .nav-item.dropdown .nav-link {
     color: var(--text-primary);
 }
 
+.dropdown-menu {
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.dropdown-item {
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8fafc;
+    color: var(--primary-blue);
+}
+
 footer {
     background-color: #fff;
-    border-top: 1px solid #f0f0f0;
-    font-size: 13px;
+    border-top: 1px solid #e2e8f0;
+    padding: 32px 0;
 }
+
 .hover-link:hover {
     color: var(--primary-blue) !important;
+    text-decoration: underline !important;
 }
+
+/* Responsiveness tweaks */
+@media (max-width: 991.98px) {
+    .navbar-custom {
+        height: auto;
+        padding: 12px 0;
+    }
+    .navbar-collapse {
+        background: white;
+        margin-top: 12px;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    .navbar-nav .nav-link {
+        margin: 4px 0;
+    }
+}
+
+/* Utility Classes */
+.bg-indigo-soft { background-color: rgba(99, 102, 241, 0.1) !important; }
+.bg-warning-soft { background-color: rgba(245, 158, 11, 0.1) !important; }
+.bg-success-soft { background-color: rgba(16, 185, 129, 0.1) !important; }
+.bg-danger-soft { background-color: rgba(239, 68, 68, 0.1) !important; }
+
+.text-indigo { color: var(--primary-blue) !important; }
+.rounded-xl { border-radius: 1rem !important; }
+.fw-black { font-weight: 800 !important; }
+.fs-14 { font-size: 14px !important; }
+.fs-15 { font-size: 15px !important; }
+.fs-13 { font-size: 13px !important; }
+.fs-12 { font-size: 12px !important; }
+.fs-10 { font-size: 10px !important; }
+.fs-20 { font-size: 20px !important; }
+
+.shadow-indigo { box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3) !important; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.tracking-tighter { letter-spacing: -0.05em; }

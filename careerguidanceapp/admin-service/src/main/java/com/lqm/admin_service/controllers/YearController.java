@@ -33,29 +33,29 @@ public class YearController {
         model.addAttribute("years", yearDTOPage);
         model.addAttribute("params", params);
 
-        return "year/year-list";
+        return "year/list";
     }
 
     @GetMapping("/years/add")
     public String showAddYearForm(Model model) {
         model.addAttribute("year", YearRequestDTO.builder().build());
 
-        return "year/year-form";
+        return "year/form";
     }
 
     @GetMapping("/years/{id}")
     public String showEditYearForm(@PathVariable UUID id, Model model) {
         model.addAttribute("year", yearClient.getYearRequestById(id));
 
-        return "year/year-form";
+        return "year/form";
     }
 
     @PostMapping("/years")
     public String saveYear(@ModelAttribute("year") @Valid YearRequestDTO yearRequestDTO,
-                           BindingResult bindingResult,
-                           Model model) {
+            BindingResult bindingResult,
+            Model model) {
         if (bindingResult.hasErrors()) {
-            return "year/year-form";
+            return "year/form";
         }
 
         try {
@@ -69,13 +69,13 @@ public class YearController {
                 });
             }
 
-            return "year/year-form";
+            return "year/form";
 
         } catch (Exception e) {
             model.addAttribute("errorMessage",
                     messageSource.getMessage("error", null, Locale.getDefault()));
 
-            return "year/year-form";
+            return "year/form";
         }
     }
 

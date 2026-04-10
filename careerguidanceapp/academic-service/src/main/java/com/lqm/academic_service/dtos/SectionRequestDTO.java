@@ -13,12 +13,9 @@ public record SectionRequestDTO(
 
         UUID teacherId,
 
-        @NotNull
-        UUID classroomId,
+        @NotNull(message = "{classroom.id.notNull}") UUID classroomId,
 
-        @NotNull
-        UUID curriculumId,
+        @NotNull(message = "{curriculum.id.notNull}") UUID curriculumId,
 
-        @EnumValue(enumClass = ScoreStatusType.class, message = "section.scoreStatus.invalid")
-        String scoreStatus
-) {}
+        @EnumValue(enumClass = ScoreStatusType.class, message = "{section.scoreStatus.invalid}") String scoreStatus) {
+}

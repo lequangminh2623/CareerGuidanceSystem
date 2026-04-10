@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <title>Đăng ký vân tay</title>
+    <th:block th:replace="~{base :: bootstrap}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/list-common.css}" />
+    <link rel="stylesheet" th:href="@{/css/attendance/fingerprint-enroll.css}" />
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <p th:replace="~{base :: header}"></p>
+
+    <main class="flex-grow-1 container py-4" style="max-width: 900px;">
+
+        <div class="mb-3">
+            <a th:href="@{/classrooms(gradeId=${params['gradeId']})}" class="text-decoration-none text-muted fw-medium">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách lớp
+            </a>
+        </div>
+
+        <div class="enroll-header shadow-sm mt-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h3 class="fw-bold mb-3">
+                        <i class="fas fa-fingerprint me-2"></i>Đăng ký Vân tay
+                    </h3>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <div class="info-pill"><i class="fas fa-chalkboard me-2"></i> Lớp: <span
+                                th:text="${classroom.name}" class="ms-1 fw-bold">10A1</span></div>
+                        <div class="info-pill"><i class="fas fa-users me-2"></i> Học sinh: <span
+                                th:text="${#lists.size(students)}" class="ms-1 fw-bold">0</span></div>
+                    </div>
+                </div>
+                <div th:if="${hasActiveDevice}" class="bg-white bg-opacity-25 rounded px-3 py-2 text-white small"
+                    style="max-width: 250px;">
+                    <i class="fas fa-info-circle me-1"></i> Bấm "Bắt đầu đăng ký", sau đó yêu cầu học sinh đặt tay lên
+                    cảm biến.
+                </div>
+            </div>
+        </div>
+
+        <!-- Cảnh báo nếu lớp chưa có thiết bị -->
+        <div id="enrollMessage"
+            class="alert alert-warning alert-dismissible fade show shadow-sm border-0 d-flex align-items-center mt-3 mb-0"
+            style="display: none !important;">
+            <i class="fas fa-info-circle me-2"></i>
+            <span class="fw-bold message-text">Đang chuẩn bị...</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${!hasActiveDevice}"
+            class="alert alert-warning shadow-sm border-0 d-flex align-items-center mt-3 mb-0">
+            <i class="fas fa-exclamation-triangle fs-4 me-3 text-warning"></i>
+            <div>
+                <strong>Không khả dụng:</strong> Lớp học này chưa được gán thiết bị hoặc thiết bị đang tắt.
+                Vui lòng kiểm tra lại cấu hình thiết bị trước khi đăng ký vân tay.
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Thông tin Học sinh</th>
+                            <th>Mã số định danh</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr th:each="s : ${students}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary me-3"
+                                        style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark" th:text="${s.lastName + ' ' + s.firstName}">Nguyễn
+                                        Văn A</div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-muted border px-2 py-1 font-monospace"
+                                    th:text="${s.code}">HS12345</span>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm enroll-btn px-3 shadow-sm"
+                                    th:classappend="${!hasActiveDevice ? 'disabled' : ''}"
+                                    th:data-classroom-id="${classroom.id}" th:data-student-id="${s.id}"
+                                    th:data-student-name="${s.lastName + ' ' + s.firstName}"
+                                    onclick="if(!this.classList.contains('disabled')) handleEnroll(this)">
+                                    <i class="fas fa-fingerprint me-2"></i>Bắt đầu đăng ký
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(students)}">
+                            <td colspan="3" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-users-slash mb-3" style="font-size: 32px; opacity: 0.5;"></i>
+                                    <p class="mb-0">Lớp học này chưa có học sinh nào được phân công.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <p th:replace="~{base :: footer}"></p>
+
+    <div class="modal fade" id="enrollModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+                <div class="modal-body text-center p-5" id="enrollModalBody">
+
+                    <div class="mb-4">
+                        <i class="fas fa-fingerprint icon-scanning"></i>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-3">Đang chờ thiết bị...</h4>
+
+                    <p class="text-muted mb-0" style="font-size: 15px;">
+                        Vui lòng yêu cầu học sinh <strong id="studentNameDisplay"
+                            class="text-primary fs-5 d-block my-2"></strong>
+                        đặt tay lên cảm biến ESP32 và làm theo hướng dẫn trên màn hình thiết bị.
+                    </p>
+
+                    <div class="mt-4">
+                        <div class="spinner-border spinner-border-sm text-muted opacity-50 me-2" role="status"></div>
+                        <span class="text-muted small">Hệ thống đang lắng nghe tín hiệu MQTT...</span>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-light"
+                    style="border-radius: 0 0 12px 12px;">
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-medium" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy đăng ký
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/attendance/fingerprint-enroll.js}"></script>
+</body>
+
+</html>

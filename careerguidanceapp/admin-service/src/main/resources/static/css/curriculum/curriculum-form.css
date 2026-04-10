@@ -1,14 +1,78 @@
+/* Form Card Styling */
+.form-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
 .form-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 24px 32px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .form-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #262626;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e293b;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: -0.025em;
+}
+
+.form-title i {
+    color: var(--primary-blue);
+    font-size: 1.1rem;
+}
+
+/* Form Controls */
+.form-label {
+    font-weight: 700;
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-group-text {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+    color: #64748b;
+    padding-left: 16px;
+    padding-right: 12px;
+    font-size: 0.9rem;
+}
+
+.form-select, .form-control {
+    border-color: #e2e8f0;
+    padding: 10px 16px;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    background-color: #fff;
+}
+
+.required-star {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
 }

@@ -3,6 +3,7 @@ package com.lqm.user_service.configs;
 import com.lqm.user_service.filters.AuthFilter;
 import com.lqm.user_service.models.Role;
 import com.lqm.user_service.validators.UserLoginDTOValidator;
+import com.lqm.user_service.validators.UserRequestDTOValidator;
 import com.lqm.user_service.validators.AdminUserRequestDTOValidator;
 import com.lqm.user_service.validators.WebAppValidator;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .addFilterBefore(headerFilter, UsernamePasswordAuthenticationFilter.class)
 
@@ -65,16 +66,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/internal/auth/**").permitAll()
                         .requestMatchers("/api/internal/secure/**").authenticated()
                         .requestMatchers("/api/internal/admin/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
-                        .anyRequest().authenticated()
-                );
+                        .anyRequest().authenticated());
 
         http.exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"Unauthorized\", \"message\":\"Token validation required\"}");
-                })
-        );
+                }));
 
         return http.build();
     }
@@ -91,8 +90,7 @@ public class SecurityConfig {
 
     @Bean
     public MessageSource messageSource() {
-        ResourceBundleMessageSource resource
-                = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource resource = new ResourceBundleMessageSource();
         resource.setBasename("messages");
         resource.setDefaultEncoding("UTF-8");
         return resource;
@@ -100,8 +98,7 @@ public class SecurityConfig {
 
     @Bean
     public jakarta.validation.Validator validator() {
-        LocalValidatorFactoryBean bean
-                = new LocalValidatorFactoryBean();
+        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSource());
         return bean;
     }
@@ -110,10 +107,12 @@ public class SecurityConfig {
     public WebAppValidator webAppValidator(
             jakarta.validation.Validator beanValidator,
             UserLoginDTOValidator userLoginDTOValidator,
+            UserRequestDTOValidator userRequestDTOValidator,
             AdminUserRequestDTOValidator adminUserRequestDTOValidator) {
         Set<Validator> springValidators = new HashSet<>();
         springValidators.add(adminUserRequestDTOValidator);
         springValidators.add(userLoginDTOValidator);
+        springValidators.add(userRequestDTOValidator);
 
         return new WebAppValidator(beanValidator, springValidators);
     }
@@ -123,9 +122,9 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:3000/"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+        config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 

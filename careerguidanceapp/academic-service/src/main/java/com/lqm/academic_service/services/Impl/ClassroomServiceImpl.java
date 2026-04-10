@@ -1,6 +1,7 @@
 package com.lqm.academic_service.services.Impl;
 
-import com.lqm.academic_service.clients.ScoreClient;
+import com.lqm.academic_service.clients.AttendanceClient;
+import com.lqm.academic_service.clients.ScoreAdminClient;
 import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
 import com.lqm.academic_service.exceptions.BadRequestException;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
@@ -33,24 +34,27 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final GradeService gradeService;
     private final SectionRepository sectionRepo;
     private final CurriculumService curriculumService;
-    private final ScoreClient scoreClient;
+    private final ScoreAdminClient scoreAdminClient;
+    private final AttendanceClient attendanceClient;
 
     @Override
-    public Page<Classroom> getClassrooms(Map<String, String> params, Pageable pageable) {
-        Specification<Classroom> spec = ClassroomSpecification.filterByParams(params);
+    public Page<Classroom> getClassrooms(List<UUID> ids, Map<String, String> params, Pageable pageable) {
+        Specification<Classroom> spec = ClassroomSpecification.filterByParams(params)
+                .and(ClassroomSpecification.hasIdIn(ids));
         return classroomRepo.findAll(spec, pageable);
     }
 
     @Override
     public Classroom saveClassroom(Classroom classroom, UUID gradeId, List<UUID> studentIds) {
         boolean isNew = (classroom.getId() == null);
-        if (studentIds == null) studentIds = new ArrayList<>();
+        if (studentIds == null)
+            studentIds = new ArrayList<>();
 
         Set<UUID> oldStudentIds = isNew || classroom.getStudentClassroomSet() == null
                 ? Collections.emptySet()
                 : classroom.getStudentClassroomSet().stream()
-                .map(StudentClassroom::getStudentId)
-                .collect(Collectors.toSet());
+                        .map(StudentClassroom::getStudentId)
+                        .collect(Collectors.toSet());
 
         List<UUID> newStudentIds = studentIds.stream()
                 .filter(id -> !oldStudentIds.contains(id)).toList();
@@ -67,7 +71,8 @@ public class ClassroomServiceImpl implements ClassroomService {
         if (isNew && savedClassroom.getId() != null) {
             sections = this.initSectionForClassroom(savedClassroom, gradeId);
         } else {
-            sections = classroom.getSectionSet() != null ? classroom.getSectionSet().stream().toList() : new ArrayList<>();
+            sections = classroom.getSectionSet() != null ? classroom.getSectionSet().stream().toList()
+                    : new ArrayList<>();
         }
 
         // GỌI ĐỒNG BỘ ĐIỂM 1 LẦN DUY NHẤT NẾU CÓ SỰ THAY ĐỔI
@@ -77,24 +82,24 @@ public class ClassroomServiceImpl implements ClassroomService {
             SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
                     sectionIds,
                     newStudentIds,
-                    removedStudentIds
-            );
+                    removedStudentIds);
 
-            scoreClient.syncScoresForClassroom(syncRequest); // Gọi sang ScoreService
+            scoreAdminClient.syncScoresForClassroom(syncRequest);
+            attendanceClient.deleteAttendancesForClassroom(savedClassroom.getId(), removedStudentIds);
         }
 
         return savedClassroom;
     }
+
     private List<Section> initSectionForClassroom(Classroom classroom, UUID gradeId) {
         List<Curriculum> curriculums = curriculumService.getCurriculums(
                 List.of(),
                 Map.of("gradeId", gradeId.toString()),
-                Pageable.unpaged()
-        ).toList();
+                Pageable.unpaged()).toList();
 
         List<Section> sections = curriculums.stream().map(
-                c -> Section.builder().classroom(classroom).curriculum(c).scoreStatus(ScoreStatusType.DRAFT).build()
-        ).toList();
+                c -> Section.builder().classroom(classroom).curriculum(c).scoreStatus(ScoreStatusType.DRAFT).build())
+                .toList();
 
         return sectionRepo.saveAll(sections);
     }
@@ -103,8 +108,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     public void deleteClassroom(UUID id) {
         if (studentClassroomRepo.existsByClassroomId(id)) {
             throw new BadRequestException(
-                    messageSource.getMessage("classroom.delete.error.hasStudents", null, Locale.getDefault())
-            );
+                    messageSource.getMessage("classroom.delete.error.hasStudents", null, Locale.getDefault()));
         }
         classroomRepo.deleteById(id);
     }
@@ -112,33 +116,18 @@ public class ClassroomServiceImpl implements ClassroomService {
     @Override
     public Classroom getClassroomWithStudents(UUID classroomId) {
         return classroomRepo.findWithStudentsById(classroomId).orElseThrow(
-                () -> new ResourceNotFoundException("classroom.notFound")
-        );
+                () -> new ResourceNotFoundException("classroom.notFound"));
     }
 
     @Override
     public Classroom getClassroomById(UUID id) {
         return classroomRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
-                messageSource.getMessage("classroom.notFound", null, Locale.getDefault()))
-        );
+                messageSource.getMessage("classroom.notFound", null, Locale.getDefault())));
     }
 
     @Override
     public boolean existDuplicateClassroom(String name, UUID gradeId, UUID excludeId) {
         return classroomRepo.existsByNameAndGradeIdAndIdNot(name, gradeId, excludeId);
-    }
-
-    @Override
-    public boolean existClassroomById(UUID id) {
-        return classroomRepo.existsById(id);
-    }
-
-    @Override
-    public void removeStudentFromClassroom(UUID classroomId, UUID studentId) {
-        Classroom classroom = this.getClassroomById(classroomId);
-        List<UUID> sectionIds = classroom.getSectionSet().stream().map(Section::getId).toList();
-        scoreClient.deleteScoreDetail(studentId, sectionIds);
-        studentClassroomRepo.deleteByClassroomIdAndStudentId(classroomId, studentId);
     }
 
     @Override
@@ -149,8 +138,7 @@ public class ClassroomServiceImpl implements ClassroomService {
         return studentClassroomRepo.findStudentIdsInOtherClassrooms(
                 studentIds,
                 yearId,
-                excludeClassroomId
-        );
+                excludeClassroomId);
     }
 
     @Override

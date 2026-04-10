@@ -1,7 +1,5 @@
 package com.lqm.academic_service.services;
 
-import com.lqm.academic_service.dtos.SectionRequestDTO;
-import com.lqm.academic_service.models.Classroom;
 import com.lqm.academic_service.models.ScoreStatusType;
 import com.lqm.academic_service.models.Section;
 import org.springframework.data.domain.Page;
@@ -22,6 +20,8 @@ public interface SectionService {
     void saveSections(Map<UUID, Section> curriculumSectionMap, UUID classroomId);
 
     void  changeScoreStatus(UUID id, ScoreStatusType scoreStatusType);
+
+    void lockSection(UUID sectionId);
 
     void deleteSection(UUID id);
 

@@ -1,0 +1,70 @@
+/* Header Gradient chuyên nghiệp */
+.attendance-header {
+    background: linear-gradient(135deg, #1890FF 0%, #0050b3 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+    padding: 24px;
+}
+.info-pill {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.table-card { border-radius: 0 0 8px 8px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.table thead th {
+    background-color: #FAFAFA;
+    color: #595959;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    vertical-align: middle;
+    border-bottom: 2px solid #f0f0f0;
+}
+.table tbody td { vertical-align: middle; padding: 12px; border-bottom: 1px solid #f0f0f0; }
+
+/* TÙY CHỈNH RADIO BUTTONS THÀNH CHECKBOX TRÒN */
+.custom-radio { margin: 0; display: flex; justify-content: center; }
+.custom-radio input[type="radio"] { display: none; }
+.custom-radio .radio-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #d9d9d9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: white;
+}
+
+/* CÓ MẶT (Xanh dương) */
+.custom-radio.present:hover .radio-mark { border-color: #1890FF; }
+.custom-radio.present input[type="radio"]:checked + .radio-mark {
+    border-color: #07bd32; background-color: #28a745; color: white;
+}
+
+/* TRỄ GIỜ (Vàng cam) */
+.custom-radio.late:hover .radio-mark { border-color: #FAAD14; }
+.custom-radio.late input[type="radio"]:checked + .radio-mark {
+    border-color: #FAAD14; background-color: #FAAD14; color: white;
+}
+
+/* NGHỈ HỌC (Đỏ) */
+.custom-radio.absent:hover .radio-mark { border-color: #FF4D4F; }
+.custom-radio.absent input[type="radio"]:checked + .radio-mark {
+    border-color: #FF4D4F; background-color: #FF4D4F; color: white;
+}
+
+/* Icon tick */
+.radio-mark i { display: none; font-size: 12px; }
+.custom-radio input[type="radio"]:checked + .radio-mark i { display: block; }
+
+/* Row Hover Highlight */
+.table-hover tbody tr:hover { background-color: #F0F5FF; }
+

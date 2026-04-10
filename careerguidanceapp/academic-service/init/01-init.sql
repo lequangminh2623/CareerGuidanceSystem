@@ -9,22 +9,22 @@ CREATE TABLE years (
 -- Bảng Semester với ENUM SemesterType
 CREATE TABLE semesters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name CHAR(10) NOT NULL CHECK (name IN ('SEMESTER_1', 'SEMESTER_2')),
+    name VARCHAR(20) NOT NULL CHECK (name IN ('SEMESTER_1', 'SEMESTER_2')),
     year_id UUID NOT NULL,
 
     CONSTRAINT fk_years FOREIGN KEY (year_id) REFERENCES years(id) ON DELETE CASCADE,
-    CONSTRAINT uq_year_id_name UNIQUE(year_id, name)
+    CONSTRAINT uq_year_id_semester_name UNIQUE(year_id, name)
 );
 CREATE INDEX idx_semesters_year_id ON semesters(year_id);
 
 -- Bảng Grade với Enum GradeType
 CREATE TABLE grades (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name CHAR(8) NOT NULL CHECK (name IN ('GRADE_10', 'GRADE_11', 'GRADE_12')),
+    name VARCHAR(20) NOT NULL CHECK (name IN ('GRADE_10', 'GRADE_11', 'GRADE_12')),
     year_id UUID NOT NULL,
 
     CONSTRAINT fk_years FOREIGN KEY (year_id) REFERENCES years(id) ON DELETE CASCADE,
-    CONSTRAINT uq_year_id_name UNIQUE(year_id, name)
+    CONSTRAINT uq_year_id_grade_name UNIQUE(year_id, name)
 );
 CREATE INDEX idx_grades_year_id ON grades(year_id);
 
@@ -88,3 +88,14 @@ CREATE TABLE sections (
 CREATE INDEX idx_sections_classroom_id ON sections(classroom_id);
 CREATE INDEX idx_sections_curriculum_id ON sections(curriculum_id);
 CREATE INDEX idx_sections_teacher_id ON sections(teacher_id);
+
+INSERT INTO subjects (name)
+VALUES
+    ('Math'),
+    ('Physics'),
+    ('Chemistry'),
+    ('Biology'),
+    ('English'),
+    ('Geography'),
+    ('History')
+    ON CONFLICT (name) DO NOTHING;

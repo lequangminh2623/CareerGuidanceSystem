@@ -19,13 +19,13 @@ public interface ScoreService {
 
     void deleteScoreDetails(UUID studentId, List<UUID> transcriptIds);
 
-    boolean isTranscriptFullyGraded(UUID sectionId);
+    boolean isTranscriptFullyScored(UUID sectionId);
 
     void syncScoresForClassroom(SyncScoreRequestDTO request);
 
     List<ScoreDetail> saveScores(List<ScoreDetail> scoreRequests);
 
-    void importGradesFromCsv(UUID transcriptId, MultipartFile file) throws IOException;
+    void importScoresFromCsv(UUID transcriptId, MultipartFile file) throws IOException;
 
     byte[] generateScoreCsv(UUID sectionId);
 
