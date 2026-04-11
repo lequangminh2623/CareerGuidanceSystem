@@ -4,9 +4,9 @@ services:
     build: ./discovery-service
     container_name: discovery-service
     environment:
-      - TZ=Asia/Ho_Chi_Minh
+      - TZ=${TIMEZONE}
     ports:
-      - "8761:8761"
+      - "${DISCOVERY_SERVICE_PORT}:8761"
     healthcheck:
       test: [ "CMD", "wget", "-qO-", "http://localhost:8761/actuator/health" ]
       interval: 10s
@@ -18,14 +18,14 @@ services:
 
   # ===== PgAdmin =====
   pgadmin:
-    image: dpage/pgadmin4
+    image: ${PGADMIN_IMAGE}
     container_name: pgadmin-container
     environment:
       PGADMIN_DEFAULT_EMAIL: ${POSTGRES_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:
@@ -44,77 +44,77 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     depends_on:
       discovery-service:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT}:8080"
     networks:
       - micro-net
 
   # ===== PostgreSQL Databases =====
   postgres-user:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE}
     container_name: postgres-user
     environment:
       POSTGRES_DB: ${USER_DB_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     volumes:
       - ./user-service/init:/docker-entrypoint-initdb.d
       - postgres_user_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${USER_DB_PORT}:5432"
     networks:
       - micro-net
 
   postgres-academic:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE}
     container_name: postgres-academic
     environment:
       POSTGRES_DB: ${ACADEMIC_DB_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     volumes:
       - ./academic-service/init:/docker-entrypoint-initdb.d
       - postgres_academic_data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"
+      - "${ACADEMIC_DB_PORT}:5432"
     networks:
       - micro-net
 
   postgres-score:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE}
     container_name: postgres-score
     environment:
       POSTGRES_DB: ${SCORE_DB_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     volumes:
       - ./score-service/init:/docker-entrypoint-initdb.d
       - postgres_score_data:/var/lib/postgresql/data
     ports:
-      - "5434:5432"
+      - "${SCORE_DB_PORT}:5432"
     networks:
       - micro-net
 
   postgres-attendance:
-    image: postgres:15
+    image: ${POSTGRES_IMAGE}
     container_name: postgres-attendance
     environment:
       POSTGRES_DB: ${ATTENDANCE_DB_NAME}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
     volumes:
       - ./attendance-service/init:/docker-entrypoint-initdb.d
       - postgres_attendance_data:/var/lib/postgresql/data
     ports:
-      - "5435:5432"
+      - "${ATTENDANCE_DB_PORT}:5432"
     networks:
       - micro-net
 
@@ -124,7 +124,7 @@ services:
     container_name: user-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       DB_URL: ${USER_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
@@ -140,7 +140,7 @@ services:
       discovery-service: { condition: service_healthy }
       postgres-user: { condition: service_started }
     ports:
-      - "8081:8080"
+      - "${USER_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
@@ -148,23 +148,23 @@ services:
     build: ./academic-service
     container_name: academic-service
     environment:
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       DB_URL: ${ACADEMIC_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASS: ${POSTGRES_PASSWORD}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASS: ${MAIL_PASSWORD}
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: 587
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-academic: { condition: service_started }
       redis: { condition: service_healthy }
     ports:
-      - "8082:8080"
+      - "${ACADEMIC_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
@@ -173,16 +173,20 @@ services:
     container_name: score-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       DB_URL: ${SCORE_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASS: ${POSTGRES_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASS: ${MAIL_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-score: { condition: service_started }
     ports:
-      - "8083:8080"
+      - "${SCORE_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
@@ -191,7 +195,7 @@ services:
     container_name: attendance-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       DB_URL: ${ATTENDANCE_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
@@ -201,15 +205,16 @@ services:
       ADMIN_SERVICE_URL: ${ADMIN_SERVICE_URL}
       # MQTT mTLS Configuration
       MQTT_BROKER_URL: ${MQTT_BROKER_URL}
-      MQTT_TLS_ENABLED: "true"
+      MQTT_TLS_ENABLED: ${MQTT_TLS_ENABLED}
       MQTT_TRUSTSTORE_PATH: ${MQTT_TRUSTSTORE_PATH}
       MQTT_TRUSTSTORE_PASSWORD: ${MQTT_TRUSTSTORE_PASSWORD}
       MQTT_KEYSTORE_PATH: ${MQTT_KEYSTORE_PATH}
       MQTT_KEYSTORE_PASSWORD: ${MQTT_KEYSTORE_PASSWORD}
       MQTT_KEYSTORE_TYPE: ${MQTT_KEYSTORE_TYPE}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     volumes:
       # Mount folder client certs cho Backend đọc file .p12 và .jks
       - ./mosquitto/certs/client:/app/certs:ro
@@ -218,19 +223,19 @@ services:
       postgres-attendance: { condition: service_started }
       mosquitto: { condition: service_started }
     ports:
-      - "8084:8080"
+      - "${ATTENDANCE_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
   mosquitto:
-    image: eclipse-mosquitto:2.0
+    image: ${MOSQUITTO_IMAGE}
     container_name: mosquitto
     restart: unless-stopped
     user: "1883:1883"
     ports:
-      - "1883:1883"
-      - "8883:8883"
-      - "9001:9001"
+      - "${MQTT_PORT}:1883"
+      - "${MQTT_TLS_PORT}:8883"
+      - "${MQTT_WS_PORT}:9001"
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./mosquitto/config/password.txt:/mosquitto/config/password.txt:ro
@@ -240,7 +245,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     environment:
-      - TZ=Asia/Ho_Chi_Minh
+      - TZ=${TIMEZONE}
     networks:
       - micro-net
     healthcheck:
@@ -251,12 +256,12 @@ services:
       retries: 3
     
   redis:
-    image: redis:7-alpine
+    image: ${REDIS_IMAGE}
     container_name: redis-container
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT_EXTERNAL}:6379"
     environment:
-      - TZ=Asia/Ho_Chi_Minh
+      - TZ=${TIMEZONE}
     networks:
       - micro-net
     healthcheck:
@@ -270,13 +275,13 @@ services:
     container_name: chat-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       FIREBASE_SERVICE_ACCOUNT_BASE64: ${FIREBASE_SERVICE_ACCOUNT_BASE64}
     depends_on:
       discovery-service: { condition: service_healthy }
     ports:
-      - "8086:8080"
+      - "${CHAT_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
@@ -284,14 +289,14 @@ services:
     build: ./admin-service
     container_name: admin-service
     environment:
-      TZ: Asia/Ho_Chi_Minh
+      TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
       discovery-service: { condition: service_healthy }
     ports:
-      - "8085:8080"
+      - "${ADMIN_SERVICE_PORT}:8080"
     networks:
       - micro-net
 
