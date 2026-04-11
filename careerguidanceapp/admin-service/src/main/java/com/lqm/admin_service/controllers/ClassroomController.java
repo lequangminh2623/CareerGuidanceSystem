@@ -59,7 +59,7 @@ public class ClassroomController {
             ClassroomRequestDTO classroom = classroomClient.getClassroomRequestById(id);
             if (classroom.studentIds() != null && !classroom.studentIds().isEmpty()) {
                 // Gọi API lấy danh sách User theo danh sách ID
-                return userClient.getUsers(classroom.studentIds(), Map.of("role", "Student")).getContent();
+                return userClient.getUsersByIds(classroom.studentIds(), Map.of("role", "Student")).getContent();
             }
         } catch (Exception e) {
             // Handle exception if needed
@@ -145,7 +145,7 @@ public class ClassroomController {
             searchParams.put("kw", term);
         }
 
-        Page<UserResponseDTO> userPage = userClient.getUsers(List.of(), searchParams);
+        Page<UserResponseDTO> userPage = userClient.getUsers(searchParams);
 
         List<Map<String, Object>> results = userPage.getContent().stream().map(u -> {
             Map<String, Object> item = new HashMap<>();

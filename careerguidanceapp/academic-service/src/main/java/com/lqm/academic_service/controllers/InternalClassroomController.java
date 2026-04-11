@@ -44,7 +44,7 @@ public class InternalClassroomController {
                 params.getOrDefault("page", "1"),
                 PageSize.CLASSROOM_PAGE_SIZE,
                 List.of());
-        List<Classroom> classrooms = classroomService.getClassrooms(classroomIds, Map.of(), pageable).getContent();
+        List<Classroom> classrooms = classroomService.getClassroomsByIds(classroomIds, Map.of(), pageable).getContent();
         return classrooms.stream().map(classroomMapper::toClassroomDetailNameDTO).toList();
     }
 

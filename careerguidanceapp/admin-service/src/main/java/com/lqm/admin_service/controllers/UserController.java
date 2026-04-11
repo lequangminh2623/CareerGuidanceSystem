@@ -24,13 +24,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserClient userClient;
-//    private final WebAppValidator webAppValidator;
     private final MessageSource messageSource;
-
-//    @InitBinder
-//    public void initBinder(WebDataBinder binder) {
-//        binder.setValidator(webAppValidator);
-//    }
 
     @GetMapping("/login")
     public String loginView() {

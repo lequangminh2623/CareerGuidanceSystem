@@ -14,7 +14,9 @@ public interface UserService extends UserDetailsService {
 
     User getUserById(UUID id);
 
-    Page<User> getUsers(List<UUID> ids, Map<String, String> params, Pageable pageable);
+    Page<User> getUsersByIds(List<UUID> ids, Map<String, String> params, Pageable pageable);
+
+    Page<User> getUsers(Map<String, String> params, Pageable pageable);
 
     User saveUser(User user, MultipartFile file, String code);
 

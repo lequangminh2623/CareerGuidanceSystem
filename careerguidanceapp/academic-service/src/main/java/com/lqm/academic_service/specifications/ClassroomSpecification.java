@@ -43,7 +43,7 @@ public class ClassroomSpecification {
     public static Specification<Classroom> hasIdIn(List<UUID> classroomIds) {
         return (Root<Classroom> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             if (classroomIds == null || classroomIds.isEmpty()) {
-                return cb.isTrue(cb.literal(true));
+                return cb.disjunction();
             }
             return root.get("id").in(classroomIds);
         };

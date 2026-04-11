@@ -57,7 +57,7 @@ public class SectionSpecification {
     public static Specification<Section> hasIdIn(List<UUID> sectionIds) {
         return (Root<Section> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             if (sectionIds == null || sectionIds.isEmpty()) {
-                return cb.isTrue(cb.literal(true));
+                return cb.disjunction();
             }
             return root.get("id").in(sectionIds);
         };

@@ -46,7 +46,7 @@ public class AdminSectionController {
                 List.of()
         );
 
-        return sectionService.getSections(List.of(), params, pageable).map(sectionMapper::toSectionRequestDTO);
+        return sectionService.getSections(params, pageable).map(sectionMapper::toSectionRequestDTO);
     }
 
     @PostMapping("/response")
@@ -56,7 +56,7 @@ public class AdminSectionController {
                 PageSize.SECTION_PAGE_SIZE,
                 List.of()
         );
-        Page<Section> sectionPage = sectionService.getSections(ids, params, pageable);
+        Page<Section> sectionPage = sectionService.getSectionsByIds(ids, params, pageable);
         Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sectionPage.getContent());
 
         return sectionPage.map(s -> sectionMapper.toSectionResponseDTO(s, teacherMap));

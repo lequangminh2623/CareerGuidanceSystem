@@ -53,7 +53,7 @@ public class CurriculumSpecification {
     public static Specification<Curriculum> hasIdIn(List<UUID> curriculumIds) {
         return (Root<Curriculum> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             if (curriculumIds == null || curriculumIds.isEmpty()) {
-                return cb.isTrue(cb.literal(true));
+                return cb.disjunction();
             }
             return root.get("id").in(curriculumIds);
         };

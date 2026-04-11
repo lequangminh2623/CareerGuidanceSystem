@@ -10,7 +10,9 @@ import java.util.UUID;
 
 public interface ClassroomService {
 
-    Page<Classroom> getClassrooms(List<UUID> ids, Map<String, String> params, Pageable pageable);
+    Page<Classroom> getClassroomsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable);
+
+    Page<Classroom> getClassrooms(Map<String, String> params, Pageable pageable);
 
     Classroom saveClassroom(Classroom classroom, UUID gradeId, List<UUID> studentIds);
 

@@ -38,7 +38,7 @@ public class ClassroomFingerprintController {
 
         // Lấy danh sách học sinh của lớp
         if (classroom.studentIds() != null && !classroom.studentIds().isEmpty()) {
-            List<UserResponseDTO> students = userClient.getUsers(classroom.studentIds(), Map.of("role", "Student"))
+            List<UserResponseDTO> students = userClient.getUsersByIds(classroom.studentIds(), Map.of("role", "Student"))
                     .getContent();
             model.addAttribute("students", students);
         } else {

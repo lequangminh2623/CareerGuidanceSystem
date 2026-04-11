@@ -40,13 +40,25 @@ public class AdminUserController {
     }
 
     @PostMapping
-    Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
+    Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
                 List.of("lastName:acs")
         );
-        Page<User> users = userService.getUsers(ids, params, pageable);
+        Page<User> users = userService.getUsersByIds(ids, params, pageable);
+
+        return users.map(userMapper::toUserResponseDTO);
+    }
+
+    @GetMapping
+    Page<UserResponseDTO> getUsers(@RequestParam Map<String, String> params) {
+        Pageable pageable = pageableUtil.getPageable(
+                params.getOrDefault("page", "1"),
+                PageSize.USER_PAGE_SIZE,
+                List.of("lastName:acs")
+        );
+        Page<User> users = userService.getUsers(params, pageable);
 
         return users.map(userMapper::toUserResponseDTO);
     }
@@ -58,7 +70,7 @@ public class AdminUserController {
                 PageSize.USER_PAGE_SIZE,
                 List.of("lastName:acs")
         );
-        Page<User> users = userService.getUsers(List.of(), params, pageable);
+        Page<User> users = userService.getUsers(params, pageable);
 
         return users.map(userMapper::toUserDetailsResponseDTO);
     }

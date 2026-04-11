@@ -12,7 +12,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface CurriculumService {
-    Page<Curriculum> getCurriculums(List<UUID> ids, Map<String, String> params, Pageable pageable);
+    Page<Curriculum> getCurriculumsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable);
+
+    Page<Curriculum> getCurriculums(Map<String, String> params, Pageable pageable);
 
     Curriculum getCurriculumById(UUID id);
 

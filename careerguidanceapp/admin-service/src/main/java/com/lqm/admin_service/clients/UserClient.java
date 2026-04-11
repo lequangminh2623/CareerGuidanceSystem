@@ -18,7 +18,10 @@ import java.util.UUID;
 public interface UserClient {
 
     @PostMapping
-    Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
+    Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
+
+    @GetMapping
+    Page<UserResponseDTO> getUsers(@RequestParam Map<String, String> params);
 
     @GetMapping("/details")
     Page<UserDetailsResponseDTO> getUsersDetails(@RequestParam Map<String, String> params);

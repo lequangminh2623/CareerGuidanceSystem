@@ -13,7 +13,9 @@ import java.util.UUID;
 
 public interface SectionService {
 
-    Page<Section> getSections(List<UUID> ids, Map<String, String> params, Pageable pageable);
+    Page<Section> getSectionsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable);
+
+    Page<Section> getSections(Map<String, String> params, Pageable pageable);
 
     Section getSectionById(UUID id);
 

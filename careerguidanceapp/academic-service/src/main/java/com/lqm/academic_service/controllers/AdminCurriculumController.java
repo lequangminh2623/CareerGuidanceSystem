@@ -53,7 +53,7 @@ public class AdminCurriculumController {
                 List.of()
         );
 
-        return curriculumService.getCurriculums(List.of(), params, pageable).map(curriculumMapper::toCurriculumResponseDTO);
+        return curriculumService.getCurriculums(params, pageable).map(curriculumMapper::toCurriculumResponseDTO);
     }
 
     @GetMapping("/{id}")

@@ -49,7 +49,7 @@ public class ApiSectionController {
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
                 List.of());
-        Page<Section> sectionPage = sectionService.getSections(List.of(), params, pageable);
+        Page<Section> sectionPage = sectionService.getSections(params, pageable);
         Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sectionPage.getContent());
 
         Page<SectionResponseDTO> sectionDTOPage = sectionPage

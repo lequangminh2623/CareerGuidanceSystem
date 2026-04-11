@@ -37,7 +37,7 @@ public class InternalSectionController {
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
                 List.of());
-        Page<Section> sectionPage = sectionService.getSections(ids, params, pageable);
+        Page<Section> sectionPage = sectionService.getSectionsByIds(ids, params, pageable);
         Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sectionPage.getContent());
 
         return sectionPage.map(s -> sectionMapper.toSectionResponseDTO(s, teacherMap));

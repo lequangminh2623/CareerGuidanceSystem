@@ -35,7 +35,7 @@ public class InternalUserController {
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
                 List.of());
-        Page<User> userPage = userService.getUsers(ids, params, pageable);
+        Page<User> userPage = userService.getUsersByIds(ids, params, pageable);
 
         return userPage.map(userMapper::toUserResponseDTO);
     }
@@ -49,7 +49,7 @@ public class InternalUserController {
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
                 List.of());
-        Page<User> users = userService.getUsers(ids, params, pageable);
+        Page<User> users = userService.getUsersByIds(ids, params, pageable);
 
         return users.map(userMapper::toUserMessageResponseDTO);
     }

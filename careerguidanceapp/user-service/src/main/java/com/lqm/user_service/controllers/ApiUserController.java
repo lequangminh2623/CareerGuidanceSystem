@@ -49,7 +49,7 @@ public class ApiUserController {
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
                 List.of("lastName:asc", "firstName:asc"));
-        Page<User> userPage = userService.getUsers(List.of(), params, pageable);
+        Page<User> userPage = userService.getUsers(params, pageable);
         Page<UserMessageResponseDTO> userDTOPage = userPage.map(userMapper::toUserMessageResponseDTO);
 
         return ResponseEntity.ok(userDTOPage);

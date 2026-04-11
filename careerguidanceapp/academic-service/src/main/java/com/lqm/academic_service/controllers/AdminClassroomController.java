@@ -50,7 +50,7 @@ public class AdminClassroomController {
                 List.of()
         );
 
-        return classroomService.getClassrooms(List.of(), params, pageable).map(classroomMapper::toClassroomResponseDTO);
+        return classroomService.getClassrooms(params, pageable).map(classroomMapper::toClassroomResponseDTO);
     }
 
     @GetMapping("/{id}/request")

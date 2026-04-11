@@ -62,8 +62,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<User> getUsers(List<UUID> ids, Map<String, String> params, Pageable pageable) {
+    public Page<User> getUsersByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
         Specification<User> spec = UserSpecification.filterByParams(params).and(UserSpecification.hasIdIn(ids));
+        return userRepo.findAll(spec, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<User> getUsers(Map<String, String> params, Pageable pageable) {
+        Specification<User> spec = UserSpecification.filterByParams(params);
         return userRepo.findAll(spec, pageable);
     }
 

@@ -26,8 +26,14 @@ public class CurriculumServiceImpl implements CurriculumService {
     private final MessageSource messageSource;
 
     @Override
-    public Page<Curriculum> getCurriculums(List<UUID> ids, Map<String, String> params, Pageable pageable) {
+    public Page<Curriculum> getCurriculumsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
         Specification<Curriculum> spec = CurriculumSpecification.filterByParams(params).and(CurriculumSpecification.hasIdIn(ids));
+        return curriculumRepo.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<Curriculum> getCurriculums(Map<String, String> params, Pageable pageable) {
+        Specification<Curriculum> spec = CurriculumSpecification.filterByParams(params);
         return curriculumRepo.findAll(spec, pageable);
     }
 

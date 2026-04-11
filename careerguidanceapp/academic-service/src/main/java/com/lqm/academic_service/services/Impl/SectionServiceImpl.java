@@ -40,9 +40,15 @@ public class SectionServiceImpl implements SectionService {
     private final EmailRedisPublisher emailRedisPublisher;
 
     @Override
-    public Page<Section> getSections(List<UUID> ids, Map<String, String> params, Pageable pageable) {
+    public Page<Section> getSectionsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
         Specification<Section> spec = SectionSpecification.filterByParams(params)
                 .and(SectionSpecification.hasIdIn(ids));
+        return sectionRepo.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<Section> getSections(Map<String, String> params, Pageable pageable) {
+        Specification<Section> spec = SectionSpecification.filterByParams(params);
         return sectionRepo.findAll(spec, pageable);
     }
 
@@ -56,7 +62,7 @@ public class SectionServiceImpl implements SectionService {
     public void saveSections(Map<UUID, Section> curriculumSectionMap, UUID classroomId) {
         Classroom classroom = classroomService.getClassroomById(classroomId);
 
-        Map<UUID, Curriculum> curriculumEntities = curriculumService.getCurriculums(
+        Map<UUID, Curriculum> curriculumEntities = curriculumService.getCurriculumsByIds(
                 curriculumSectionMap.keySet().stream().toList(),
                 Map.of(),
                 Pageable.unpaged()).stream().collect(Collectors.toMap(Curriculum::getId, c -> c));

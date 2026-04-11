@@ -38,9 +38,15 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final AttendanceClient attendanceClient;
 
     @Override
-    public Page<Classroom> getClassrooms(List<UUID> ids, Map<String, String> params, Pageable pageable) {
+    public Page<Classroom> getClassroomsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
         Specification<Classroom> spec = ClassroomSpecification.filterByParams(params)
                 .and(ClassroomSpecification.hasIdIn(ids));
+        return classroomRepo.findAll(spec, pageable);
+    }
+
+    @Override
+    public Page<Classroom> getClassrooms(Map<String, String> params, Pageable pageable) {
+        Specification<Classroom> spec = ClassroomSpecification.filterByParams(params);
         return classroomRepo.findAll(spec, pageable);
     }
 
@@ -93,7 +99,6 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     private List<Section> initSectionForClassroom(Classroom classroom, UUID gradeId) {
         List<Curriculum> curriculums = curriculumService.getCurriculums(
-                List.of(),
                 Map.of("gradeId", gradeId.toString()),
                 Pageable.unpaged()).toList();
 

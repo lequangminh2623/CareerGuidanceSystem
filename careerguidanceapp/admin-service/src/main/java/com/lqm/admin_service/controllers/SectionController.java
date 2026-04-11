@@ -60,7 +60,7 @@ public class SectionController {
             searchParams.put("kw", term);
         }
 
-        Page<UserResponseDTO> userPage = userClient.getUsers(List.of(), searchParams);
+        Page<UserResponseDTO> userPage = userClient.getUsers(searchParams);
 
         List<Map<String, Object>> results = userPage.getContent().stream().map(u -> {
             Map<String, Object> item = new HashMap<>();
@@ -101,9 +101,7 @@ public class SectionController {
             if (e.getDetails() instanceof Map<?, ?>) {
                 @SuppressWarnings("unchecked")
                 Map<String, String> errors = (Map<String, String>) e.getDetails();
-                errors.forEach((field, message) -> {
-                    bindingResult.rejectValue(field, "error.section", message);
-                });
+                errors.forEach((field, message) -> bindingResult.rejectValue(field, "error.section", message));
             }
             populateModel(model, params, classroomId);
             return "section/list";
@@ -148,7 +146,7 @@ public class SectionController {
                 .collect(Collectors.toSet());
 
         if (!teacherIds.isEmpty()) {
-            List<UserResponseDTO> teacherList = userClient.getUsers(new ArrayList<>(teacherIds), Map.of()).getContent();
+            List<UserResponseDTO> teacherList = userClient.getUsersByIds(new ArrayList<>(teacherIds), Map.of()).getContent();
             Map<UUID, UserResponseDTO> teachersMap = teacherList.stream()
                     .collect(Collectors.toMap(UserResponseDTO::id, t -> t));
             model.addAttribute("teachers", teachersMap);

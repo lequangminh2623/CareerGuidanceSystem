@@ -59,7 +59,7 @@ public class UserSpecification {
     public static Specification<User> hasIdIn(List<UUID> userIds) {
         return (Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             if (userIds == null || userIds.isEmpty()) {
-                return cb.isTrue(cb.literal(true));
+                return cb.disjunction();
             }
             return root.get("id").in(userIds);
         };
