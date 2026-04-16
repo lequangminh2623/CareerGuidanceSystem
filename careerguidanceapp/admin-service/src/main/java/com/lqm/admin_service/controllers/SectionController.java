@@ -113,6 +113,13 @@ public class SectionController {
         }
     }
 
+    @PostMapping("/single")
+    @ResponseBody
+    public SectionResponseDTO saveSingleSection(@PathVariable String classroomId,
+                                                @RequestBody @Valid SectionRequestDTO request) {
+        return sectionClient.saveSingleSection(request, Map.of("classroomId", classroomId));
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSection(@PathVariable UUID id) {

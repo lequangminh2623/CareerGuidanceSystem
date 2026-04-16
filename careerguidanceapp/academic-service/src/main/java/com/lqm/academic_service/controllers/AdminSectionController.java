@@ -43,19 +43,18 @@ public class AdminSectionController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
 
         return sectionService.getSections(params, pageable).map(sectionMapper::toSectionRequestDTO);
     }
 
     @PostMapping("/response")
-    Page<SectionResponseDTO> getSectionResponses(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
+    Page<SectionResponseDTO> getSectionResponses(@RequestBody List<UUID> ids,
+            @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
         Page<Section> sectionPage = sectionService.getSectionsByIds(ids, params, pageable);
         Map<UUID, String> teacherMap = sectionService.buildTeacherMap(sectionPage.getContent());
 
@@ -72,12 +71,23 @@ public class AdminSectionController {
 
     @PostMapping
     public void saveSections(@RequestBody @Valid SectionListRequest sectionListRequest,
-                             @RequestParam Map<String, String> params) {
+            @RequestParam Map<String, String> params) {
         UUID classroomId = UUID.fromString(params.get("classroomId"));
         Map<UUID, Section> curriculumSectionMap = sectionListRequest.sections().stream().collect(
-                Collectors.toMap(SectionRequestDTO::curriculumId, sectionMapper::toEntity)
-        );
+                Collectors.toMap(SectionRequestDTO::curriculumId, sectionMapper::toEntity));
         sectionService.saveSections(curriculumSectionMap, classroomId);
+    }
+
+    @PostMapping("/single")
+    @ResponseBody
+    public SectionResponseDTO saveSingleSection(@RequestBody @Valid SectionRequestDTO sectionRequestDTO,
+            @RequestParam Map<String, String> params) {
+        UUID classroomId = UUID.fromString(params.get("classroomId"));
+        Section section = sectionMapper.toEntity(sectionRequestDTO);
+        Section savedSection = sectionService.saveSingleSection(section, classroomId, sectionRequestDTO.curriculumId());
+
+        Map<UUID, String> teacherMap = sectionService.buildTeacherMap(List.of(savedSection));
+        return sectionMapper.toSectionResponseDTO(savedSection, teacherMap);
     }
 
     @DeleteMapping("/{id}")

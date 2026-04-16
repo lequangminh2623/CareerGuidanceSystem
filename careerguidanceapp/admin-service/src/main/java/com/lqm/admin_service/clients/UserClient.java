@@ -34,12 +34,15 @@ public interface UserClient {
 
     @PostMapping(path = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     void saveUser(@RequestPart("user") AdminUserRequestDTO adminUserRequestDTO,
-                  @RequestPart("file") MultipartFile file);
+            @RequestPart(value = "file", required = false) MultipartFile file);
 
     @DeleteMapping("/{id}")
     void deleteUserById(@PathVariable UUID id);
 
     @GetMapping("/stats")
     ResponseEntity<Map<String, Object>> getStats();
+
+    @GetMapping("/current-user")
+    UserDetailsResponseDTO getCurrentUser();
 
 }

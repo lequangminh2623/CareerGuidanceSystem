@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useContext, useCallback, useRef } from "react";
-import { MyUserContext } from "@/lib/contexts/userContext";
-import { authApis, endpoints } from "@/lib/utils/api";
+import { useEffect, useState, useRef } from "react";
+import { useAppSelector } from "@/store/hooks";
+import { useGetChatUsersQuery, type ApiUser as ApiUserDTO } from "@/store/features/api/apiSlice";
 import Sidebar from "@/components/chat/Sidebar";
 import ChatPanel from "@/components/chat/ChatPanel";
 import GroupSettingsPanel from "@/components/chat/GroupSettingsPanel";
@@ -12,21 +12,11 @@ import { XMarkIcon, PlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 
-export interface ApiUser {
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    avatar: string;
-}
-
-/** Mirror of Java's sanitizeUid(): email → Firebase UID */
-export function emailToUid(email: string): string {
-    return email.replace("@", "_at_").replace("+", "_plus_");
-}
+// Re-export for downstream components
+export type ApiUser = ApiUserDTO;
 
 export default function ChatBox() {
-    const userContext = useContext(MyUserContext);
+    const userContext = useAppSelector((state) => state.auth.user);
     const user = userContext ? (userContext as unknown as ApiUser) : null;
 
     const firebaseChat = useFirebaseChat();
@@ -36,14 +26,9 @@ export default function ChatBox() {
     const groupChat = useFirebaseGroupChat(firebaseUser);
     const { groupRooms, groupMessages, activeGroupId, openGroup, closeGroup } = groupChat;
 
-    const [allUsers, setAllUsers] = useState<ApiUser[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [page, setPage] = useState(1);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
     const [selectedOtherUser, setSelectedOtherUser] = useState<ApiUser | null>(null);
-    const loadingRef = useRef(false);
-    const lastFetchedPageRef = useRef<{ page: number; kw: string } | null>(null);
 
     // View: "direct" | "group"
     const [activeView, setActiveView] = useState<"direct" | "group">("direct");
@@ -56,6 +41,18 @@ export default function ChatBox() {
     const [selectedMembers, setSelectedMembers] = useState<ApiUser[]>([]);
     const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
+    // ── RTK Query: replaces fetchUsers + useCallback + 2 useEffects ──
+    const { data: usersPage, isFetching: isLoadingMore } = useGetChatUsersQuery(
+        { page, kw: searchQuery },
+        { skip: !user } // Don't fetch until authenticated
+    );
+
+    // Derived: filter out self + admins from the merged list
+    const allUsers: ApiUser[] = (usersPage?.content ?? []).filter(
+        (u) => u.email !== user?.email && u.role !== "Admin"
+    );
+    const hasMore = !(usersPage?.last ?? true);
+
     // Authenticate with Firebase once
     useEffect(() => {
         if (user && !firebaseUser) {
@@ -63,46 +60,10 @@ export default function ChatBox() {
         }
     }, [user, firebaseUser, authenticateWithFirebase]);
 
-    // Fetch users (with search + pagination)
-    const fetchUsers = useCallback(async (pageNum: number, kw: string, reset: boolean) => {
-        if (!user || loadingRef.current) return;
-        if (!reset && lastFetchedPageRef.current?.page === pageNum && lastFetchedPageRef.current?.kw === kw) return;
-        loadingRef.current = true;
-        lastFetchedPageRef.current = { page: pageNum, kw };
-        setIsLoadingMore(true);
-        try {
-            let url = `${endpoints['users']}?page=${pageNum}`;
-            if (kw.trim()) url += `&kw=${encodeURIComponent(kw)}`;
-            const res = await authApis().get(url);
-            const pageData = res.data ?? {};
-            const data: ApiUser[] = pageData.content ?? [];
-            const isLast: boolean = pageData.last ?? data.length === 0;
-            const filtered = data.filter(u => u.email !== user?.email && u.role !== "Admin");
-
-            setAllUsers(prev => reset ? filtered : [...prev, ...filtered]);
-            setHasMore(!isLast);
-        } catch (err: unknown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((err as any).response?.status === 401) return;
-            console.error("fetchUsers error:", err);
-        } finally {
-            setIsLoadingMore(false);
-            loadingRef.current = false;
-        }
-    }, [user]);
-
-    // Reset when search changes
+    // Reset page when search changes
     useEffect(() => {
         setPage(1);
-        setHasMore(true);
-        fetchUsers(1, searchQuery, true);
-    }, [searchQuery, fetchUsers]);
-
-    // Load more when page increments
-    useEffect(() => {
-        if (page === 1) return;
-        fetchUsers(page, searchQuery, false);
-    }, [page, searchQuery, fetchUsers]);
+    }, [searchQuery]);
 
     const handleScrollEnd = () => {
         if (!isLoadingMore && hasMore) {
@@ -119,7 +80,7 @@ export default function ChatBox() {
 
         if (!user || !firebaseUser) return;
 
-        const otherUid = emailToUid(otherUser.email);
+        const otherUid = otherUser.email;
         const existing = chatRooms.find(
             r => r.type === "direct" && r.members.includes(otherUid)
         );
@@ -142,7 +103,7 @@ export default function ChatBox() {
         if (!newGroupName.trim() || selectedMembers.length === 0) return;
 
         try {
-            const memberUids = selectedMembers.map(u => emailToUid(u.email));
+            const memberUids = selectedMembers.map(u => u.email);
             const groupId = await groupChat.createGroup(newGroupName.trim(), memberUids);
 
             // Reset modal
@@ -193,7 +154,7 @@ export default function ChatBox() {
 
     if (!user) return <div className="p-8 text-center text-gray-500">{t('loading-user-data')}</div>;
 
-    const currentUid = emailToUid(firebaseUser?.uid ?? user.email);
+    const currentUid = firebaseUser?.uid ?? user.email;
     const currentUserName = `${user.lastName} ${user.firstName}`;
 
     return (
@@ -224,6 +185,7 @@ export default function ChatBox() {
                     otherUser={selectedOtherUser}
                     firebaseChat={firebaseChat}
                     currentUserName={currentUserName}
+                    allUsers={allUsers}
                 />
             ) : activeView === "group" && activeGroupId && selectedGroup && firebaseUser ? (
                 /* Group Chat */
@@ -240,6 +202,7 @@ export default function ChatBox() {
                         groupChatHook={groupChat}
                         onOpenGroupSettings={() => setShowGroupSettings(prev => !prev)}
                         currentUserName={currentUserName}
+                        allUsers={allUsers}
                     />
                     {showGroupSettings && (
                         <GroupSettingsPanel
@@ -357,11 +320,12 @@ export default function ChatBox() {
                                                 }`}
                                         >
                                             <Image
-                                                src={u.avatar || "/images/default-avatar.png"}
+                                                src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.lastName + ' ' + u.firstName)}&background=random&color=fff&bold=true`}
                                                 alt={u.firstName}
                                                 width={36}
                                                 height={36}
                                                 className="rounded-full object-cover w-9 h-9"
+                                                unoptimized
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-800 truncate">

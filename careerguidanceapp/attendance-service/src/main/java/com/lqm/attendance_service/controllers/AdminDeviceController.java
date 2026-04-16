@@ -90,4 +90,10 @@ public class AdminDeviceController {
     public void unassignDeviceFromClassroom(@PathVariable String deviceId) {
         deviceService.unassignDeviceFromClassroom(deviceId);
     }
+
+    // Bỏ gán device từ lớp theo classroomId
+    @PostMapping("/classrooms/{classroomId}/unassign")
+    public void unassignDeviceByClassroomId(@PathVariable UUID classroomId) {
+        deviceService.unassignDeviceByClassroomId(classroomId);
+    }
 }

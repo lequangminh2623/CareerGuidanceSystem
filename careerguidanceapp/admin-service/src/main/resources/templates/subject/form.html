@@ -11,35 +11,45 @@
 
     <p th:replace="~{base :: header}"></p>
 
-    <main class="flex-grow-1 container py-5">
+    <main class="grow container py-5">
         <div class="row justify-content-center">
             <div class="col-md-7 col-lg-6">
                 <div class="mb-4">
                     <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
                         <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a th:href="@{/subjects}" class="text-decoration-none text-muted">Môn học</a></li>
-                            <li class="breadcrumb-item active text-primary" aria-current="page" th:text="${subject.id == null ? 'Thêm mới' : 'Cập nhật'}">Thêm mới</li>
+                            <li class="breadcrumb-item"><a th:href="@{/}"
+                                    class="text-decoration-none text-muted">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/subjects}"
+                                    class="text-decoration-none text-muted">Môn học</a></li>
+                            <li class="breadcrumb-item active text-primary" aria-current="page"
+                                th:text="${subject.id == null ? 'Thêm mới' : 'Cập nhật'}">Thêm mới</li>
                         </ol>
                     </nav>
-                    <h2 class="fw-black text-dark tracking-tight mb-1" th:text="${subject.id == null ? 'Thêm Môn học mới' : 'Cập nhật Môn học'}"></h2>
+                    <h2 class="fw-black text-dark tracking-tight mb-1"
+                        th:text="${subject.id == null ? 'Thêm Môn học mới' : 'Cập nhật Môn học'}"></h2>
                 </div>
 
-                <form method="post" th:action="@{/subjects}" th:object="${subject}" class="form-card border-0 shadow-sm rounded-xl overflow-hidden needs-validation" novalidate>
+                <form method="post" th:action="@{/subjects}" th:object="${subject}"
+                    class="form-card border-0 shadow-sm rounded-xl overflow-hidden needs-validation" novalidate>
                     <div class="form-body p-4 p-lg-5">
-                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-xl border-0 shadow-sm mb-4" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold" th:text="${errorMessage}"></span>
+                        <div th:if="${errorMessage}"
+                            class="alert alert-danger alert-dismissible fade show rounded-xl border-0 shadow-sm mb-4"
+                            role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold"
+                                th:text="${errorMessage}"></span>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
 
                         <div class="mb-4">
-                            <label for="name" class="form-label fw-bold text-dark">Tên môn học <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label fw-bold text-dark">Tên môn học <span
+                                    class="text-danger">*</span></label>
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text bg-light border-0 px-3 text-muted">
                                     <i class="fas fa-book"></i>
                                 </span>
-                                <input type="text" class="form-control bg-light border-0 ps-0 py-2.5 fs-15 fw-bold" id="name" th:field="*{name}"
-                                    placeholder="Ví dụ: Toán học, Ngữ văn..." autocomplete="off"
+                                <input type="text" class="form-control bg-light border-0 ps-0 py-2.5 fs-15 fw-bold"
+                                    id="name" th:field="*{name}" placeholder="Ví dụ: Toán học, Ngữ văn..."
+                                    autocomplete="off" required="required"
                                     th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" />
                                 <div class="invalid-feedback fw-bold mt-2" th:errors="*{name}"></div>
                             </div>
@@ -50,16 +60,21 @@
                                 <i class="fas fa-info-circle text-indigo me-3 mt-1 fs-5"></i>
                                 <div>
                                     <strong class="text-indigo">Hướng dẫn định danh</strong>
-                                    <p class="text-indigo small mt-1 mb-0 opacity-75">Sử dụng tên môn học chính thức theo quy định của Bộ Giáo dục để đảm bảo tính nhất quán trong học bạ.</p>
+                                    <p class="text-indigo small mt-1 mb-0 opacity-75">Sử dụng tên môn học chính thức
+                                        theo quy định của Bộ Giáo dục để đảm bảo tính nhất quán trong học bạ.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-footer bg-light p-4 p-lg-5 border-top d-flex justify-content-end gap-3 rounded-bottom-xl">
+                    <div
+                        class="form-footer bg-light p-4 p-lg-5 border-top d-flex justify-content-end gap-3 rounded-bottom-xl">
                         <input type="hidden" th:field="*{id}" />
-                        <a th:href="@{/subjects}" class="btn btn-white border px-4 py-2.5 rounded-xl fw-bold text-muted hover-translate-y">Hủy bỏ</a>
-                        <button type="submit" class="btn btn-primary px-5 py-2.5 rounded-xl fw-black shadow-primary hover-translate-y">
+                        <a th:href="@{/subjects}"
+                            class="btn btn-white border px-4 py-2.5 rounded-xl fw-bold text-muted hover-translate-y">Hủy
+                            bỏ</a>
+                        <button type="submit"
+                            class="btn btn-primary px-5 py-2.5 rounded-xl fw-black shadow-primary hover-translate-y">
                             <i class="fas fa-save me-2 opacity-50"></i> Lưu lại
                         </button>
                     </div>

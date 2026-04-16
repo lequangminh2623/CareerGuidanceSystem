@@ -2,8 +2,8 @@
 
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
-import { MyDispatcherContext } from "@/lib/contexts/userContext";
+import { useAppDispatch } from "@/store/hooks";
+import { loginSuccess } from "@/store/features/auth/authSlice";
 import { setCookie } from "cookies-next";
 import Apis, { authApis, endpoints } from "@/lib/utils/api";
 import axios from "axios";
@@ -14,7 +14,7 @@ interface GoogleLoginButtonProps {
 }
 
 export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
-  const dispatch = useContext(MyDispatcherContext);
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const handleLoginGoogle = async (credentialResponse: CredentialResponse) => {
@@ -49,12 +49,7 @@ export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
       const profileRes = await authApis().get(endpoints["profile"]);
 
       // Cập nhật Global State
-      if (dispatch) {
-        dispatch({
-          type: "login",
-          payload: profileRes.data,
-        });
-      }
+      dispatch(loginSuccess(profileRes.data));
 
       // Chuyển hướng về trang chủ
       router.push("/");

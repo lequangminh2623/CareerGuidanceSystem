@@ -1,39 +1,26 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Chart, registerables } from "chart.js";
-import { authApis, endpoints } from "@/lib/utils/api";
+import { useGetStudentStatisticsQuery, useGetAttendanceStatisticsQuery } from "@/store/features/api/apiSlice";
 import MySpinner from "../layout/MySpinner";
 import { FiTrendingUp, FiBarChart2, FiPieChart, FiAlertCircle } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 
 Chart.register(...registerables);
 
-interface SemesterAvg {
-    semesterLabel: string;
-    yearName: string;
-    semesterName: string;
-    avgScore: number;
-}
-
-interface YearAvg {
-    yearName: string;
-    avgScore: number;
-}
-
-interface AttendanceSummary {
-    presentCount: number;
-    lateCount: number;
-    absentCount: number;
-}
-
 const StudentStatistics = () => {
     const { t } = useTranslation();
-    const [semesterAverages, setSemesterAverages] = useState<SemesterAvg[]>([]);
-    const [yearAverages, setYearAverages] = useState<YearAvg[]>([]);
-    const [attendance, setAttendance] = useState<AttendanceSummary | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+
+    // ── RTK Query: 2 parallel queries (replaces Promise.all) ──
+    const { data: statsData, isLoading: loadingScores, isError: scoresError } = useGetStudentStatisticsQuery();
+    const { data: attendance, isLoading: loadingAttendance, isError: attendanceError } = useGetAttendanceStatisticsQuery();
+
+    const semesterAverages = statsData?.semesterAverages ?? [];
+    const yearAverages = statsData?.yearAverages ?? [];
+
+    const loading = loadingScores || loadingAttendance;
+    const error = scoresError || attendanceError ? t('error-loading-stats') : '';
 
     const lineChartRef = useRef<HTMLCanvasElement>(null);
     const barChartRef = useRef<HTMLCanvasElement>(null);
@@ -42,38 +29,10 @@ const StudentStatistics = () => {
     const barChartInstance = useRef<Chart | null>(null);
     const pieChartInstance = useRef<Chart | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const [scoresRes, attendanceRes] = await Promise.all([
-                    authApis().get(endpoints["statistics-student-scores"] as string),
-                    authApis().get(endpoints["statistics-student-attendance"] as string),
-                ]);
-
-                setSemesterAverages(scoresRes.data.semesterAverages || []);
-                setYearAverages(scoresRes.data.yearAverages || []);
-                setAttendance(attendanceRes.data);
-            } catch (err) {
-                console.error("Error fetching student statistics:", err);
-                setError(t('error-loading-stats'));
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    // Line chart for semester averages (ĐTBhK)
+    // Line chart — semester averages
     useEffect(() => {
         if (!lineChartRef.current || semesterAverages.length === 0) return;
-
-        if (lineChartInstance.current) {
-            lineChartInstance.current.destroy();
-        }
+        if (lineChartInstance.current) lineChartInstance.current.destroy();
 
         const ctx = lineChartRef.current.getContext("2d");
         if (!ctx) return;
@@ -98,68 +57,29 @@ const StudentStatistics = () => {
                 }],
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: "top",
-                        labels: {
-                            usePointStyle: true,
-                            font: { size: 13, weight: "bold" },
-                        },
-                    },
-                    tooltip: {
-                        backgroundColor: "rgba(15, 23, 42, 0.9)",
-                        titleFont: { size: 13 },
-                        bodyFont: { size: 12 },
-                        cornerRadius: 8,
-                        padding: 12,
-                    },
+                    legend: { display: true, position: "top", labels: { usePointStyle: true, font: { size: 13, weight: "bold" } } },
+                    tooltip: { backgroundColor: "rgba(15, 23, 42, 0.9)", titleFont: { size: 13 }, bodyFont: { size: 12 }, cornerRadius: 8, padding: 12 },
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10,
-                        ticks: {
-                            stepSize: 1,
-                            font: { size: 12 },
-                        },
-                        grid: { color: "rgba(0,0,0,0.06)" },
-                    },
-                    x: {
-                        ticks: { font: { size: 11 }, maxRotation: 45 },
-                        grid: { display: false },
-                    },
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.06)" } },
+                    x: { ticks: { font: { size: 11 }, maxRotation: 45 }, grid: { display: false } },
                 },
             },
         });
+        return () => { lineChartInstance.current?.destroy(); };
+    }, [semesterAverages, t]);
 
-        return () => {
-            if (lineChartInstance.current) {
-                lineChartInstance.current.destroy();
-            }
-        };
-    }, [semesterAverages]);
-
-    // Bar chart for yearly averages (ĐTBnăm)
+    // Bar chart — yearly averages
     useEffect(() => {
         if (!barChartRef.current || yearAverages.length === 0) return;
-
-        if (barChartInstance.current) {
-            barChartInstance.current.destroy();
-        }
+        if (barChartInstance.current) barChartInstance.current.destroy();
 
         const ctx = barChartRef.current.getContext("2d");
         if (!ctx) return;
 
-        const colors = [
-            "rgba(16, 185, 129, 0.8)",
-            "rgba(59, 130, 246, 0.8)",
-            "rgba(168, 85, 247, 0.8)",
-            "rgba(245, 158, 11, 0.8)",
-            "rgba(239, 68, 68, 0.8)",
-        ];
+        const colors = ["rgba(16,185,129,0.8)", "rgba(59,130,246,0.8)", "rgba(168,85,247,0.8)", "rgba(245,158,11,0.8)", "rgba(239,68,68,0.8)"];
 
         barChartInstance.current = new Chart(ctx, {
             type: "bar",
@@ -170,63 +90,36 @@ const StudentStatistics = () => {
                     data: yearAverages.map(y => y.avgScore),
                     backgroundColor: yearAverages.map((_, i) => colors[i % colors.length]),
                     borderColor: yearAverages.map((_, i) => colors[i % colors.length].replace("0.8", "1")),
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false,
+                    borderWidth: 2, borderRadius: 8, borderSkipped: false,
                 }],
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: "top",
-                        labels: {
-                            usePointStyle: true,
-                            font: { size: 13, weight: "bold" },
-                        },
-                    },
-                    tooltip: {
-                        backgroundColor: "rgba(15, 23, 42, 0.9)",
-                        cornerRadius: 8,
-                        padding: 12,
-                    },
+                    legend: { display: true, position: "top", labels: { usePointStyle: true, font: { size: 13, weight: "bold" } } },
+                    tooltip: { backgroundColor: "rgba(15, 23, 42, 0.9)", cornerRadius: 8, padding: 12 },
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10,
-                        ticks: { stepSize: 1, font: { size: 12 } },
-                        grid: { color: "rgba(0,0,0,0.06)" },
-                    },
-                    x: {
-                        ticks: { font: { size: 12, weight: "bold" } },
-                        grid: { display: false },
-                    },
+                    y: { beginAtZero: true, max: 10, ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.06)" } },
+                    x: { ticks: { font: { size: 12, weight: "bold" } }, grid: { display: false } },
                 },
             },
         });
+        return () => { barChartInstance.current?.destroy(); };
+    }, [yearAverages, t]);
 
-        return () => {
-            if (barChartInstance.current) {
-                barChartInstance.current.destroy();
-            }
-        };
-    }, [yearAverages]);
-
-    // Pie chart for attendance
+    // Doughnut chart — attendance
     useEffect(() => {
         if (!pieChartRef.current || !attendance) return;
-
-        if (pieChartInstance.current) {
-            pieChartInstance.current.destroy();
-        }
+        if (pieChartInstance.current) pieChartInstance.current.destroy();
 
         const ctx = pieChartRef.current.getContext("2d");
         if (!ctx) return;
 
-        const total = attendance.presentCount + attendance.lateCount + attendance.absentCount;
+        const present = attendance.presentCount ?? 0;
+        const late = attendance.lateCount ?? 0;
+        const absent = attendance.absentCount ?? 0;
+        const total = present + late + absent;
         if (total === 0) return;
 
         pieChartInstance.current = new Chart(ctx, {
@@ -234,38 +127,18 @@ const StudentStatistics = () => {
             data: {
                 labels: [t('present'), t('late'), t('absent')],
                 datasets: [{
-                    data: [attendance.presentCount, attendance.lateCount, attendance.absentCount],
-                    backgroundColor: [
-                        "rgba(16, 185, 129, 0.85)",
-                        "rgba(245, 158, 11, 0.85)",
-                        "rgba(239, 68, 68, 0.85)",
-                    ],
-                    borderColor: [
-                        "rgb(16, 185, 129)",
-                        "rgb(245, 158, 11)",
-                        "rgb(239, 68, 68)",
-                    ],
-                    borderWidth: 2,
-                    hoverOffset: 8,
+                    data: [present, late, absent],
+                    backgroundColor: ["rgba(16,185,129,0.85)", "rgba(245,158,11,0.85)", "rgba(239,68,68,0.85)"],
+                    borderColor: ["rgb(16,185,129)", "rgb(245,158,11)", "rgb(239,68,68)"],
+                    borderWidth: 2, hoverOffset: 8,
                 }],
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "60%",
+                responsive: true, maintainAspectRatio: false, cutout: "60%",
                 plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: { size: 13, weight: "bold" },
-                        },
-                    },
+                    legend: { position: "bottom", labels: { usePointStyle: true, padding: 20, font: { size: 13, weight: "bold" } } },
                     tooltip: {
-                        backgroundColor: "rgba(15, 23, 42, 0.9)",
-                        cornerRadius: 8,
-                        padding: 12,
+                        backgroundColor: "rgba(15, 23, 42, 0.9)", cornerRadius: 8, padding: 12,
                         callbacks: {
                             label: (context) => {
                                 const value = context.raw as number;
@@ -277,20 +150,11 @@ const StudentStatistics = () => {
                 },
             },
         });
-
-        return () => {
-            if (pieChartInstance.current) {
-                pieChartInstance.current.destroy();
-            }
-        };
-    }, [attendance]);
+        return () => { pieChartInstance.current?.destroy(); };
+    }, [attendance, t]);
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center py-20">
-                <MySpinner />
-            </div>
-        );
+        return <div className="flex justify-center items-center py-20"><MySpinner /></div>;
     }
 
     if (error) {
@@ -302,9 +166,10 @@ const StudentStatistics = () => {
         );
     }
 
-    const totalAttendance = attendance
-        ? attendance.presentCount + attendance.lateCount + attendance.absentCount
-        : 0;
+    const present = attendance?.presentCount ?? 0;
+    const late = attendance?.lateCount ?? 0;
+    const absent = attendance?.absentCount ?? 0;
+    const totalAttendance = present + late + absent;
 
     return (
         <div className="space-y-8">
@@ -312,137 +177,90 @@ const StudentStatistics = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="bg-white/20 p-2 rounded-lg">
-                            <FiTrendingUp className="h-5 w-5" />
-                        </div>
+                        <div className="bg-white/20 p-2 rounded-lg"><FiTrendingUp className="h-5 w-5" /></div>
                         <span className="text-sm font-medium text-blue-100">{t('avg-semester-recent')}</span>
                     </div>
                     <p className="text-3xl font-bold">
-                        {semesterAverages.length > 0
-                            ? semesterAverages[semesterAverages.length - 1].avgScore.toFixed(2)
-                            : "—"}
+                        {semesterAverages.length > 0 ? semesterAverages[semesterAverages.length - 1].avgScore.toFixed(2) : "—"}
                     </p>
                 </div>
                 <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="bg-white/20 p-2 rounded-lg">
-                            <FiBarChart2 className="h-5 w-5" />
-                        </div>
+                        <div className="bg-white/20 p-2 rounded-lg"><FiBarChart2 className="h-5 w-5" /></div>
                         <span className="text-sm font-medium text-emerald-100">{t('avg-year-recent')}</span>
                     </div>
                     <p className="text-3xl font-bold">
-                        {yearAverages.length > 0
-                            ? yearAverages[yearAverages.length - 1].avgScore.toFixed(2)
-                            : "—"}
+                        {yearAverages.length > 0 ? yearAverages[yearAverages.length - 1].avgScore.toFixed(2) : "—"}
                     </p>
                 </div>
                 <div className="bg-linear-to-br from-purple-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg shadow-purple-500/20">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="bg-white/20 p-2 rounded-lg">
-                            <FiPieChart className="h-5 w-5" />
-                        </div>
+                        <div className="bg-white/20 p-2 rounded-lg"><FiPieChart className="h-5 w-5" /></div>
                         <span className="text-sm font-medium text-purple-100">{t('total-attendance')}</span>
                     </div>
                     <p className="text-3xl font-bold">{totalAttendance}</p>
                 </div>
             </div>
 
-            {/* Charts Row 1: Line + Bar */}
+            {/* Line + Bar charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Line Chart - Semester GPA */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiTrendingUp className="text-blue-500" />
-                        {t('avg-semester-over-time')}
+                        <FiTrendingUp className="text-blue-500" />{t('avg-semester-over-time')}
                     </h3>
                     <div className="h-72">
-                        {semesterAverages.length > 0 ? (
-                            <canvas ref={lineChartRef}></canvas>
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                                {t('no-data-scores')}
-                            </div>
-                        )}
+                        {semesterAverages.length > 0
+                            ? <canvas ref={lineChartRef} />
+                            : <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('no-data-scores')}</div>}
                     </div>
                 </div>
-
-                {/* Bar Chart - Yearly GPA */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiBarChart2 className="text-emerald-500" />
-                        {t('avg-year-over-time')}
+                        <FiBarChart2 className="text-emerald-500" />{t('avg-year-over-time')}
                     </h3>
                     <div className="h-72">
-                        {yearAverages.length > 0 ? (
-                            <canvas ref={barChartRef}></canvas>
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                                {t('no-data-scores')}
-                            </div>
-                        )}
+                        {yearAverages.length > 0
+                            ? <canvas ref={barChartRef} />
+                            : <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('no-data-scores')}</div>}
                     </div>
                 </div>
             </div>
 
-            {/* Chart Row 2: Pie Chart */}
+            {/* Pie + summary */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <FiPieChart className="text-purple-500" />
-                        {t('attendance-rate')}
+                        <FiPieChart className="text-purple-500" />{t('attendance-rate')}
                     </h3>
                     <div className="h-72">
-                        {totalAttendance > 0 ? (
-                            <canvas ref={pieChartRef}></canvas>
-                        ) : (
-                            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                                {t('no-data-attendance')}
-                            </div>
-                        )}
+                        {totalAttendance > 0
+                            ? <canvas ref={pieChartRef} />
+                            : <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('no-data-attendance')}</div>}
                     </div>
                 </div>
 
-                {/* Attendance Summary Table */}
                 {attendance && totalAttendance > 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">{t('attendance-detail')}</h3>
                         <div className="space-y-4 mt-6">
-                            <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                    <span className="font-medium text-gray-700">{t('present')}</span>
+                            {[
+                                { color: "emerald", label: t('present'), count: present },
+                                { color: "amber", label: t('late'), count: late },
+                                { color: "red", label: t('absent'), count: absent },
+                            ].map(({ color, label, count }) => (
+                                <div key={label} className={`flex items-center justify-between p-4 bg-${color}-50 rounded-xl`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full bg-${color}-500`} />
+                                        <span className="font-medium text-gray-700">{label}</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`text-lg font-bold text-${color}-600`}>{count}</span>
+                                        <span className="text-sm text-gray-400 ml-2">
+                                            ({((count / totalAttendance) * 100).toFixed(1)}%)
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-lg font-bold text-emerald-600">{attendance.presentCount}</span>
-                                    <span className="text-sm text-gray-400 ml-2">
-                                        ({((attendance.presentCount / totalAttendance) * 100).toFixed(1)}%)
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                                    <span className="font-medium text-gray-700">{t('late')}</span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-lg font-bold text-amber-600">{attendance.lateCount}</span>
-                                    <span className="text-sm text-gray-400 ml-2">
-                                        ({((attendance.lateCount / totalAttendance) * 100).toFixed(1)}%)
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between p-4 bg-red-50 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                                    <span className="font-medium text-gray-700">{t('absent')}</span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-lg font-bold text-red-600">{attendance.absentCount}</span>
-                                    <span className="text-sm text-gray-400 ml-2">
-                                        ({((attendance.absentCount / totalAttendance) * 100).toFixed(1)}%)
-                                    </span>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 )}

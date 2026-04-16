@@ -39,7 +39,7 @@ public class SecurityConfig {
     public SecurityFilterChain webSecurity(HttpSecurity http) {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/access-deny", "/internal/**").permitAll()
+                        .requestMatchers("/login", "/favicon.ico", "/css/**", "/js/**", "/access-deny", "/internal/**").permitAll()
                         .requestMatchers("/", "/users", "/users/**", "/classrooms", "/classrooms/**",
                                 "/subjects", "/subjects/**", "/years", "/years/**",
                                 "/semesters", "/semesters/**", "/grades", "/grades/**",

@@ -6,9 +6,8 @@ import java.util.UUID;
 
 @Builder
 public record UserResponseDTO(
-        UUID id,
-        String code,
-        String firstName,
-        String lastName
-) {}
-
+                UUID id,
+                String code,
+                String firstName,
+                String lastName) {
+}

@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import StoreProvider from "@/store/StoreProvider";
 import UserProvider from "@/components/providers/UserProvider";
 import GoogleProvider from "@/components/GoogleLogin/GoogleProvider";
 import RootLayoutWrapper from "@/components/layout/RootLayoutWrapper";
 import LocaleProvider from "../components/providers/LocaleProvider";
+import GlobalNotification from "@/components/common/GlobalNotification";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,15 +42,18 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <GoogleProvider>
-          <UserProvider>
-            <LocaleProvider>
-              <Suspense fallback={<LoadingFallback />}>
-                <RootLayoutWrapper>
-                  {children}
-                </RootLayoutWrapper>
-              </Suspense>
-            </LocaleProvider>
-          </UserProvider>
+          <StoreProvider>
+            <GlobalNotification />
+            <UserProvider>
+              <LocaleProvider>
+                <Suspense fallback={<LoadingFallback />}>
+                  <RootLayoutWrapper>
+                    {children}
+                  </RootLayoutWrapper>
+                </Suspense>
+              </LocaleProvider>
+            </UserProvider>
+          </StoreProvider>
         </GoogleProvider>
       </body>
     </html>

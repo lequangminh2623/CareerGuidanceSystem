@@ -1,6 +1,8 @@
 package com.lqm.academic_service.services.Impl;
 
 import com.lqm.academic_service.clients.AttendanceClient;
+import com.lqm.academic_service.clients.ChatAdminClient;
+import com.lqm.academic_service.clients.DeviceClient;
 import com.lqm.academic_service.clients.ScoreAdminClient;
 import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
 import com.lqm.academic_service.exceptions.BadRequestException;
@@ -36,6 +38,8 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final CurriculumService curriculumService;
     private final ScoreAdminClient scoreAdminClient;
     private final AttendanceClient attendanceClient;
+    private final ChatAdminClient chatAdminClient;
+    private final DeviceClient deviceClient;
 
     @Override
     public Page<Classroom> getClassroomsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
@@ -115,6 +119,24 @@ public class ClassroomServiceImpl implements ClassroomService {
             throw new BadRequestException(
                     messageSource.getMessage("classroom.delete.error.hasStudents", null, Locale.getDefault()));
         }
+
+        // Gỡ thiết bị khỏi lớp học trước khi xóa lớp
+        deviceClient.unassignDeviceByClassroomId(id);
+
+        // Lấy thông tin lớp học để xóa các nhóm chat của từng section
+        Classroom classroom = classroomRepo.findById(id).orElse(null);
+        if (classroom != null && classroom.getSectionSet() != null && !classroom.getSectionSet().isEmpty()) {
+            List<UUID> sectionIds = classroom.getSectionSet().stream()
+                    .map(Section::getId)
+                    .collect(Collectors.toList());
+            try {
+                chatAdminClient.deleteGroupChatsBatch(sectionIds);
+            } catch (Exception e) {
+                // Log error but continue deleting the classroom
+                e.printStackTrace();
+            }
+        }
+
         classroomRepo.deleteById(id);
     }
 

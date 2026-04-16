@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Apis, { endpoints } from "@/lib/utils/api";
-import MySpinner from "@/components/layout/MySpinner";
 import GoogleLoginButton from "@/components/GoogleLogin/GoogleLoginButton";
 import Image from "next/image";
 import { FiUser, FiMail, FiLock, FiHash, FiImage, FiUploadCloud } from "react-icons/fi";
-import { MdOutlineErrorOutline, MdCheckCircleOutline } from "react-icons/md";
+import { MdCheckCircleOutline, MdOutlineErrorOutline } from "react-icons/md";
 import axios from "axios";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 // --- Interfaces ---
 interface UserData {
@@ -210,22 +211,17 @@ const RegisterForm = () => {
                     <form onSubmit={register} className="space-y-8">
                         <div className="grid md:grid-cols-2 gap-6">
                             {info.map((i) => (
-                                <div key={i.field}>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">{i.title}</label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center">{i.icon}</div>
-                                        <input
-                                            type={i.type}
-                                            value={user[i.field] || ""}
-                                            onChange={e => handleInputChange(e.target.value, i.field)}
-                                            disabled={i.disabled}
-                                            className={`w-full pl-11 pr-4 py-3.5 bg-gray-50 border rounded-xl outline-none focus:ring-2 transition-all text-gray-900 placeholder:text-gray-400
-                                                ${fieldErrors[i.field] ? 'border-red-300 focus:ring-red-500/10' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/10'}`}
-                                            placeholder={`${t('enter')} ${i.title.toLowerCase()}...`}
-                                        />
-                                    </div>
-                                    {fieldErrors[i.field] && <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in slide-in-from-left-1"><MdOutlineErrorOutline /> {fieldErrors[i.field]}</p>}
-                                </div>
+                                <Input
+                                    key={i.field}
+                                    label={i.title}
+                                    type={i.type}
+                                    value={user[i.field] || ""}
+                                    onChange={e => handleInputChange(e.target.value, i.field)}
+                                    disabled={i.disabled}
+                                    icon={i.icon}
+                                    error={fieldErrors[i.field]}
+                                    placeholder={`${t('enter')} ${i.title.toLowerCase()}...`}
+                                />
                             ))}
 
                             <div className="relative group">
@@ -252,7 +248,7 @@ const RegisterForm = () => {
                                     <div className={`w-full h-full rounded-full overflow-hidden border-4 transition-all shadow-lg 
                                         ${fieldErrors.avatar ? 'border-red-200' : 'border-white'}`}>
                                         {previewImage ? (
-                                            <Image src={previewImage} alt="Preview" fill className="object-cover" />
+                                            <Image src={previewImage} alt="Preview" fill sizes="112px" className="object-cover" unoptimized />
                                         ) : (
                                             <div className="w-full h-full bg-indigo-50 flex flex-col items-center justify-center text-indigo-300">
                                                 <FiImage className="w-8 h-8" />
@@ -278,13 +274,13 @@ const RegisterForm = () => {
                             </div>
                         </div>
 
-                        <button
+                        <Button
                             type="submit"
-                            disabled={loading}
-                            className="w-full py-4 bg-indigo-600 text-white font-extrabold rounded-xl shadow-lg hover:bg-indigo-700 transition-all disabled:opacity-50"
+                            isLoading={loading}
+                            fullWidth
                         >
-                            {loading ? <div className="flex justify-center gap-2"><MySpinner /> {t('processing')}</div> : t("register-account")}
-                        </button>
+                            {t("register-account")}
+                        </Button>
                     </form>
 
                     {!isGoogleRegister && (

@@ -1,9 +1,10 @@
 'use client';
 
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MyDispatcherContext } from "@/lib/contexts/userContext";
+import { useAppDispatch } from "@/store/hooks";
+import { loginSuccess } from "@/store/features/auth/authSlice";
 import Apis, { authApis, endpoints } from "@/lib/utils/api";
 import { setCookie } from "cookies-next";
 import MySpinner from "@/components/layout/MySpinner";
@@ -44,7 +45,7 @@ const LoginForm = () => {
 
     const router = useRouter();
     const searchParams = useSearchParams();
-    const dispatch = useContext(MyDispatcherContext);
+    const dispatch = useAppDispatch();
     const { t } = useTranslation();
 
     const info: FormField[] = [
@@ -98,9 +99,7 @@ const LoginForm = () => {
             // Lấy profile - Đảm bảo authApis sử dụng token mới nhất
             const profileRes = await authApis().get(endpoints['profile']);
 
-            if (dispatch) {
-                dispatch({ type: "login", payload: profileRes.data });
-            }
+            dispatch(loginSuccess(profileRes.data));
 
             router.push("/");
         } catch (ex: unknown) {

@@ -11,6 +11,6 @@ public interface UserClient {
     @GetMapping("/{id}/exist")
     Boolean checkStudentExistById(@PathVariable("id") UUID id);
 
-    @GetMapping("/current_user")
+    @GetMapping("/current-user")
     UserResponseDTO getCurrentUser();
 }

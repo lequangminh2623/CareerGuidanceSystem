@@ -26,6 +26,9 @@ public interface SectionClient {
     @PostMapping
     void saveSections(@RequestBody @Valid SectionListRequest request, @RequestParam Map<String, String> params);
 
+    @PostMapping("/single")
+    SectionResponseDTO saveSingleSection(@RequestBody @Valid SectionRequestDTO request, @RequestParam Map<String, String> params);
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteSection(@PathVariable("id") UUID id);

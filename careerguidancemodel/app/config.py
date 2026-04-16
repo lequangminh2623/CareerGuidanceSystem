@@ -8,12 +8,20 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    # ── Gemini API ──
-    GEMINI_API_KEY: str = "your-gemini-api-key-here"
-    GEMINI_MODEL_NAME: str = "tunedModels/career-guidance-v6"
 
     # ── Spring Boot API Gateway ──
     SPRING_BOOT_BASE_URL: str = "http://localhost:8080"
+
+    # ── MongoDB ──
+    MONGO_ROOT_USER: str = "mongodb"
+    MONGO_ROOT_PASSWORD: str = "mongodb"
+    MONGO_HOST: str = "mongodb"
+    MONGO_PORT: int = 27017
+    MONGO_DB: str = "career_guidance"
+
+    @property
+    def MONGO_URI(self) -> str:
+        return f"mongodb://{self.MONGO_ROOT_USER}:{self.MONGO_ROOT_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/?authSource=admin"
 
     # ── CORS ──
     ALLOWED_ORIGINS: str = "http://localhost:3000"
@@ -21,6 +29,12 @@ class Settings(BaseSettings):
     # ── Server ──
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+
+    # ── Gemini API (AI Studio & Vertex) ──
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL_NAME: str = "career-guidance-v6"
+    GOOGLE_CLOUD_PROJECT: str = ""
+    GOOGLE_CLOUD_REGION: str = "us-central1"
 
     @property
     def cors_origins(self) -> List[str]:

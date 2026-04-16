@@ -1,5 +1,5 @@
 /**
- * 60 câu hỏi trắc nghiệm Holland (RIASEC) — dựa trên O*NET Interest Profiler.
+ * 60 câu hỏi trắc nghiệm RIASEC — dựa trên O*NET Interest Profiler.
  * Mỗi nhóm RIASEC có 10 câu hỏi. Thang điểm Likert 1–5.
  */
 

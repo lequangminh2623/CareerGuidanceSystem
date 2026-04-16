@@ -51,9 +51,10 @@ public class User implements Serializable {
     @ToString.Include
     private String password;
 
+    @Builder.Default
     @Column(name = "avatar", nullable = false)
     @ToString.Include
-    private String avatar;
+    private String avatar = "https://res.cloudinary.com/dqw4mc8dg/image/upload/v1770994206/download_kys5gs.jpg";
 
     @CreationTimestamp
     @Column(name = "created_date", updatable = false)

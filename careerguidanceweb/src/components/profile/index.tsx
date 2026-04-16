@@ -72,10 +72,6 @@ const ProfileClient = () => {
         );
     }
 
-    if (error || !profile) {
-        // ... handled above
-    }
-
     const roleLabelMap = getRoleLabelMap(t);
     const roleInfo = roleLabelMap[profile.role] || { label: profile.role, color: "text-gray-700", bg: "bg-gray-50 border-gray-200" };
 
@@ -101,8 +97,10 @@ const ProfileClient = () => {
                                         src={profile.avatar}
                                         alt="Avatar"
                                         fill
+                                        sizes="128px"
                                         className="object-cover"
                                         priority
+                                        unoptimized
                                     />
                                 </div>
 

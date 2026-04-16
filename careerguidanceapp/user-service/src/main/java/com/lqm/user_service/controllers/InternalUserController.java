@@ -1,5 +1,6 @@
 package com.lqm.user_service.controllers;
 
+import com.lqm.user_service.dtos.UserDetailsResponseDTO;
 import com.lqm.user_service.dtos.UserMessageResponseDTO;
 import com.lqm.user_service.dtos.UserResponseDTO;
 import com.lqm.user_service.mappers.UserMapper;
@@ -53,7 +54,7 @@ public class InternalUserController {
 
         return users.map(userMapper::toUserMessageResponseDTO);
     }
-    
+
     @GetMapping("/{id}/exist")
     public Boolean checkStudentExistById(@PathVariable("id") UUID id) {
         try {
@@ -64,9 +65,9 @@ public class InternalUserController {
         }
     }
 
-    @GetMapping("/current_user")
-    public UserResponseDTO getCurrentUser() {
-        return userMapper.toUserResponseDTO(userService.getCurrentUser());
+    @GetMapping("/current-user")
+    public UserDetailsResponseDTO getCurrentUser() {
+        return userMapper.toUserDetailsResponseDTO(userService.getCurrentUser());
     }
 
 }

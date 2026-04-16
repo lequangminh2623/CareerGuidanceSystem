@@ -1,14 +1,13 @@
 'use client';
 
-import { useContext } from "react";
-import { MyUserContext } from "@/lib/contexts/userContext";
+import { useAppSelector } from "@/store/hooks";
 import StudentStatistics from "./StudentStatistics";
 import TeacherStatistics from "./TeacherStatistics";
 import { useTranslation } from "react-i18next";
 import { FiBarChart2 } from "react-icons/fi";
 
 const StatisticsClient = () => {
-    const user = useContext(MyUserContext);
+    const user = useAppSelector((state) => state.auth.user);
     const { t } = useTranslation();
     const role = user?.role;
 
@@ -22,9 +21,9 @@ const StatisticsClient = () => {
                 </h1>
                 <p className="mt-2 text-sm text-gray-500">
                     {role === "Student"
-                        ? t("Student-stats-desc")
+                        ? t("student-stats-desc")
                         : role === "Teacher"
-                            ? t("Teacher-stats-desc")
+                            ? t("teacher-stats-desc")
                             : t("general-stats-desc")}
                 </p>
             </div>

@@ -34,12 +34,12 @@ const CompactHeader = () => {
                 <div className="flex justify-between items-center">
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-2 group">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                        <div className="w-8 h-8 bg-linear-135 from-[#6366f1] to-[#3b82f6] rounded-[8px] flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform shadow-indigo-500/20">
                             <span className="text-white font-bold text-lg">
                                 <FaGraduationCap />
                             </span>
                         </div>
-                        <span className="text-xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
+                        <span className="text-xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-[#6366f1] to-[#3b82f6] tracking-tight">
                             Scholar
                         </span>
                     </Link>

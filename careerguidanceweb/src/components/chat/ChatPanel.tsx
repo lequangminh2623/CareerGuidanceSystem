@@ -21,6 +21,7 @@ interface ChatPanelProps {
     groupChatHook?: ReturnType<typeof useFirebaseGroupChat>;
     onOpenGroupSettings?: () => void;
     currentUserName?: string;
+    allUsers?: ApiUser[];
 }
 
 export default function ChatPanel({
@@ -35,6 +36,7 @@ export default function ChatPanel({
     groupChatHook,
     onOpenGroupSettings,
     currentUserName,
+    allUsers = [],
 }: ChatPanelProps) {
     const { t } = useTranslation();
     const [text, setText] = useState("");
@@ -101,7 +103,7 @@ export default function ChatPanel({
     const displayName = isGroup ? groupName : `${otherUser.lastName} ${otherUser.firstName}`;
     const displayAvatar = isGroup
         ? (groupAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(groupName || 'Group')}&background=random&color=fff&bold=true`)
-        : (otherUser.avatar || '/images/default-avatar.png');
+        : (otherUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.lastName + ' ' + otherUser.firstName)}&background=6366f1&color=fff&bold=true`);
 
     return (
         <div className="flex flex-col flex-1 h-full bg-white/40 backdrop-blur-md text-gray-800 border-l border-white/20 overflow-hidden">
@@ -112,10 +114,10 @@ export default function ChatPanel({
                         <Image
                             src={displayAvatar}
                             alt={displayName || ""}
-                            width={42}
-                            height={42}
-                            className="rounded-full object-cover border-2 border-white w-[42px] h-[42px]"
-                            unoptimized={isGroup}
+                            fill
+                            sizes="42px"
+                            className="rounded-full object-cover border-2 border-white"
+                            unoptimized
                         />
                     </div>
                     {!isGroup && (
@@ -153,7 +155,8 @@ export default function ChatPanel({
                         width={80}
                         height={80}
                         className="rounded-full object-cover w-[80px] h-[80px] mb-3"
-                        unoptimized={isGroup}
+                        unoptimized
+                        sizes="80px"
                     />
                     <h2 className="text-lg font-bold text-gray-800">{displayName}</h2>
                     <p className="text-sm text-gray-400">
@@ -172,16 +175,17 @@ export default function ChatPanel({
                             className={`flex ${isMe ? "justify-end" : "justify-start"} ${!isLastInSequence ? "mb-1" : "mb-3"}`}
                         >
                             {!isMe && isLastInSequence ? (
-                                <Image
+                                    <Image
                                     src={isGroup
-                                        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(m.senderName || '?')}&background=random&color=fff&size=28`
-                                        : (otherUser.avatar || '/images/default-avatar.png')
+                                        ? (allUsers.find(u => u.email === m.senderId)?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.senderName || '?')}&background=random&color=fff&size=28`)
+                                        : (otherUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.lastName + ' ' + otherUser.firstName)}&background=6366f1&color=fff&bold=true`)
                                     }
                                     alt={m.senderName || ""}
                                     width={28}
                                     height={28}
                                     className="rounded-full self-start mt-1 mr-2 w-7 h-7 object-cover"
-                                    unoptimized={isGroup}
+                                    unoptimized
+                                    sizes="28px"
                                 />
                             ) : (
                                 !isMe && <div className="w-9 mr-2"></div>
@@ -238,8 +242,8 @@ export default function ChatPanel({
                         type="submit"
                         disabled={!text.trim()}
                         className={`p-3 rounded-2xl transition-all duration-300 shadow-lg flex items-center justify-center ${text.trim()
-                                ? "bg-linear-to-br from-blue-600 to-indigo-600 text-white scale-100 hover:scale-105 active:scale-95 shadow-blue-500/30"
-                                : "bg-gray-100 text-gray-300 scale-95 shadow-none"
+                            ? "bg-linear-to-br from-blue-600 to-indigo-600 text-white scale-100 hover:scale-105 active:scale-95 shadow-blue-500/30"
+                            : "bg-gray-100 text-gray-300 scale-95 shadow-none"
                             }`}
                     >
                         <PaperAirplaneIcon className="w-5 h-5" />

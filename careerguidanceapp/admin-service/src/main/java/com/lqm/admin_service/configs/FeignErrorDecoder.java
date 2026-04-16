@@ -41,8 +41,12 @@ public class FeignErrorDecoder implements ErrorDecoder {
         if (responseBody != null) {
             int status = response.status();
 
-            if (status == HttpStatus.BAD_REQUEST.value() && responseBody.details() != null) {
-                return new ValidationException(responseBody.message(), responseBody.details());
+            if (status == HttpStatus.BAD_REQUEST.value()) {
+                if (responseBody.details() != null) {
+                    return new ValidationException(responseBody.message(), responseBody.details());
+                } else {
+                    return new com.lqm.admin_service.exceptions.BadRequestException(responseBody.message());
+                }
             }
 
             // Có thể xử lý thêm các lỗi khác như 404, 401, 500 nếu muốn...

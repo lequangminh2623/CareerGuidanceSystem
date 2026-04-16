@@ -44,8 +44,7 @@ public class AdminUserController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of("lastName:acs")
-        );
+                List.of("lastName:acs"));
         Page<User> users = userService.getUsersByIds(ids, params, pageable);
 
         return users.map(userMapper::toUserResponseDTO);
@@ -56,8 +55,7 @@ public class AdminUserController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of("lastName:acs")
-        );
+                List.of("lastName:acs"));
         Page<User> users = userService.getUsers(params, pageable);
 
         return users.map(userMapper::toUserResponseDTO);
@@ -68,8 +66,7 @@ public class AdminUserController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
-                List.of("lastName:acs")
-        );
+                List.of("lastName:acs"));
         Page<User> users = userService.getUsers(params, pageable);
 
         return users.map(userMapper::toUserDetailsResponseDTO);
@@ -87,7 +84,7 @@ public class AdminUserController {
 
     @PostMapping(path = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void saveUser(@RequestPart("user") @Valid AdminUserRequestDTO adminUserRequestDTO,
-                         @RequestPart("file") MultipartFile file) {
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         User user = userMapper.toEntity(adminUserRequestDTO);
         userService.saveUser(user, file, adminUserRequestDTO.code());
     }
@@ -102,4 +99,8 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.getUserStatistics());
     }
 
+    @GetMapping("/current-user")
+    public UserDetailsResponseDTO getCurrentUser() {
+        return userMapper.toUserDetailsResponseDTO(userService.getCurrentUser());
+    }
 }

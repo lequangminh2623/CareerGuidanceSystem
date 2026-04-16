@@ -11,9 +11,9 @@ import java.util.UUID;
 public record SemesterRequestDTO(
         UUID id,
 
-        @EnumValue(enumClass = SemesterType.class, message = "semester.name.invalid")
+        @EnumValue(enumClass = SemesterType.class, message = "{semester.name.invalid}")
         String name,
 
-        @NotNull(message = "semester.year.notNull")
+        @NotNull(message = "{semester.year.notNull}")
         UUID yearId
 ) {}

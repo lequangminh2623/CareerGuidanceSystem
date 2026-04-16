@@ -21,13 +21,13 @@ import com.lqm.academic_service.clients.UserClient;
 import com.lqm.academic_service.dtos.SectionResponseDTO;
 import com.lqm.academic_service.dtos.UserResponseDTO;
 import com.lqm.academic_service.mappers.SectionMapper;
+import com.lqm.academic_service.exceptions.ForbiddenException;
 
 import com.lqm.academic_service.models.Section;
 import com.lqm.academic_service.services.SectionService;
 import com.lqm.academic_service.utils.PageSize;
 import com.lqm.academic_service.utils.PageableUtil;
 
-import jakarta.ws.rs.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 
 @RestController

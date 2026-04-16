@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-
 public interface SectionService {
 
     Page<Section> getSectionsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable);
@@ -21,7 +20,9 @@ public interface SectionService {
 
     void saveSections(Map<UUID, Section> curriculumSectionMap, UUID classroomId);
 
-    void  changeScoreStatus(UUID id, ScoreStatusType scoreStatusType);
+    Section saveSingleSection(Section section, UUID classroomId, UUID curriculumId);
+
+    void changeScoreStatus(UUID id, ScoreStatusType scoreStatusType);
 
     void lockSection(UUID sectionId);
 

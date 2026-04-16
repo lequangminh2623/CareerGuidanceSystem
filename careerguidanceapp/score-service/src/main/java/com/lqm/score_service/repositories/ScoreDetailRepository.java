@@ -45,6 +45,8 @@ public interface ScoreDetailRepository extends JpaRepository<ScoreDetail, UUID>,
 
     void deleteAllBySectionIdInAndStudentIdIn(List<UUID> sectionIds, List<UUID> studentIds);
 
+    void deleteAllBySectionId(UUID sectionId);
+
     @EntityGraph(value = "extraScoreSet", type = EntityGraph.EntityGraphType.FETCH)
     List<ScoreDetail> findByStudentId(UUID studentId);
 

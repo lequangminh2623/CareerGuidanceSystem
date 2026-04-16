@@ -88,12 +88,16 @@ public class ScoreServiceImpl implements ScoreService {
     public void syncScoresForClassroom(SyncScoreRequestDTO request) {
 
         // 1. THỰC HIỆN XÓA (Clean up dữ liệu cũ trước)
-        if (request.removedStudentIds() != null && !request.removedStudentIds().isEmpty()
-                && request.sectionIds() != null && !request.sectionIds().isEmpty()) {
-
-            scoreDetailRepo.deleteAllBySectionIdInAndStudentIdIn(
-                    request.sectionIds(),
-                    request.removedStudentIds());
+        if (request.sectionIds() != null && !request.sectionIds().isEmpty()) {
+            if (request.removedStudentIds() != null && !request.removedStudentIds().isEmpty()) {
+                scoreDetailRepo.deleteAllBySectionIdInAndStudentIdIn(
+                        request.sectionIds(),
+                        request.removedStudentIds());
+            } else if (request.newStudentIds() == null || request.newStudentIds().isEmpty()) {
+                // Nếu không có học sinh mới và cũng không có học sinh bị xóa cụ thể, 
+                // nhưng có sectionIds -> Xóa toàn bộ điểm của các section này
+                request.sectionIds().forEach(scoreDetailRepo::deleteAllBySectionId);
+            }
         }
 
         // 2. THỰC HIỆN THÊM (Khởi tạo điểm cho học sinh mới)
@@ -109,7 +113,15 @@ public class ScoreServiceImpl implements ScoreService {
                         ? sample.getExtraScoreSet().size()
                         : 0;
 
+                // Lấy danh sách điểm hiện hành để kiểm tra tồn tại, tránh N+1 và vi phạm unique constraint
+                Set<UUID> existingStudentIds = scoreDetailRepo.findBySectionId(sectionId)
+                        .stream().map(ScoreDetail::getStudentId).collect(Collectors.toSet());
+
                 for (UUID studentId : request.newStudentIds()) {
+                    if (existingStudentIds.contains(studentId)) {
+                        continue;
+                    }
+
                     ScoreDetail scoreDetail = ScoreDetail.builder()
                             .sectionId(sectionId)
                             .studentId(studentId)
@@ -303,9 +315,13 @@ public class ScoreServiceImpl implements ScoreService {
                     reqs.add(sd);
 
                 } catch (IllegalArgumentException e) {
-                    throw new BadRequestException(String.format("line.error %d: %s", lineNo, e.getMessage()));
+                    String msg = messageSource.getMessage("line.error", new Object[] { lineNo, e.getMessage() },
+                            Locale.getDefault());
+                    throw new BadRequestException(msg);
                 } catch (Exception e) {
-                    throw new BadRequestException(String.format("line.error %d", lineNo));
+                    String msg = messageSource.getMessage("line.error.generic", new Object[] { lineNo },
+                            Locale.getDefault());
+                    throw new BadRequestException(msg);
                 }
             }
 

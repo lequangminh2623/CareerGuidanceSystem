@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChatRoom } from "@/hooks/useFirebaseChat";
 import { GroupRoom } from "@/hooks/useFirebaseGroupChat";
-import { ApiUser, emailToUid } from "@/components/chat/index";
+import { ApiUser } from "@/components/chat/index";
 import { PlusIcon, UserGroupIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
@@ -104,8 +104,8 @@ export default function Sidebar({
                 <button
                     onClick={() => setActiveTab("personal")}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all duration-200 relative ${activeTab === "personal"
-                            ? "text-blue-600"
-                            : "text-gray-400 hover:text-gray-600"
+                        ? "text-blue-600"
+                        : "text-gray-400 hover:text-gray-600"
                         }`}
                 >
                     <ChatBubbleLeftRightIcon className="w-4 h-4" />
@@ -117,8 +117,8 @@ export default function Sidebar({
                 <button
                     onClick={() => setActiveTab("group")}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all duration-200 relative ${activeTab === "group"
-                            ? "text-blue-600"
-                            : "text-gray-400 hover:text-gray-600"
+                        ? "text-blue-600"
+                        : "text-gray-400 hover:text-gray-600"
                         }`}
                 >
                     <UserGroupIcon className="w-4 h-4" />
@@ -143,14 +143,14 @@ export default function Sidebar({
                         )}
                         {[...users]
                             .sort((a, b) => {
-                                const roomA = getRoomForUser(emailToUid(a.email), currentUserUid, chatRooms);
-                                const roomB = getRoomForUser(emailToUid(b.email), currentUserUid, chatRooms);
+                                const roomA = getRoomForUser(a.email, currentUserUid, chatRooms);
+                                const roomB = getRoomForUser(b.email, currentUserUid, chatRooms);
                                 const tA = roomA?.lastMessageAt?.toMillis?.() ?? 0;
                                 const tB = roomB?.lastMessageAt?.toMillis?.() ?? 0;
                                 return tB - tA;
                             })
                             .map(u => {
-                                const userUid = emailToUid(u.email);
+                                const userUid = u.email;
                                 const room = getRoomForUser(userUid, currentUserUid, chatRooms);
                                 const isActive = room && activeChatId === room.id;
                                 const hasChat = !!room?.lastMessageAt;
@@ -168,8 +168,8 @@ export default function Sidebar({
                                         key={u.email}
                                         onClick={() => onSelectUser(u)}
                                         className={`relative flex items-center gap-3 px-4 py-4 cursor-pointer transition-all duration-200 group ${isActive
-                                                ? "bg-blue-50/80 backdrop-blur-sm"
-                                                : "hover:bg-gray-50/50"
+                                            ? "bg-blue-50/80 backdrop-blur-sm"
+                                            : "hover:bg-gray-50/50"
                                             }`}
                                     >
                                         {isActive && (
@@ -178,11 +178,12 @@ export default function Sidebar({
                                         <div className="relative shrink-0">
                                             <div className={`p-0.5 rounded-full ${isActive ? 'ring-2 ring-blue-500/20' : 'group-hover:ring-2 group-hover:ring-gray-200'}`}>
                                                 <Image
-                                                    src={u.avatar || "/images/default-avatar.png"}
+                                                    src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.lastName + ' ' + u.firstName)}&background=random&color=fff&bold=true`}
                                                     alt={u.firstName}
                                                     width={48}
                                                     height={48}
                                                     className="rounded-full object-cover w-12 h-12 shadow-sm"
+                                                    unoptimized
                                                 />
                                             </div>
                                         </div>
@@ -256,8 +257,8 @@ export default function Sidebar({
                                     key={group.id}
                                     onClick={() => onSelectGroup(group)}
                                     className={`relative flex items-center gap-3 px-4 py-4 cursor-pointer transition-all duration-200 group ${isActive
-                                            ? "bg-blue-50/80 backdrop-blur-sm"
-                                            : "hover:bg-gray-50/50"
+                                        ? "bg-blue-50/80 backdrop-blur-sm"
+                                        : "hover:bg-gray-50/50"
                                         }`}
                                 >
                                     {isActive && (

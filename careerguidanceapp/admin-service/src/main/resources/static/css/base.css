@@ -156,4 +156,4 @@ footer {
 .shadow-indigo { box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3) !important; }
 .tracking-tight { letter-spacing: -0.025em; }
 .tracking-wider { letter-spacing: 0.05em; }
-.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-tighter { letter-spacing: -0.05em; }.grow { flex-grow: 1 !important; }

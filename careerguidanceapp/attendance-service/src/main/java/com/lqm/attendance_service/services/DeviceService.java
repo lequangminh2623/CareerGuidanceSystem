@@ -28,6 +28,8 @@ public interface DeviceService {
 
     void deleteDevice(String deviceId);
 
+    void unassignDeviceByClassroomId(UUID classroomId);
+
     Map<UUID, String> buildClassroomMap(List<Device> devices);
 
     boolean existDeviceById(String id);

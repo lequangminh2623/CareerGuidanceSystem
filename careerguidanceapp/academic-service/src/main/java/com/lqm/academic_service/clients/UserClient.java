@@ -17,9 +17,10 @@ public interface UserClient {
     Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
 
     @PostMapping("/messages")
-    Page<UserMessageResponseDTO> getUsersMessages(@RequestBody List<UUID> ids,@RequestParam Map<String, String> params);
+    Page<UserMessageResponseDTO> getUsersMessages(@RequestBody List<UUID> ids,
+            @RequestParam Map<String, String> params);
 
-    @GetMapping("/current_user")
+    @GetMapping("/current-user")
     UserResponseDTO getCurrentUser();
 
 }

@@ -7,6 +7,10 @@ import logging
 from typing import List, Dict, Optional
 
 import google.generativeai as genai
+import vertexai
+from vertexai.generative_models import GenerativeModel as VertexGenerativeModel, Content, Part
+
+# ... (Careful to keep other imports)
 
 from app.config import settings
 from app.models.schemas import (
@@ -55,28 +59,24 @@ _chat_model = None
 
 def initialize():
     """
-    Initialize Gemini API with the API key.
+    Initialize Gemini API (Vertex AI).
     Must be called on application startup.
+    Uses the SAME fine-tuned model for both initial guidance and follow-up chat.
     """
     global _finetuned_model, _chat_model
 
-    genai.configure(api_key=settings.GEMINI_API_KEY)
+    # Initialize Vertex AI
+    vertexai.init(project=settings.GOOGLE_CLOUD_PROJECT, location=settings.GOOGLE_CLOUD_REGION)
+    
+    # Resource name for the fine-tuned model endpoint
+    model_resource_name = f"projects/{settings.GOOGLE_CLOUD_PROJECT}/locations/{settings.GOOGLE_CLOUD_REGION}/endpoints/{settings.GEMINI_MODEL_NAME}"
 
-    # Fine-tuned model for career guidance (Flow 1 & Flow 2)
-    _finetuned_model = genai.GenerativeModel(
-        model_name=settings.GEMINI_MODEL_NAME
-    )
+    # Initialize models using the fine-tuned endpoint
+    # We use the same model for both to ensure consistent counseling logic.
+    _finetuned_model = VertexGenerativeModel(model_resource_name)
+    _chat_model = _finetuned_model
 
-    # General model for follow-up chat with system instruction
-    _chat_model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=CAREER_COUNSELOR_INSTRUCTION,
-    )
-
-    logger.info(
-        "Gemini API initialized: fine-tuned=%s, chat=gemini-2.0-flash",
-        settings.GEMINI_MODEL_NAME,
-    )
+    logger.info("✓ Vertex AI initialized (using tuned model for ALL flows: %s)", model_resource_name)
 
 
 # ══════════════════════════════════════════════
@@ -156,6 +156,10 @@ def get_academic_guidance(
 # ══════════════════════════════════════════════
 
 
+# Max history messages to keep for context (5 pairs)
+MAX_HISTORY_MESSAGES = 10
+
+
 def chat_followup(
     message: str,
     history: List[Dict[str, str]],
@@ -164,16 +168,6 @@ def chat_followup(
     """
     Handle a follow-up chat message using the general Gemini model
     with career counselor system instruction.
-
-    Args:
-        message: The user's new message
-        history: Previous conversation history as list of
-                 {"role": "user"/"model", "content": "..."}
-        initial_context: Optional dict with "holland_result" and/or
-                        "academic_result" to include as context
-
-    Returns:
-        The model's reply text
     """
     if _chat_model is None:
         raise GeminiApiError("Gemini chưa được khởi tạo")
@@ -182,43 +176,44 @@ def chat_followup(
         # Build the conversation history for Gemini
         gemini_history = []
 
-        # Inject the initial guidance results as context if this is early in the chat
-        if initial_context and len(history) == 0:
+        # 1. ALWAYS inject the initial guidance results as base context.
+        # This ensures that even if history is truncated, the AI knows the user's profile.
+        if initial_context:
             context_parts = []
             if "holland_result" in initial_context:
-                context_parts.append(
-                    f"Kết quả tư vấn Holland: {initial_context['holland_result']}"
-                )
+                # Truncate context if it's extremely long to save tokens
+                res = initial_context["holland_result"]
+                if len(res) > 1500:
+                    res = res[:1400] + "... [nội dung đã được lược bớt để tiết kiệm bộ nhớ]"
+                context_parts.append(f"Kết quả RIASEC: {res}")
             if "academic_result" in initial_context:
-                context_parts.append(
-                    f"Kết quả phân tích học tập: {initial_context['academic_result']}"
-                )
+                res = initial_context["academic_result"]
+                if len(res) > 1500:
+                    res = res[:1400] + "... [nội dung đã được lược bớt để tiết kiệm bộ nhớ]"
+                context_parts.append(f"Kết quả phân tích học tập: {res}")
 
             if context_parts:
                 context_msg = (
-                    "Dưới đây là kết quả tư vấn ban đầu của học sinh:\n\n"
+                    "Dưới đây là bối cảnh ban đầu của học sinh (HÃY LUÔN GHI NHỚ THÔNG TIN NÀY):\n\n"
                     + "\n\n".join(context_parts)
-                    + "\n\nHãy sử dụng thông tin này làm bối cảnh để trả lời "
-                    "các câu hỏi tiếp theo của học sinh."
+                    + "\n\nHãy sử dụng thông tin này làm nền tảng để trả lời các câu hỏi."
                 )
                 gemini_history.append(
-                    {"role": "user", "parts": [context_msg]}
+                    Content(role="user", parts=[Part.from_text(context_msg)])
                 )
                 gemini_history.append(
-                    {
-                        "role": "model",
-                        "parts": [
-                            "Tôi đã nhận được kết quả tư vấn ban đầu. "
-                            "Tôi sẽ sử dụng thông tin này để hỗ trợ em tốt hơn. "
-                            "Em có câu hỏi gì thêm không?"
-                        ],
-                    }
+                    Content(
+                        role="model",
+                        parts=[Part.from_text("Tôi đã nắm được thông tin định hướng ban đầu. Tôi sẵn sàng trả lời các câu hỏi tiếp theo dựa trên bối cảnh này.")],
+                    )
                 )
 
-        # Add previous conversation messages
-        for msg in history:
+        # 2. Add previous conversation messages (TRUNCATED to save tokens)
+        truncated_history = history[-MAX_HISTORY_MESSAGES:] if len(history) > MAX_HISTORY_MESSAGES else history
+        
+        for msg in truncated_history:
             gemini_history.append(
-                {"role": msg["role"], "parts": [msg["content"]]}
+                Content(role=msg["role"], parts=[Part.from_text(msg["content"])])
             )
 
         # Start chat with history
@@ -226,7 +221,7 @@ def chat_followup(
         response = chat.send_message(message)
         result = response.text.strip()
 
-        logger.info("Chat reply: %s", result[:200])
+        logger.info("Chat reply (history size: %d): %s", len(truncated_history), result[:100])
         return result
 
     except Exception as e:

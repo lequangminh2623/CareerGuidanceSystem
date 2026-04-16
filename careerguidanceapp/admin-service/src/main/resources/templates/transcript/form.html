@@ -11,15 +11,17 @@
 <body class="d-flex flex-column min-vh-100 bg-light">
     <p th:replace="~{base :: header}"></p>
 
-    <main class="flex-grow-1 container py-4">
+    <main class="grow container py-4">
         <div class="page-header mb-4 mt-2">
             <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Dashboard</a>
                     </li>
+                    <li class="breadcrumb-item"><a th:href="@{/classrooms(gradeId=${params['gradeId']})}"
+                            class="text-decoration-none text-muted">Lớp học</a></li>
                     <li class="breadcrumb-item"><a
                             th:href="@{/classrooms/{id}/sections(id=${section.classroomId}, gradeId=${params['gradeId']})}"
-                            class="text-decoration-none text-muted">Lớp học</a></li>
+                            class="text-decoration-none text-muted">Phân công</a></li>
                     <li class="breadcrumb-item active text-primary" aria-current="page">Bảng điểm</li>
                 </ol>
             </nav>
@@ -46,7 +48,8 @@
             </div>
         </div>
 
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
+        <div th:if="${errorMessage}"
+            class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold" th:text="${errorMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -58,24 +61,27 @@
                 <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <div class="info-pill bg-indigo-light rounded-pill border border-indigo-subtle d-flex align-items-center px-3 py-1 shadow-sm"
-                             style="background-color: #f0f3ff; border: 1px solid #c5cfff; width: fit-content;">
+                            style="background-color: #f0f3ff; border: 1px solid #c5cfff; width: fit-content;">
 
-                            <div class="d-flex align-items-center me-2 border-end border-indigo-subtle pe-2 text-indigo">
+                            <div
+                                class="d-flex align-items-center me-2 border-end border-indigo-subtle pe-2 text-indigo">
                                 <i class="fas fa-shield-alt fs-13 me-2"></i>
-                                <span class="fs-11 fw-bolder text-uppercase tracking-wider" style="white-space: nowrap;">Trạng thái</span>
+                                <span class="fs-11 fw-bolder text-uppercase tracking-wider"
+                                    style="white-space: nowrap;">Trạng thái</span>
                             </div>
 
                             <select id="transcriptStatus"
-                                    class="form-select form-select-sm border-0 fw-bold text-indigo bg-transparent shadow-none p-0 fs-13"
-                                    th:data-section-id="${section.id}"
-                                    th:data-current-status="${section.scoreStatus}"
-                                    onchange="changeTranscriptStatus(this)"
-                                    style="width: auto; cursor: pointer; min-width: 140px; color: #4e59ff;">
+                                class="form-select form-select-sm border-0 fw-bold text-indigo bg-transparent shadow-none p-0 fs-13"
+                                th:data-section-id="${section.id}" th:data-current-status="${section.scoreStatus}"
+                                onchange="changeTranscriptStatus(this)"
+                                style="width: auto; cursor: pointer; min-width: 140px; color: #4e59ff;">
 
-                                <option value="Draft" th:selected="${section.scoreStatus == 'Draft'}" class="bg-white text-dark">
+                                <option value="Draft" th:selected="${section.scoreStatus == 'Draft'}"
+                                    class="bg-white text-dark">
                                     BẢN NHÁP
                                 </option>
-                                <option value="Locked" th:selected="${section.scoreStatus == 'Locked'}" class="bg-white text-dark">
+                                <option value="Locked" th:selected="${section.scoreStatus == 'Locked'}"
+                                    class="bg-white text-dark">
                                     ĐÃ KHÓA
                                 </option>
                             </select>

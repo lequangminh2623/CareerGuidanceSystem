@@ -11,7 +11,7 @@
 <body class="d-flex flex-column min-vh-100 bg-light">
     <p th:replace="~{base :: header}"></p>
 
-    <main class="flex-grow-1 container py-4" style="max-width: 1100px;">
+    <main class="grow container py-4" style="max-width: 1100px;">
         <th:block th:if="${params['classroomId'] != null and params['classroomId'] != ''}">
             <div class="page-header mb-4 mt-2">
                 <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
@@ -36,12 +36,14 @@
                 </div>
             </div>
 
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
+            <div th:if="${successMessage}"
+                class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
                 <i class="fas fa-check-circle me-2"></i><span class="fw-bold" th:text="${successMessage}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
+            <div th:if="${errorMessage}"
+                class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-xl mb-4" role="alert">
                 <i class="fas fa-exclamation-triangle me-2"></i><span class="fw-bold" th:text="${errorMessage}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -161,8 +163,7 @@
                             class="card-footer bg-white p-4 border-top d-flex justify-content-between align-items-center">
                             <button type="button"
                                 class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-bold hover-translate-y"
-                                th:data-url="@{/attendances/delete}"
-                                onclick="confirmDeleteAttendance(this)">
+                                th:data-url="@{/attendances/delete}" onclick="confirmDeleteAttendance(this)">
                                 <i class="fas fa-trash-alt me-2"></i> Xóa dữ liệu ngày này
                             </button>
                             <script>

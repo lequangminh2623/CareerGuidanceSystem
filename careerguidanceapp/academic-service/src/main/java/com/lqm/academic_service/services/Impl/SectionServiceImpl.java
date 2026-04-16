@@ -1,6 +1,9 @@
 package com.lqm.academic_service.services.Impl;
 
+import com.lqm.academic_service.clients.ScoreAdminClient;
+import com.lqm.academic_service.clients.ChatAdminClient;
 import com.lqm.academic_service.clients.UserClient;
+import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
 import com.lqm.academic_service.dtos.UserMessageResponseDTO;
 import com.lqm.academic_service.dtos.UserResponseDTO;
 import com.lqm.academic_service.exceptions.BadRequestException;
@@ -37,7 +40,9 @@ public class SectionServiceImpl implements SectionService {
     private final CurriculumService curriculumService;
     private final UserClient userClient;
     private final ScoreClient scoreClient;
+    private final ScoreAdminClient scoreAdminClient;
     private final EmailRedisPublisher emailRedisPublisher;
+    private final ChatAdminClient chatAdminClient;
 
     @Override
     public Page<Section> getSectionsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
@@ -62,6 +67,19 @@ public class SectionServiceImpl implements SectionService {
     public void saveSections(Map<UUID, Section> curriculumSectionMap, UUID classroomId) {
         Classroom classroom = classroomService.getClassroomById(classroomId);
 
+        // Track existing teachers to determine chat group updates
+        List<UUID> incomingSectionIds = curriculumSectionMap.values().stream()
+                .map(Section::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        Map<UUID, UUID> existingTeacherMap = new HashMap<>();
+        if (!incomingSectionIds.isEmpty()) {
+            sectionRepo.findAllById(incomingSectionIds).forEach(sec -> {
+                existingTeacherMap.put(sec.getId(), sec.getTeacherId());
+            });
+        }
+
         Map<UUID, Curriculum> curriculumEntities = curriculumService.getCurriculumsByIds(
                 curriculumSectionMap.keySet().stream().toList(),
                 Map.of(),
@@ -73,7 +91,37 @@ public class SectionServiceImpl implements SectionService {
             section.setClassroom(classroom);
         });
 
-        sectionRepo.saveAll(curriculumSectionMap.values());
+        List<Section> savedSections = sectionRepo.saveAll(curriculumSectionMap.values());
+        handleChatGroups(classroom, savedSections, existingTeacherMap);
+    }
+
+    @Override
+    public Section saveSingleSection(Section section, UUID classroomId, UUID curriculumId) {
+        Classroom classroom = classroomService.getClassroomById(classroomId);
+        Curriculum curriculum = curriculumService.getCurriculumById(curriculumId);
+
+        section.setCurriculum(curriculum);
+        section.setClassroom(classroom);
+
+        Section savedSection = sectionRepo.save(section);
+
+        // Đồng bộ chat groups
+        handleChatGroups(classroom, List.of(savedSection), Map.of());
+
+        // Đồng bộ điểm riêng cho section mới tạo
+        List<UUID> studentIds = classroom.getStudentClassroomSet().stream()
+                .map(StudentClassroom::getStudentId)
+                .toList();
+
+        if (!studentIds.isEmpty()) {
+            SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
+                    List.of(savedSection.getId()),
+                    studentIds,
+                    Collections.emptyList());
+            scoreAdminClient.syncScoresForClassroom(syncRequest);
+        }
+
+        return savedSection;
     }
 
     @Override
@@ -92,7 +140,8 @@ public class SectionServiceImpl implements SectionService {
         }
 
         if (!Boolean.TRUE.equals(scoreClient.isTranscriptFullyScored(sectionId))) {
-            throw new ForbiddenException(messageSource.getMessage("transcript.notFullyScored", null, Locale.getDefault()));
+            throw new ForbiddenException(
+                    messageSource.getMessage("transcript.notFullyScored", null, Locale.getDefault()));
         }
 
         section.setScoreStatus(ScoreStatusType.LOCKED);
@@ -110,27 +159,28 @@ public class SectionServiceImpl implements SectionService {
 
             if (!studentIds.isEmpty()) {
                 Page<UserMessageResponseDTO> students = userClient.getUsersMessages(studentIds, Map.of("page", ""));
-                
+
                 String subjectName = section.getCurriculum().getSubject().getName();
                 String className = section.getClassroom().getName();
                 String semesterName = section.getCurriculum().getSemester().getName().toString();
                 String schoolYear = section.getCurriculum().getSemester().getYear().getName();
-                
-                String emailSubject = String.format("[Scholar] Thông báo khóa điểm môn %s - Lớp %s", subjectName, className);
-                
+
+                String emailSubject = String.format("[Scholar] Thông báo khóa điểm môn %s - Lớp %s", subjectName,
+                        className);
+
                 String bodyTemplate = """
                         Chào %s,
-                        
+
                         Chúng tôi xin thông báo rằng giáo viên đã thực hiện khóa bảng điểm cho:
                         - Môn học: %s
                         - Lớp: %s
                         - Học kỳ: %s
                         - Năm học: %s
-                        
+
                         Hiện tại, bạn đã có thể đăng nhập vào hệ thống Scholar để kiểm tra kết quả học tập của mình.
-                        
+
                         Nếu có bất kỳ thắc mắc nào về điểm số, vui lòng liên hệ trực tiếp với giáo viên bộ môn hoặc văn phòng nhà trường.
-                        
+
                         Trân trọng,
                         Đội ngũ Scholar!
                         """;
@@ -138,11 +188,11 @@ public class SectionServiceImpl implements SectionService {
                 students.forEach(student -> {
                     if (student.email() != null && !student.email().isBlank()) {
                         String fullName = student.lastName() + " " + student.firstName();
-                        String body = String.format(bodyTemplate, 
-                                fullName, 
-                                subjectName, 
-                                className, 
-                                semesterName, 
+                        String body = String.format(bodyTemplate,
+                                fullName,
+                                subjectName,
+                                className,
+                                semesterName,
                                 schoolYear);
                         emailRedisPublisher.publish(new MailMessageDTO(student.email(), emailSubject, body));
                     }
@@ -156,6 +206,16 @@ public class SectionServiceImpl implements SectionService {
 
     @Override
     public void deleteSection(UUID id) {
+        // Đồng bộ xóa điểm trong score-service trước khi xóa section
+        SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
+                List.of(id),
+                Collections.emptyList(),
+                Collections.emptyList());
+        scoreAdminClient.syncScoresForClassroom(syncRequest);
+
+        // Xóa nhóm chat
+        chatAdminClient.deleteGroupChat(id);
+
         sectionRepo.deleteById(id);
     }
 
@@ -210,5 +270,58 @@ public class SectionServiceImpl implements SectionService {
                 .collect(Collectors.toMap(
                         UserResponseDTO::id,
                         user -> user.lastName() + " " + user.firstName()));
+    }
+
+    private void handleChatGroups(Classroom classroom, List<Section> savedSections, Map<UUID, UUID> existingTeacherMap) {
+        List<UUID> studentIds = classroom.getStudentClassroomSet().stream()
+                .map(StudentClassroom::getStudentId)
+                .toList();
+
+        List<String> studentEmails = new ArrayList<>();
+        if (!studentIds.isEmpty()) {
+            studentEmails = userClient.getUsersMessages(studentIds, Map.of("page", "")).getContent().stream()
+                    .filter(u -> u.email() != null && !u.email().isBlank())
+                    .map(UserMessageResponseDTO::email)
+                    .toList();
+        }
+
+        Map<UUID, String> teacherEmails = new HashMap<>();
+
+        for (Section sec : savedSections) {
+            UUID oldTeacherId = existingTeacherMap.get(sec.getId());
+            UUID newTeacherId = sec.getTeacherId();
+
+            if (Objects.equals(oldTeacherId, newTeacherId)) continue; // No change
+
+            if (oldTeacherId == null && newTeacherId != null) {
+                // Tạo mới group chat
+                String newEmail = getTeacherEmail(newTeacherId, teacherEmails);
+                if (newEmail != null) {
+                    String groupName = classroom.getName() + " - " + sec.getCurriculum().getSubject().getName() + " - " + sec.getCurriculum().getSemester().getName() + " - " + sec.getCurriculum().getSemester().getYear().getName();
+                    chatAdminClient.createGroupChat(new ChatAdminClient.CreateGroupRequest(sec.getId(), groupName, newEmail, studentEmails));
+                }
+            } else if (oldTeacherId != null && newTeacherId != null) {
+                // Đổi giáo viên
+                String oldEmail = getTeacherEmail(oldTeacherId, teacherEmails);
+                String newEmail = getTeacherEmail(newTeacherId, teacherEmails);
+                if (oldEmail != null && newEmail != null) {
+                    chatAdminClient.updateTeacher(new ChatAdminClient.UpdateTeacherRequest(sec.getId(), oldEmail, newEmail));
+                }
+            } else if (oldTeacherId != null && newTeacherId == null) {
+                // Xóa group chat
+                chatAdminClient.deleteGroupChat(sec.getId());
+            }
+        }
+    }
+
+    private String getTeacherEmail(UUID teacherId, Map<UUID, String> emailCache) {
+        if (emailCache.containsKey(teacherId)) return emailCache.get(teacherId);
+        Page<UserMessageResponseDTO> users = userClient.getUsersMessages(List.of(teacherId), Map.of("page", ""));
+        String email = users.getContent().stream()
+                .findFirst()
+                .map(UserMessageResponseDTO::email)
+                .orElse(null);
+        emailCache.put(teacherId, email);
+        return email;
     }
 }

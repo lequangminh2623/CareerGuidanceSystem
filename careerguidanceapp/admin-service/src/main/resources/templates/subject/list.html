@@ -10,12 +10,13 @@
 
 <body class="d-flex flex-column min-vh-100 bg-light">
     <p th:replace="~{base :: header}"></p>
-    <main class="flex-grow-1 container py-5">
+    <main class="grow container py-5">
         <div class="page-header mb-4">
             <div>
                 <nav aria-label="breadcrumb" class="mb-2 text-muted small fw-bold">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/}"
+                                class="text-decoration-none text-muted">Dashboard</a></li>
                         <li class="breadcrumb-item active text-primary" aria-current="page">Môn học</li>
                     </ol>
                 </nav>
@@ -24,8 +25,9 @@
             </div>
         </div>
 
-        <div class="filter-bar border-0 shadow-sm mb-4 bg-white p-3 rounded-xl d-flex justify-content-between align-items-center">
-            <form th:action="@{/subjects}" method="get" class="d-flex align-items-center flex-grow-1 me-3">
+        <div
+            class="filter-bar border-0 shadow-sm mb-4 bg-white p-3 rounded-xl d-flex justify-content-between align-items-center">
+            <form th:action="@{/subjects}" method="get" class="d-flex align-items-center grow me-3">
                 <div class="input-group input-group-merge w-100" style="max-width: 400px;">
                     <span class="input-group-text bg-light border-0 px-3 text-muted">
                         <i class="fas fa-search"></i>
@@ -38,7 +40,8 @@
                 </div>
             </form>
 
-            <a th:href="@{/subjects/add}" class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-xl shadow-sm hover-translate-y">
+            <a th:href="@{/subjects/add}"
+                class="btn btn-primary d-inline-flex align-items-center gap-2 px-4 py-2 rounded-xl shadow-sm hover-translate-y">
                 <i class="fas fa-plus fs-14"></i>
                 <span class="fw-bold">Thêm môn học</span>
             </a>

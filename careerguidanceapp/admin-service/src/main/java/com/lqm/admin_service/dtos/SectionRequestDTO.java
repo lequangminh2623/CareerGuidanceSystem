@@ -9,12 +9,12 @@ public record SectionRequestDTO(
 
         UUID teacherId,
 
-        @NotNull
+        @NotNull(message = "{classroom.id.notNull}")
         UUID classroomId,
 
-        @NotNull
+        @NotNull(message = "{curriculum.id.notNull}")
         UUID curriculumId,
 
-        @NotNull
+        @NotNull(message = "{section.status.notNull}")
         String scoreStatus
 ) {}

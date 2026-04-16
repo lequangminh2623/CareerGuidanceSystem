@@ -4,25 +4,21 @@ import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Chart, registerables } from 'chart.js';
 import { HOLLAND_CATEGORY_LABELS, type HollandCategory } from './HollandQuestions';
-import { FiAward, FiTrendingUp, FiUnlock, FiArrowRight } from 'react-icons/fi';
+import { FiUnlock, FiArrowRight } from 'react-icons/fi';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setStep } from '@/store/features/orientation/orientationSlice';
+import { useTranslation } from 'react-i18next';
 
 Chart.register(...registerables);
 
-interface Props {
-    academicResult: string | null;
-    hollandResult: string | null;
-    isHollandCompleted: boolean;
-    hollandScores: Record<HollandCategory, number> | null;
-    onStartHolland: () => void;
-}
+export default function ResultsDashboard() {
+    const { t, i18n } = useTranslation();
+    // Read all state from Redux — no props needed
+    const { academicResult, hollandResult, isHollandCompleted, hollandScores } = useAppSelector(
+        (state) => state.orientation
+    );
+    const dispatch = useAppDispatch();
 
-export default function ResultsDashboard({
-    academicResult,
-    hollandResult,
-    isHollandCompleted,
-    hollandScores,
-    onStartHolland,
-}: Props) {
     const chartRef = useRef<HTMLCanvasElement>(null);
     const chartInstanceRef = useRef<Chart | null>(null);
 
@@ -35,7 +31,10 @@ export default function ResultsDashboard({
         }
 
         const categories = Object.keys(HOLLAND_CATEGORY_LABELS) as HollandCategory[];
-        const labels = categories.map(c => `${HOLLAND_CATEGORY_LABELS[c].vi} (${c})`);
+        const labels = categories.map(c => {
+            const label = i18n.language === 'en' ? HOLLAND_CATEGORY_LABELS[c].en : HOLLAND_CATEGORY_LABELS[c].vi;
+            return `${label} (${c})`;
+        });
         const data = categories.map(c => hollandScores[c]);
         const colors = categories.map(c => HOLLAND_CATEGORY_LABELS[c].color);
 
@@ -44,7 +43,7 @@ export default function ResultsDashboard({
             data: {
                 labels,
                 datasets: [{
-                    label: 'Điểm RIASEC',
+                    label: t('riasec-test-title'),
                     data,
                     backgroundColor: 'rgba(99, 102, 241, 0.15)',
                     borderColor: 'rgba(99, 102, 241, 0.8)',
@@ -90,11 +89,9 @@ export default function ResultsDashboard({
         <div className="space-y-8 animate-in fade-in duration-700">
             {/* ══════ Header ══════ */}
             <div className="text-center space-y-2">
-                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Kết quả tư vấn AI</h2>
+                <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('ai-analysis-header')}</h2>
                 <p className="text-gray-500 max-w-lg mx-auto text-sm">
-                    {isHollandCompleted
-                        ? 'Phân tích định hướng nghề nghiệp dựa trên năng lực và tính cách.'
-                        : 'Phân tích định hướng dựa trên kết quả học tập.'}
+                    {t('ai-analysis-subtitle')}
                 </p>
             </div>
 
@@ -103,7 +100,7 @@ export default function ResultsDashboard({
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
-                            Biểu đồ tính cách RIASEC
+                            {t('personality-chart')}
                         </h3>
                     </div>
                     <div className="p-6 flex justify-center">
@@ -122,10 +119,10 @@ export default function ResultsDashboard({
                                     return (
                                         <div key={code} className="text-center px-5 py-3 rounded-xl border-2" style={{ borderColor: info.color + '20', backgroundColor: info.color + '05' }}>
                                             <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                                                Top {i + 1}
+                                                {t('top-rank', { index: i + 1 })}
                                             </div>
                                             <div className="text-sm font-bold" style={{ color: info.color }}>
-                                                {info.vi} ({code})
+                                                {i18n.language === 'en' ? info.en : info.vi} ({code})
                                             </div>
                                             <div className="text-lg font-extrabold text-gray-900">{score}</div>
                                         </div>
@@ -141,7 +138,7 @@ export default function ResultsDashboard({
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
-                            Định hướng theo Holland
+                            {t('orientation-by-personality')}
                         </h3>
                     </div>
                     <div className="p-6 prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-li:marker:text-indigo-400">
@@ -155,7 +152,7 @@ export default function ResultsDashboard({
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
-                            Phân tích năng lực học tập
+                            {t('orientation-by-academic')}
                         </h3>
                     </div>
                     <div className="p-6 prose prose-sm max-w-none text-gray-700 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-li:marker:text-indigo-400">
@@ -173,16 +170,16 @@ export default function ResultsDashboard({
                             <FiUnlock className="w-7 h-7 text-white" />
                         </div>
                         <h3 className="text-lg font-extrabold text-gray-900">
-                            Mở khóa gợi ý nghề nghiệp chuyên sâu
+                            {t('unlock-deep-suggestions')}
                         </h3>
                         <p className="text-sm text-gray-600 max-w-md">
-                            Làm bài trắc nghiệm Holland để AI thấu hiểu tính cách và đưa ra danh sách nghề nghiệp cụ thể phù hợp nhất với bạn.
+                            {t('unlock-desc')}
                         </p>
                         <button
-                            onClick={onStartHolland}
-                            className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                            onClick={() => dispatch(setStep('holland'))}
+                            className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
                         >
-                            Làm bài trắc nghiệm Holland
+                            {t('riasec-test-title')}
                             <FiArrowRight className="w-4 h-4" />
                         </button>
                     </div>

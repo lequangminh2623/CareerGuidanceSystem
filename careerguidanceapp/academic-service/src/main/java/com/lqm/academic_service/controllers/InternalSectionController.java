@@ -32,7 +32,7 @@ public class InternalSectionController {
     private final SubjectRepository subjectRepository;
 
     @PostMapping
-    Page<SectionResponseDTO> getSections(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
+    Page<SectionResponseDTO> getSectionsByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.SECTION_PAGE_SIZE,
@@ -90,6 +90,6 @@ public class InternalSectionController {
                 .toList();
     }
 
-    public record SubjectResponseRecord(UUID id, String name) {}
+    public record SubjectResponseRecord(UUID id, String name) {
+    }
 }
-

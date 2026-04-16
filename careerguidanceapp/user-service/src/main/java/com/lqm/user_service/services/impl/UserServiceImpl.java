@@ -42,8 +42,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(UUID id) {
         return userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
-                messageSource.getMessage("user.notFound", null, Locale.getDefault()))
-        );
+                messageSource.getMessage("user.notFound", null, Locale.getDefault())));
     }
 
     @Override
@@ -51,8 +50,7 @@ public class UserServiceImpl implements UserService {
     public UserDetails loadUserByUsername(@Nonnull String email) {
         User u = userRepo.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        messageSource.getMessage("user.email.invalid", null, Locale.getDefault()))
-                );
+                        messageSource.getMessage("user.email.invalid", null, Locale.getDefault())));
 
         return org.springframework.security.core.userdetails.User.withUsername(u.getEmail())
                 .password(u.getPassword())
@@ -112,6 +110,12 @@ public class UserServiceImpl implements UserService {
             }
         }
 
+        // Final safe check for default avatar
+        if (user.getAvatar() == null || user.getAvatar().trim().isEmpty() || "null".equals(user.getAvatar())
+                || "undefined".equals(user.getAvatar())) {
+            user.setAvatar("https://res.cloudinary.com/dqw4mc8dg/image/upload/v1770994206/download_kys5gs.jpg");
+        }
+
         return userRepo.save(user);
     }
 
@@ -130,19 +134,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getCurrentUser() {
         String email = (String) Objects.requireNonNull(SecurityContextHolder.getContext()
-                        .getAuthentication())
+                .getAuthentication())
                 .getPrincipal();
 
         if (email == null) {
             throw new UnauthorizedException(
-                    messageSource.getMessage("user.notLoggedIn", null, Locale.getDefault())
-            );
+                    messageSource.getMessage("user.notLoggedIn", null, Locale.getDefault()));
         }
 
         return userRepo.findByEmailAndActiveTrue(email)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        messageSource.getMessage("user.notFound", null, Locale.getDefault())
-                ));
+                        messageSource.getMessage("user.notFound", null, Locale.getDefault())));
     }
 
     public Map<String, Object> getUserStatistics() {
@@ -164,4 +166,3 @@ public class UserServiceImpl implements UserService {
     }
 
 }
-

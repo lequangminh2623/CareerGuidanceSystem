@@ -1,20 +1,23 @@
 'use client';
 
-import { useContext, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { MyDispatcherContext, MyUserContext } from '@/lib/contexts/userContext';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { logout } from '@/store/features/auth/authSlice';
 import { FaBars, FaTimes, FaSearch, FaGlobe, FaSignOutAlt, FaUser, FaChevronDown, FaGraduationCap } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import "@/lib/i18n";
 import moment from "moment";
-// @ts-ignore
 import "moment/locale/vi";
+import { UserRole } from "@/types/auth";
+import Button from "@/components/ui/Button";
 
 const Header = () => {
-    const user = useContext(MyUserContext);
-    const dispatch = useContext(MyDispatcherContext);
+    const user = useAppSelector((state) => state.auth.user);
+    console.log("Current User in Redux:", user);
+    const dispatch = useAppDispatch();
     const [kw, setKw] = useState<string>("");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -70,7 +73,7 @@ const Header = () => {
     const handleLogout = () => {
         setIsDropdownOpen(false);
         setIsMobileMenuOpen(false);
-        dispatch?.({ type: 'logout' });
+        dispatch(logout());
         router.push('/login');
     };
 
@@ -97,11 +100,11 @@ const Header = () => {
 
     const navLinks = [
         { href: "/", label: t('home') },
-        ...(user && user.role === "Teacher" ? [{ href: "/transcripts", label: t('transcripts') }] : []),
-        ...(user && user.role === "Student" ? [{ href: "/scores", label: t('scores') }] : []),
-        ...(user && user.role === "Student" ? [{ href: "/attendances", label: t('attendances') }] : []),
-        ...(user && user.role !== "Admin" ? [{ href: "/chatbox", label: t('chat') }] : []),
-        ...(user && user.role === "Student" ? [{ href: "/orientation", label: t('career-orientation') }] : []),
+        ...(user && user.role === UserRole.TEACHER ? [{ href: "/transcripts", label: t('transcripts') }] : []),
+        ...(user && user.role === UserRole.STUDENT ? [{ href: "/scores", label: t('scores') }] : []),
+        ...(user && user.role === UserRole.STUDENT ? [{ href: "/attendances", label: t('attendances') }] : []),
+        ...(user && user.role !== UserRole.ADMIN ? [{ href: "/chatbox", label: t('chat') }] : []),
+        ...(user && user.role === UserRole.STUDENT ? [{ href: "/orientation", label: t('career-orientation') }] : []),
     ];
 
     return (
@@ -110,12 +113,12 @@ const Header = () => {
                 <div className="flex justify-between items-center">
                     {/* Logo */}
                     <Link href="/" className="flex items-center space-x-2 group">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                        <div className="w-10 h-10 bg-linear-135 from-[#6366f1] to-[#3b82f6] rounded-[10px] flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform shadow-indigo-500/20">
                             <span className="text-white font-bold text-xl">
                                 <FaGraduationCap />
                             </span>
                         </div>
-                        <span className="text-2xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
+                        <span className="text-2xl font-extrabold bg-clip-text text-transparent bg-linear-to-r from-[#6366f1] to-[#3b82f6] tracking-tight">
                             Scholar
                         </span>
                     </Link>
@@ -150,6 +153,7 @@ const Header = () => {
                                             width={32}
                                             height={32}
                                             className="rounded-full border border-gray-200"
+                                            unoptimized
                                         />
                                         <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
                                     </div>
@@ -203,9 +207,11 @@ const Header = () => {
                                 )}
                             </div>
                         ) : (
-                                <Link href="/login" className="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-full hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                            <Link href="/login">
+                                <Button variant="primary">
                                     {t('login')}
-                                </Link>
+                                </Button>
+                            </Link>
                         )}
                     </div>
 
@@ -273,6 +279,7 @@ const Header = () => {
                                             width={48}
                                             height={48}
                                             className="rounded-full border-2 border-white shadow-sm"
+                                            unoptimized
                                         />
                                         <div>
                                             <p className="font-bold text-gray-800">{`${user.lastName} ${user.firstName}`}</p>

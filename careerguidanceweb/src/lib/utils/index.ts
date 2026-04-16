@@ -3,14 +3,6 @@ export const checkPermission = (objectUserId: string | number, userId: string | 
   return objectUserId === userId;
 };
 
-// Kiểm tra có thể chỉnh sửa không (trong vòng 30 phút)
-export const checkCanEdit = (date: string | Date): boolean => {
-  const createdTime = new Date(date);
-  const now = new Date();
-  const minutesSincePost = (now.getTime() - createdTime.getTime()) / 60000;
-  return minutesSincePost <= 30;
-};
-
 // Format thời gian UTC sang giờ Việt Nam
 export const formatVietnamTime = (utcDateStr: string): string => {
   const utcDate = new Date(utcDateStr);

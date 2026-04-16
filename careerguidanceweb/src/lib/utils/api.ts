@@ -1,8 +1,8 @@
 import axios, { AxiosInstance } from "axios";
 import { getCookie } from "cookies-next";
 
-const BASE_URL = "http://localhost:8080";
-const GUIDANCE_API_URL = "http://localhost:8000";
+export const BASE_URL = "http://localhost:8080";
+export const GUIDANCE_API_URL = "http://localhost:8000";
 
 export const endpoints = {
     // Endpoints for user-service

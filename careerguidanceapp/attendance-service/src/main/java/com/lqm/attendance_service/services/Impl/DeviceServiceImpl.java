@@ -83,9 +83,6 @@ public class DeviceServiceImpl implements DeviceService {
         
         if (classroomId != null) {
             fingerprintService.deleteFingerprintsByClassroomId(classroomId);
-            if (Boolean.TRUE.equals(device.getIsActive())) {
-                mqttService.clearAllFingerprints(deviceId);
-            }
         }
         
         deviceRepository.deleteById(deviceId);
@@ -117,13 +114,17 @@ public class DeviceServiceImpl implements DeviceService {
         UUID classroomId = device.getClassroomId();
         if (classroomId != null) {
             fingerprintService.deleteFingerprintsByClassroomId(classroomId);
-            if (Boolean.TRUE.equals(device.getIsActive())) {
-                mqttService.clearAllFingerprints(deviceId);
-            }
         }
         
         device.setClassroomId(null);
         deviceRepository.save(device);
+    }
+
+    @Override
+    public void unassignDeviceByClassroomId(UUID classroomId) {
+        deviceRepository.findByClassroomId(classroomId).ifPresent(device -> {
+            this.unassignDeviceFromClassroom(device.getId());
+        });
     }
 
     @Override

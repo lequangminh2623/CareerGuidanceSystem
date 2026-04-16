@@ -150,7 +150,7 @@ def get_student_statistics(token: str) -> Dict[str, Any]:
     return _make_request("GET", "/api/secure/statistics/student", token)
 
 
-def get_current_user(token: str) -> Dict[str, Any]:
+def get_current-user(token: str) -> Dict[str, Any]:
     """
     Fetch the current user's profile from the user-service.
 
@@ -165,50 +165,68 @@ def aggregate_subject_scores(
 ) -> Dict[str, float]:
     """
     Aggregate raw per-section scores into per-subject averages.
-
-    Takes the list from /api/secure/scores/current-student and computes
-    the average (midterm + final) / 2 per subject.
-
-    Returns a dict like:
-        {"Toán": 8.5, "Lý": 7.3, "Hóa": 6.8, ...}
     """
     from collections import defaultdict
 
     subject_scores: Dict[str, List[float]] = defaultdict(list)
 
     for score_entry in raw_scores:
-        subject_name = score_entry.get("subjectName", "")
+        subject_name = score_entry.get("subjectName", "").strip()
         midterm = score_entry.get("midtermScore")
         final = score_entry.get("finalScore")
 
+        # More robust average: if one is missing, use the other. 
+        # If both present, take average.
         if midterm is not None and final is not None:
             avg = round((midterm + final) / 2, 1)
             subject_scores[subject_name].append(avg)
+        elif midterm is not None:
+            subject_scores[subject_name].append(float(midterm))
+        elif final is not None:
+            subject_scores[subject_name].append(float(final))
 
-    # Take the average across all sections for each subject
+    # Take the average across all sections/semesters found for each subject
     result: Dict[str, float] = {}
     for subject, scores_list in subject_scores.items():
-        result[subject] = round(sum(scores_list) / len(scores_list), 1)
+        if scores_list:
+            result[subject] = round(sum(scores_list) / len(scores_list), 1)
 
     return result
 
 
 # Subject name mapping: Vietnamese -> English field name
 SUBJECT_MAP = {
+    # English names (from your screenshots)
+    "Math": "math_score",
+    "MATH": "math_score",
+    "Physics": "physics_score",
+    "PHYSICS": "physics_score",
+    "Chemistry": "chemistry_score",
+    "CHEMISTRY": "chemistry_score",
+    "Biology": "biology_score",
+    "BIOLOGY": "biology_score",
+    "Geography": "geography_score",
+    "GEOGRAPHY": "geography_score",
+    "History": "history_score",
+    "HISTORY": "history_score",
+    "English": "english_score",
+    "ENGLISH": "english_score",
+    
+    # Vietnamese names
+    "Toán học": "math_score",
     "Toán": "math_score",
     "Lịch sử": "history_score",
-    "Vật lý": "physics_score",
-    "Hóa học": "chemistry_score",
-    "Sinh học": "biology_score",
-    "Tiếng Anh": "english_score",
-    "Địa lý": "geography_score",
-    # Alternative names
-    "Toán học": "math_score",
-    "Lý": "physics_score",
-    "Hóa": "chemistry_score",
-    "Sinh": "biology_score",
-    "Anh": "english_score",
     "Sử": "history_score",
+    "Vật lý": "physics_score",
+    "Vật lí": "physics_score",
+    "Lý": "physics_score",
+    "Hóa học": "chemistry_score",
+    "Hóa": "chemistry_score",
+    "Sinh học": "biology_score",
+    "Sinh": "biology_score",
+    "Tiếng Anh": "english_score",
+    "Anh": "english_score",
+    "Địa lý": "geography_score",
     "Địa": "geography_score",
 }
 

@@ -4,17 +4,17 @@ import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { guidanceApi, guidanceEndpoints } from '@/lib/utils/api';
 import { FiMessageCircle, FiX, FiSend, FiMinimize2 } from 'react-icons/fi';
+import { useAppSelector } from '@/store/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface ChatMsg {
     role: 'user' | 'model';
     content: string;
 }
 
-interface Props {
-    sessionId: string | null;
-}
-
-export default function ChatWidget({ sessionId }: Props) {
+export default function ChatWidget() {
+    const { t } = useTranslation();
+    const sessionId = useAppSelector((state) => state.orientation.sessionId);
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [input, setInput] = useState('');
@@ -53,7 +53,7 @@ export default function ChatWidget({ sessionId }: Props) {
         } catch {
             setMessages(prev => [...prev, {
                 role: 'model',
-                content: 'Xin lỗi, đã xảy ra lỗi. Vui lòng thử lại.',
+                content: t('chat-error'),
             }]);
         } finally {
             setIsSending(false);
@@ -76,8 +76,8 @@ export default function ChatWidget({ sessionId }: Props) {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gray-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 transition-all duration-300 active:scale-95"
-                    title="Hỏi thêm chuyên gia tư vấn"
+                    className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 transition-all duration-300 active:scale-95"
+                    title={t('ask-specialist')}
                 >
                     <FiMessageCircle className="w-6 h-6" />
                     {/* Indicator dot */}
@@ -89,13 +89,13 @@ export default function ChatWidget({ sessionId }: Props) {
             {isOpen && (
                 <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300">
                     {/* Header */}
-                    <div className="bg-gray-900 px-5 py-4 flex items-center justify-between shrink-0">
+                    <div className="bg-blue-600 px-5 py-4 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
                             <div>
-                                <h4 className="text-white font-bold text-sm tracking-tight">Tư vấn hướng nghiệp</h4>
+                                <h4 className="text-white font-bold text-sm tracking-tight">{t('career-orientation')}</h4>
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
-                                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Trực tuyến</span>
+                                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">{t('online')}</span>
                                 </div>
                             </div>
                         </div>
@@ -121,13 +121,13 @@ export default function ChatWidget({ sessionId }: Props) {
                         {messages.length === 0 && (
                             <div className="text-center py-8 space-y-3">
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                    Bắt đầu cuộc trò chuyện
+                                    {t('chat-welcome-title')}
                                 </p>
                                 <p className="text-sm text-gray-500 max-w-[250px] mx-auto">
-                                    Hãy đặt câu hỏi để được tư vấn chuyên sâu hơn dựa trên kết quả phân tích của bạn.
+                                    {t('chat-welcome-desc')}
                                 </p>
                                 <div className="flex flex-wrap gap-2 justify-center">
-                                    {['Tôi nên chọn trường nào?', 'Ngành nào lương cao?', 'Cần chuẩn bị gì?'].map(hint => (
+                                {[t('chat-hint-1'), t('chat-hint-2'), t('chat-hint-3')].map(hint => (
                                         <button
                                             key={hint}
                                             onClick={() => { setInput(hint); inputRef.current?.focus(); }}
@@ -178,7 +178,7 @@ export default function ChatWidget({ sessionId }: Props) {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Nhập câu hỏi..."
+                                placeholder={t('type-message')}
                                 disabled={isSending}
                                 className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all disabled:opacity-50 text-gray-900 placeholder:text-gray-400"
                             />

@@ -11,7 +11,12 @@ async function deleteHandler(btn) {
                 setTimeout(() => location.reload(), 1500);
             } else {
                 return res.text().then(text => {
-                    showAlert(text || "Có lỗi xảy ra khi xóa!", "danger");
+                    try {
+                        const json = JSON.parse(text);
+                        showAlert(json.message || "Có lỗi xảy ra khi xóa!", "danger");
+                    } catch (e) {
+                        showAlert(text || "Có lỗi xảy ra khi xóa!", "danger");
+                    }
                 });
             }
         });

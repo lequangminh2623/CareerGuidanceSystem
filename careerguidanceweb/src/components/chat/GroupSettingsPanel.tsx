@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { ApiUser, emailToUid } from "@/components/chat/index";
+import { ApiUser } from "@/components/chat/index";
 import { GroupRoom } from "@/hooks/useFirebaseGroupChat";
 import { XMarkIcon, PlusIcon, TrashIcon, UserMinusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
@@ -41,18 +41,18 @@ export default function GroupSettingsPanel({
 
     // Members info: match UIDs to API users
     const memberUsers = group.members.map(uid => {
-        const apiUser = allUsers.find(u => emailToUid(u.email) === uid);
+        const apiUser = allUsers.find(u => u.email === uid);
         return {
             uid,
             name: uid === currentUid && currentUserName ? currentUserName : (apiUser ? `${apiUser.lastName} ${apiUser.firstName}` : uid),
-            avatar: uid === currentUid && currentUserAvatar ? currentUserAvatar : (apiUser?.avatar || "/images/default-avatar.png"),
+            avatar: uid === currentUid && currentUserAvatar ? currentUserAvatar : (apiUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(apiUser ? apiUser.lastName + ' ' + apiUser.firstName : uid)}&background=random&color=fff&bold=true`),
             isAdmin: uid === group.adminId,
         };
     });
 
     // Users not in group, for add member search
     const nonMembers = allUsers.filter(
-        u => !group.members.includes(emailToUid(u.email))
+        u => !group.members.includes(u.email)
     );
     const filteredNonMembers = nonMembers.filter(u =>
         `${u.lastName} ${u.firstName}`.toLowerCase().includes(addSearch.toLowerCase()) ||
@@ -61,7 +61,7 @@ export default function GroupSettingsPanel({
 
     const handleAddMember = useCallback(async (user: ApiUser) => {
         try {
-            await onAddMember(group.id, emailToUid(user.email));
+            await onAddMember(group.id, user.email);
             setAddSearch("");
         } catch (err) {
             console.error(t('error-message'), err);
@@ -193,11 +193,12 @@ export default function GroupSettingsPanel({
                                             className="flex items-center gap-3 py-2 px-2 rounded-xl hover:bg-blue-50/80 cursor-pointer transition-all"
                                         >
                                             <Image
-                                                src={u.avatar || "/images/default-avatar.png"}
+                                                src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.lastName + ' ' + u.firstName)}&background=random&color=fff&bold=true`}
                                                 alt={u.firstName}
                                                 width={32}
                                                 height={32}
                                                 className="rounded-full object-cover w-8 h-8"
+                                                unoptimized
                                             />
                                             <p className="text-sm text-gray-700 truncate flex-1">
                                                 {u.lastName} {u.firstName}

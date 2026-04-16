@@ -58,16 +58,15 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
 
     const messagesUnsubRef = useRef<(() => void) | null>(null);
     const groupRoomsRef = useRef<GroupRoom[]>([]);
-    const sanitizedUid = firebaseUser ? sanitizeUid(firebaseUser.uid) : "";
 
     // ---- 1. Listen to group rooms the current user is a member of ----
     useEffect(() => {
-        if (!firebaseUser || !sanitizedUid) return;
+        if (!firebaseUser) return;
 
         const groupsRef = collection(db, "groups");
         const q = query(
             groupsRef,
-            where("members", "array-contains", sanitizedUid)
+            where("members", "array-contains", firebaseUser.uid)
         );
 
         const unsubscribe = onSnapshot(
@@ -92,7 +91,7 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
         );
 
         return () => unsubscribe();
-    }, [firebaseUser, sanitizedUid]);
+    }, [firebaseUser]);
 
     // ---- 2. Open a group chat (listen to messages) ----
     const openGroup = useCallback(
@@ -140,12 +139,12 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
     // ---- 3. Send a group message ----
     const sendGroupMessage = useCallback(
         async (groupId: string, text: string, senderName?: string) => {
-            if (!firebaseUser || !text.trim() || !sanitizedUid) return;
+            if (!firebaseUser || !text.trim()) return;
 
             const messagesRef = collection(db, "groups", groupId, "messages");
             await addDoc(messagesRef, {
-                senderId: sanitizedUid,
-                senderName: senderName || sanitizedUid,
+                senderId: firebaseUser.uid,
+                senderName: senderName || firebaseUser.uid,
                 text: text.trim(),
                 createdAt: serverTimestamp(),
             });
@@ -155,21 +154,21 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
             await updateDoc(groupRef, {
                 lastMessage: text.trim(),
                 lastMessageAt: serverTimestamp(),
-                lastSenderId: sanitizedUid,
-                seenBy: [sanitizedUid],
+                lastSenderId: firebaseUser.uid,
+                seenBy: [firebaseUser.uid],
             });
         },
-        [firebaseUser, sanitizedUid]
+        [firebaseUser]
     );
 
     // ---- 4. Mark group as seen ----
     const markGroupAsSeen = useCallback(
         async (groupId: string) => {
-            if (!firebaseUser || !sanitizedUid || !groupId) return;
+            if (!firebaseUser || !groupId) return;
             try {
                 const groupRef = doc(db, "groups", groupId);
                 await updateDoc(groupRef, {
-                    seenBy: arrayUnion(sanitizedUid),
+                    seenBy: arrayUnion(firebaseUser.uid),
                 });
             } catch (err: unknown) {
                 // Ignore if the document was already deleted during a race condition
@@ -178,24 +177,24 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
                 console.error("Failed to mark group as seen:", err);
             }
         },
-        [firebaseUser, sanitizedUid]
+        [firebaseUser]
     );
 
     // ---- 5. Create a group ----
     const createGroup = useCallback(
         async (groupName: string, memberUids: string[]): Promise<string> => {
-            if (!firebaseUser || !sanitizedUid)
+            if (!firebaseUser)
                 throw new Error("Not authenticated with Firebase");
 
             // Include admin in members
             const allMembers = Array.from(
-                new Set([sanitizedUid, ...memberUids])
+                new Set([firebaseUser.uid, ...memberUids])
             );
 
             const groupsRef = collection(db, "groups");
             const docRef = await addDoc(groupsRef, {
                 groupName,
-                adminId: sanitizedUid,
+                adminId: firebaseUser.uid,
                 members: allMembers,
                 lastMessage: null,
                 lastMessageAt: null,
@@ -207,18 +206,18 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
 
             return docRef.id;
         },
-        [firebaseUser, sanitizedUid]
+        [firebaseUser]
     );
 
     // ---- 6. Add member (admin only) ----
     const addMember = useCallback(
         async (groupId: string, newUserUid: string) => {
-            if (!firebaseUser || !sanitizedUid)
+            if (!firebaseUser)
                 throw new Error("Not authenticated with Firebase");
 
             // Verify admin using ref for latest data
             const group = groupRoomsRef.current.find((g) => g.id === groupId);
-            if (!group || group.adminId !== sanitizedUid) {
+            if (!group || group.adminId !== firebaseUser.uid) {
                 throw new Error("Only the admin can add members");
             }
 
@@ -227,18 +226,18 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
                 members: arrayUnion(newUserUid),
             });
         },
-        [firebaseUser, sanitizedUid]
+        [firebaseUser]
     );
 
     // ---- 7. Remove member (admin only) ----
     const removeMember = useCallback(
         async (groupId: string, userUid: string) => {
-            if (!firebaseUser || !sanitizedUid)
+            if (!firebaseUser)
                 throw new Error("Not authenticated with Firebase");
 
             // Verify admin using ref for latest data
             const group = groupRoomsRef.current.find((g) => g.id === groupId);
-            if (!group || group.adminId !== sanitizedUid) {
+            if (!group || group.adminId !== firebaseUser.uid) {
                 throw new Error("Only the admin can remove members");
             }
 
@@ -247,19 +246,19 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
                 members: arrayRemove(userUid),
             });
         },
-        [firebaseUser, sanitizedUid]
+        [firebaseUser]
     );
 
     // ---- 8. Delete group (admin only) ----
     const deleteGroup = useCallback(
         async (groupId: string) => {
-            if (!firebaseUser || !sanitizedUid)
+            if (!firebaseUser)
                 throw new Error("Not authenticated with Firebase");
 
             // Verify admin using ref for latest data
             const group = groupRoomsRef.current.find((g) => g.id === groupId);
-            if (!group || group.adminId !== sanitizedUid) {
-                console.error("[deleteGroup] Admin check failed", { groupAdminId: group?.adminId, currentUid: sanitizedUid });
+            if (!group || group.adminId !== firebaseUser.uid) {
+                console.error("[deleteGroup] Admin check failed", { groupAdminId: group?.adminId, currentUid: firebaseUser.uid });
                 throw new Error("Only the admin can delete the group");
             }
 
@@ -273,7 +272,7 @@ export function useFirebaseGroupChat(firebaseUser: User | null) {
             await deleteDoc(groupRef);
             console.log("[deleteGroup] Document deleted:", groupId);
         },
-        [firebaseUser, activeGroupId, sanitizedUid]
+        [firebaseUser, activeGroupId]
     );
 
     // ---- 9. Close group (clear active) ----

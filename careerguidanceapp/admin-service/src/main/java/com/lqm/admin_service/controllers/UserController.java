@@ -66,9 +66,9 @@ public class UserController {
 
     @PostMapping(path = "/users/save")
     public String saveUser(@ModelAttribute("user") @Valid AdminUserRequestDTO user,
-                           BindingResult bindingResult,
-                           @RequestPart(value = "file", required = false) MultipartFile file,
-                           Model model) {
+            BindingResult bindingResult,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            Model model) {
         if (bindingResult.hasErrors()) {
             return "user/form";
         }

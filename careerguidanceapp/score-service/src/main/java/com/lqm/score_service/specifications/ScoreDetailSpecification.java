@@ -17,19 +17,14 @@ public class ScoreDetailSpecification {
                 return predicate;
             }
 
-            String kw = params.get("kw");
-            if (kw != null && !kw.isBlank()) {
-                predicate = cb.and(predicate,
-                        cb.like(cb.lower(root.get("name")), "%" + kw.toLowerCase() + "%"));
-            }
-
             String sectionIdStr = params.get("sectionId");
             if (sectionIdStr != null && !sectionIdStr.isBlank()) {
                 try {
                     UUID sectionId = UUID.fromString(sectionIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("sectionId"), sectionId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String studentIdStr = params.get("studentId");
@@ -38,7 +33,8 @@ public class ScoreDetailSpecification {
                     UUID studentId = UUID.fromString(studentIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("studentId"), studentId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String subjectIdStr = params.get("subjectId");
@@ -47,7 +43,8 @@ public class ScoreDetailSpecification {
                     UUID subjectId = UUID.fromString(subjectIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("section").get("subjectId"), subjectId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String semesterIdStr = params.get("semesterId");
@@ -56,7 +53,8 @@ public class ScoreDetailSpecification {
                     UUID semesterId = UUID.fromString(semesterIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("section").get("semesterId"), semesterId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String classroomIdStr = params.get("classroomId");
@@ -65,7 +63,8 @@ public class ScoreDetailSpecification {
                     UUID classroomId = UUID.fromString(classroomIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("section").get("classroomId"), classroomId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             String teacherIdStr = params.get("teacherId");
@@ -74,7 +73,8 @@ public class ScoreDetailSpecification {
                     UUID teacherId = UUID.fromString(teacherIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("section").get("teacherId"), teacherId));
-                } catch (IllegalArgumentException ignored) {}
+                } catch (IllegalArgumentException ignored) {
+                }
             }
 
             return predicate;

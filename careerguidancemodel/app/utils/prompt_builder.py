@@ -16,14 +16,16 @@ def build_holland_prompt(holland: HollandResult) -> str:
     """
     Build a Holland-based career guidance prompt.
     
-    Matches the exact format from fine_tune.jsonl:
-    "Tôi có kết quả trắc nghiệm Holland với 3 mã cao nhất là: I, S, A. 
-     Nghề nghiệp nào phù hợp với tôi?"
+    Matches the base format from fine_tune.jsonl but adds specific 
+    instructions for formatting and explanation.
     """
     return (
         f"Tôi có kết quả trắc nghiệm Holland với 3 mã cao nhất là: "
         f"{holland.code1.value}, {holland.code2.value}, {holland.code3.value}. "
-        f"Nghề nghiệp nào phù hợp với tôi?"
+        f"Nghề nghiệp nào phù hợp với tôi?\n\n"
+        f"Yêu cầu: Hãy chọn ra 5 nghề nghiệp phù hợp nhất và giải thích ngắn gọn "
+        f"lý do tại sao hồ sơ này lại phù hợp với các mã Holland đó. "
+        f"Hãy viết bằng giọng văn tư vấn thân thiện, không liệt kê khô khan."
     )
 
 
@@ -34,12 +36,6 @@ def build_academic_prompt(
 ) -> str:
     """
     Build an academic analysis career guidance prompt.
-    
-    Matches the exact format from fine_tune.jsonl:
-    "Thông tin học sinh: Giới tính: nữ, Số ngày nghỉ: 0, 
-     Điểm số: [Toán: 9.2, Sử: 8.2, Lý: 6.3, Hóa: 6.1, Sinh: 6.6, Anh: 8.4, Địa: 9.8]. 
-     Kết quả trắc nghiệm: Làm thêm: không, Ngoại khóa: có, Giờ tự học/tuần: 29. 
-     Nghề nghiệp nào phù hợp?"
     """
     part_time = "có" if survey.has_part_time_job else "không"
     extracurricular = "có" if survey.extracurricular_activities else "không"
@@ -60,5 +56,9 @@ def build_academic_prompt(
         f"Làm thêm: {part_time}, "
         f"Ngoại khóa: {extracurricular}, "
         f"Giờ tự học/tuần: {survey.self_study_hours}. "
-        f"Nghề nghiệp nào phù hợp?"
+        f"Nghề nghiệp nào phù hợp?\n\n"
+        f"Yêu cầu: Hãy chọn ra đúng 5 nghề phù hợp nhất dựa trên thế mạnh điểm số "
+        f"và hồ sơ cá nhân trên. Với mỗi nghề, hãy giải thích ngắn gọn lý do tại sao "
+        f"tôi nên theo đuổi (ví dụ: nhờ thế mạnh về tự nhiên hay kỹ năng xã hội). "
+        f"Hãy viết bằng giọng văn tư vấn, truyền cảm hứng."
     )

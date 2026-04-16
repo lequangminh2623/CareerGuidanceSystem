@@ -1,11 +1,10 @@
 'use client';
 
-import { useContext } from "react";
-import { MyUserContext } from "@/lib/contexts/userContext";
+import { useAppSelector } from "@/store/hooks";
 import StatisticsClient from "@/components/statistics";
 
 const HomeClient = () => {
-    const user = useContext(MyUserContext);
+    const user = useAppSelector((state) => state.auth.user);
     const role = user?.role;
 
     // If student or teacher, render statistics as homepage

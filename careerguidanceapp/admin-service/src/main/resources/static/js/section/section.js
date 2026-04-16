@@ -67,10 +67,93 @@ $(document).ready(function () {
 
         // 4. Init Select2 trực tiếp lên phần tử con của dòng mới (An toàn 100%)
         $newRow.find('.teacher-select2-dynamic').select2(select2Config);
+        $('#btnAddRow').prop('disabled', true);
     });
 
     // Xóa dòng chưa lưu (UI)
     $(document).on('click', '.btn-remove-row', function () {
         $(this).closest('tr').remove();
+    });
+
+    // Thêm riêng biệt phân công
+    $(document).on('click', '.btn-add-single-section', function () {
+        const $btn = $(this);
+        const $row = $btn.closest('tr');
+
+        const curriculumId = $row.find('.new-curriculum').val();
+        let teacherId = $row.find('.teacher-select2-dynamic').val();
+
+        if (!curriculumId) {
+            showAlert('Vui lòng chọn môn học!', 'warning');
+            return;
+        }
+
+        // Backend coi null teacherId nếu là ""
+        if (!teacherId || teacherId.trim() === "") teacherId = null;
+
+        $btn.prop('disabled', true);
+
+        const requestData = {
+            classroomId: classroomId,
+            curriculumId: curriculumId,
+            teacherId: teacherId,
+            scoreStatus: "Draft"
+        };
+
+        $.ajax({
+            url: `/classrooms/${classroomId}/sections/single`,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            success: function () {
+                window.location.reload();
+            },
+            error: function (err) {
+                showAlert('Có lỗi xảy ra khi thêm phân công!', 'danger');
+                $btn.prop('disabled', false);
+                $('#btnAddRow').prop('disabled', false);
+            }
+        });
+    });
+
+    // Bắt sự kiện submit form lưu phân công hàng loạt
+    $('form').on('submit', function (e) {
+        let changedCount = 0;
+        let validIndex = 0;
+
+        $(this).find('tr:not(#emptyRow)').each(function () {
+            // Find the teacher select
+            let $select = $(this).find('select[name$=".teacherId"]');
+            
+            if ($select.length > 0) {
+                let original = $select.data('original-teacher') || "";
+                let current = $select.val() || "";
+                
+                // Mới tạo chưa lưu sẽ không có class '.existing-curriculum'
+                let isNewRow = $(this).find('.existing-curriculum').length === 0;
+
+                if (!isNewRow && original == current) {
+                    // Nếu giáo viên không đổi -> Không gửi lên server
+                    $(this).find('input, select').prop('disabled', true);
+                } else {
+                    changedCount++;
+                    // Ghi đè lại index để tránh array rỗng (null) ở backend
+                    $(this).find('input, select').each(function () {
+                        if ($(this).attr('name')) {
+                            let newName = $(this).attr('name').replace(/sections\[\d+\]/, `sections[${validIndex}]`);
+                            $(this).attr('name', newName);
+                        }
+                    });
+                    validIndex++;
+                }
+            }
+        });
+
+        // Nếu không có gì thay đổi
+        if (changedCount === 0) {
+            e.preventDefault();
+            showAlert('Không có sự thay đổi giáo viên nào để lưu!', 'warning');
+            $(this).find('input, select').prop('disabled', false); // re-enable form items
+        }
     });
 });

@@ -1,14 +1,11 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import axios from "axios";
-import { authApis, endpoints } from "@/lib/utils/api";
+import { useGetStudentScoresQuery } from "@/store/features/api/apiSlice";
 import { capitalizeFirstWord } from "@/lib/utils";
 import MySpinner from "@/components/layout/MySpinner";
 import SemesterTable from "./ScoreTable";
-import { FiSearch, FiBookOpen, FiAlertCircle } from "react-icons/fi";
+import { FiBookOpen, FiAlertCircle } from "react-icons/fi";
 
 interface StudentScoreResponseDTO {
     id: string;
@@ -39,99 +36,41 @@ interface SemesterGroup {
 }
 
 const ScoresClient = () => {
-    const [scoresBySemester, setScoresBySemester] = useState<Array<{
-        semesterTitle: string;
-        classroomName: string;
-        subjects: Subject[];
-    }>>([]);
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
-
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
     const { i18n, t } = useTranslation();
+    // RTK Query replaces useEffect + useState(loading) + useState(errorMsg)
+    const { data: rawData, isLoading, isError, isFetching } = useGetStudentScoresQuery();
 
-    const loadScores = async () => {
-        try {
-            setLoading(true);
-            setErrorMsg("");
-            let url = endpoints['student-scores'];
-            const kw = searchParams.get('kw');
+    // Data transformation (same logic as before)
+    const scoresBySemester = (() => {
+        if (!rawData || !Array.isArray(rawData)) return [];
+        const grouped = rawData.reduce<SemesterGroup>((idx, score: StudentScoreResponseDTO) => {
+            const sName = score.semesterName || t("unknown-semester");
+            const yName = score.yearName || t("unknown-year");
+            const cName = score.classroomName || t("unknown-classroom");
+            const groupKey = `${cName} - ${sName} - ${yName}`;
 
-            if (kw) {
-                url = `${url}?kw=${kw}`;
-                if (searchTerm !== kw) setSearchTerm(kw);
+            if (!idx[groupKey]) {
+                idx[groupKey] = {
+                    semesterTitle: `${sName} (${yName})`,
+                    classroomName: cName,
+                    subjects: [],
+                };
             }
 
-            const res = await authApis().get(url);
-            const data: StudentScoreResponseDTO[] = res.data;
-            console.info(data)
+            idx[groupKey].subjects.push({
+                id: score.id || Math.random().toString(),
+                classCode: score.classroomName || "-",
+                name: score.subjectName || "-",
+                extraScore: score.extraScores || [],
+                midTermScore: score.midtermScore !== undefined ? score.midtermScore : null,
+                finalScore: score.finalScore !== undefined ? score.finalScore : null,
+            });
+            return idx;
+        }, {});
+        return Object.values(grouped);
+    })();
 
-
-            if (!data || !Array.isArray(data)) {
-                setScoresBySemester([]);
-                return;
-            }
-
-            const grouped = data.reduce<SemesterGroup>((idx, score) => {
-                const sName = score.semesterName || t("unknown-semester");
-                const yName = score.yearName || t("unknown-year");
-                const cName = score.classroomName || t("unknown-classroom");
-                const groupKey = `${cName} - ${sName} - ${yName}`;
-
-                if (!idx[groupKey]) {
-                    idx[groupKey] = {
-                        semesterTitle: `${sName} (${yName})`,
-                        classroomName: cName,
-                        subjects: [],
-                    };
-                }
-
-                idx[groupKey].subjects.push({
-                    id: score.id || Math.random().toString(),
-                    classCode: score.classroomName || "-",
-                    name: score.subjectName || "-",
-                    extraScore: score.extraScores || [],
-                    midTermScore: score.midtermScore !== undefined ? score.midtermScore : null,
-                    finalScore: score.finalScore !== undefined ? score.finalScore : null
-                });
-                return idx;
-            }, {});
-
-            setScoresBySemester(Object.values(grouped));
-        } catch (ex: unknown) {
-            console.error(ex);
-            if (axios.isAxiosError(ex)) {
-                const data = ex.response?.data as { message?: string } | undefined;
-                setErrorMsg(data?.message || t('error-fetching-scores', 'Error loading scores.'));
-            } else {
-                setErrorMsg(t('error-fetching-scores', 'Error loading scores.'));
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadScores();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, i18n.language]);
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        const currentParams = new URLSearchParams(Array.from(searchParams.entries()));
-
-        if (searchTerm.trim() === "") {
-            currentParams.delete("kw");
-        } else {
-            currentParams.set("kw", searchTerm.trim());
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        router.push(`${pathname}?${currentParams.toString()}` as any);
-    };
+    const loading = isLoading || isFetching;
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl min-h-screen">
@@ -146,35 +85,15 @@ const ScoresClient = () => {
                         {t('scores-subtitle')}
                     </p>
                 </div>
-
-                {/* Search Form with Validation */}
-                <form onSubmit={handleSearch} className="relative w-full md:w-96 group">
-                    <div className="relative flex items-center">
-                        <FiSearch className="absolute left-3 text-gray-400 h-5 w-5 group-focus-within:text-blue-500 transition-colors" />
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder={t('search-course', 'Search by course name...')}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 text-sm font-medium text-gray-900"
-                        />
-                        <button
-                            type="submit"
-                            className="absolute right-2 px-3 py-1.5 bg-blue-50 text-blue-600 font-medium text-xs rounded-lg hover:bg-blue-100 transition-colors"
-                        >
-                            {t('search', 'Search')}
-                        </button>
-                    </div>
-                </form>
             </div>
 
-            {/* Error Message from Backend validation */}
-            {errorMsg && (
+            {/* Error Message */}
+            {isError && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
                     <FiAlertCircle className="text-red-500 h-5 w-5 mt-0.5 shrink-0" />
                     <div>
                         <h4 className="text-sm font-semibold text-red-800">{t('error', 'Error')}</h4>
-                        <p className="text-sm text-red-600 mt-1">{errorMsg}</p>
+                        <p className="text-sm text-red-600 mt-1">{t('error-fetching-scores', 'Error loading scores.')}</p>
                     </div>
                 </div>
             )}
@@ -205,9 +124,7 @@ const ScoresClient = () => {
                             {capitalizeFirstWord(`${t('no-results', 'No scores found')}`)}
                         </h3>
                         <p className="text-gray-500 text-sm max-w-sm">
-                            {searchTerm
-                                ? t('no-search-results', 'Could not find any scores matching your search criteria.')
-                                : t('no-scores-available', 'You do not have any recorded scores yet.')}
+                            {t('no-scores-available', 'You do not have any recorded scores yet.')}
                         </p>
                     </div>
                 )}

@@ -1,37 +1,35 @@
 'use client';
 
-import { useReducer, useEffect } from "react";
-import { getCookie } from "cookies-next";
-import { MyUserContext, MyDispatcherContext } from "@/lib/contexts/userContext";
-import myUserReducer from "@/lib/reducers/userReducer";
+import { useEffect } from "react";
+import { getCookie, deleteCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/store/hooks";
+import { loginSuccess, logout } from "@/store/features/auth/authSlice";
 import { authApis, endpoints } from "@/lib/utils/api";
 
 export default function UserProvider({ children }: { children: React.ReactNode }) {
-    const [user, dispatch] = useReducer(myUserReducer, null);
+    const dispatch = useAppDispatch();
+    const router = useRouter();
 
     useEffect(() => {
         const restoreUser = async () => {
             const token = getCookie('token');
-            if (token && !user) {
+            if (token) {
                 try {
                     const response = await authApis().get(endpoints['profile']);
-                    dispatch({ type: 'login', payload: response.data });
-                } catch (error) {
-                    console.error('Failed to restore user:', error);
-                    // Token might be expired, remove it
-                    dispatch({ type: 'logout' });
+                    dispatch(loginSuccess(response.data));
+                } catch (error: unknown) {
+                    console.error('Failed to restore user session:', error);
+                    deleteCookie('token');
+                    dispatch(logout());
+                    router.replace('/login');
                 }
             }
         };
 
         restoreUser();
-    }, []); // Remove user dependency to prevent infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run once on mount
 
-    return (
-        <MyUserContext.Provider value={user}>
-            <MyDispatcherContext.Provider value={dispatch}>
-                {children}
-            </MyDispatcherContext.Provider>
-        </MyUserContext.Provider>
-    );
+    return <>{children}</>;
 }

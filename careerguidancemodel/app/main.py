@@ -11,12 +11,17 @@ import logging
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from typing import Any
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+import datetime
 
 from app.config import settings
 from app.models.schemas import HealthResponse
-from app.services import gemini_service, chat_manager
+from app.services import gemini_service, chat_manager, admission_service
 from app.routers import holland, guidance, chat
 
 # ══════════════════════════════════════════════
@@ -62,6 +67,10 @@ async def lifespan(app: FastAPI):
     # Initialize Gemini API
     gemini_service.initialize()
     logger.info("✓ Gemini API initialized (model: %s)", settings.GEMINI_MODEL_NAME)
+
+    # Initialize MongoDB for admission score lookup
+    admission_service.initialize()
+
     logger.info("✓ Spring Boot URL: %s", settings.SPRING_BOOT_BASE_URL)
     logger.info("✓ CORS origins: %s", settings.cors_origins)
 
@@ -81,10 +90,6 @@ async def lifespan(app: FastAPI):
     logger.info("Career Guidance System - Shutting down...")
 
 
-# ══════════════════════════════════════════════
-#  FastAPI Application
-# ══════════════════════════════════════════════
-
 app = FastAPI(
     title="Career Guidance System API",
     description=(
@@ -96,6 +101,60 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# ══════════════════════════════════════════════
+#  Global Exception Handlers
+# ══════════════════════════════════════════════
+
+def _build_exception_response(status_code: int, error_name: str, message: str, details: Any, path: str):
+    return {
+        "timestamp": datetime.datetime.now().isoformat(),
+        "status": status_code,
+        "error": error_name,
+        "message": message,
+        "details": details,
+        "path": path
+    }
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=_build_exception_response(
+            exc.status_code,
+            "HTTP Exception",
+            str(exc.detail),
+            None,
+            request.url.path
+        )
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content=_build_exception_response(
+            400,
+            "Validation Error",
+            "Dữ liệu gửi lên không đúng định dạng",
+            exc.errors(),
+            request.url.path
+        )
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled exception: %s", exc)
+    return JSONResponse(
+        status_code=500,
+        content=_build_exception_response(
+            500,
+            "Internal Server Error",
+            "Đã có lỗi xảy ra từ máy chủ",
+            None,
+            request.url.path
+        )
+    )
 
 # ── CORS Middleware ──
 app.add_middleware(

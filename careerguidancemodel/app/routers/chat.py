@@ -14,6 +14,7 @@ from app.models.schemas import (
     ErrorResponse,
 )
 from app.services import gemini_service, chat_manager
+from app.services import admission_service
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,8 @@ router = APIRouter(prefix="/api/chat", tags=["Follow-up Chat"])
 async def send_chat_message(request: ChatMessageRequest):
     """
     Send a follow-up message in an existing chat session.
-    The Gemini model will respond with career counselor context.
+    If the message asks about admission scores, query MongoDB directly.
+    Otherwise, forward to Gemini AI.
     """
     session = chat_manager.get_session(request.session_id)
     if session is None:
@@ -46,11 +48,27 @@ async def send_chat_message(request: ChatMessageRequest):
         )
 
     try:
-        # Get existing history and initial context
+        # ── Check if this is an admission score query ──
+        major_name = admission_service.extract_major_from_message(request.message)
+        if major_name:
+            logger.info("Admission score query detected for: %s", major_name)
+            admission_result = admission_service.search_admission_scores(major_name)
+            if admission_result:
+                reply = admission_result
+                # Store in history
+                chat_manager.add_message(request.session_id, "user", request.message)
+                chat_manager.add_message(request.session_id, "model", reply)
+                return ChatMessageResponse(
+                    reply=reply,
+                    session_id=request.session_id,
+                )
+            else:
+                logger.info("No admission scores found for '%s', falling back to Gemini", major_name)
+
+        # ── Normal Gemini follow-up chat ──
         history = chat_manager.get_history(request.session_id) or []
         initial_context = chat_manager.get_initial_context(request.session_id)
 
-        # Call Gemini with full context
         reply = gemini_service.chat_followup(
             message=request.message,
             history=history,
@@ -76,6 +94,7 @@ async def send_chat_message(request: ChatMessageRequest):
             status_code=500,
             detail="Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
         )
+
 
 
 @router.get(
