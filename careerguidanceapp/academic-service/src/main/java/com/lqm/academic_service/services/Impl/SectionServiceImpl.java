@@ -1,22 +1,17 @@
 package com.lqm.academic_service.services.Impl;
 
-import com.lqm.academic_service.clients.ScoreAdminClient;
-import com.lqm.academic_service.clients.ChatAdminClient;
 import com.lqm.academic_service.clients.UserClient;
-import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
 import com.lqm.academic_service.dtos.UserMessageResponseDTO;
 import com.lqm.academic_service.dtos.UserResponseDTO;
+import com.lqm.academic_service.dtos.MailMessageDTO;
+import com.lqm.academic_service.events.*;
 import com.lqm.academic_service.exceptions.BadRequestException;
 import com.lqm.academic_service.exceptions.ForbiddenException;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
 import com.lqm.academic_service.clients.ScoreClient;
-import com.lqm.academic_service.dtos.MailMessageDTO;
 import com.lqm.academic_service.models.*;
 import com.lqm.academic_service.repositories.SectionRepository;
-import com.lqm.academic_service.services.ClassroomService;
-import com.lqm.academic_service.services.CurriculumService;
-import com.lqm.academic_service.services.EmailRedisPublisher;
-import com.lqm.academic_service.services.SectionService;
+import com.lqm.academic_service.services.*;
 import com.lqm.academic_service.specifications.SectionSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +35,8 @@ public class SectionServiceImpl implements SectionService {
     private final CurriculumService curriculumService;
     private final UserClient userClient;
     private final ScoreClient scoreClient;
-    private final ScoreAdminClient scoreAdminClient;
-    private final EmailRedisPublisher emailRedisPublisher;
-    private final ChatAdminClient chatAdminClient;
+    private final AcademicEventPublisher eventPublisher;
+    private final EmailPublisher emailPublisher;
 
     @Override
     public Page<Section> getSectionsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
@@ -108,17 +102,16 @@ public class SectionServiceImpl implements SectionService {
         // Đồng bộ chat groups
         handleChatGroups(classroom, List.of(savedSection), Map.of());
 
-        // Đồng bộ điểm riêng cho section mới tạo
+        // Đồng bộ điểm riêng cho section mới tạo - BẤT ĐỒNG BỘ qua RabbitMQ
         List<UUID> studentIds = classroom.getStudentClassroomSet().stream()
                 .map(StudentClassroom::getStudentId)
                 .toList();
 
         if (!studentIds.isEmpty()) {
-            SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
+            eventPublisher.publishScoreSync(new ScoreSyncEvent(
                     List.of(savedSection.getId()),
                     studentIds,
-                    Collections.emptyList());
-            scoreAdminClient.syncScoresForClassroom(syncRequest);
+                    Collections.emptyList()));
         }
 
         return savedSection;
@@ -147,7 +140,7 @@ public class SectionServiceImpl implements SectionService {
         section.setScoreStatus(ScoreStatusType.LOCKED);
         sectionRepo.save(section);
 
-        // Gửi email thông báo cho học sinh bất đồng bộ qua Redis
+        // Gửi email thông báo cho học sinh bất đồng bộ qua RabbitMQ
         notifyStudentsAboutLockedSection(section);
     }
 
@@ -194,7 +187,7 @@ public class SectionServiceImpl implements SectionService {
                                 className,
                                 semesterName,
                                 schoolYear);
-                        emailRedisPublisher.publish(new MailMessageDTO(student.email(), emailSubject, body));
+                        emailPublisher.publish(new MailMessageDTO(student.email(), emailSubject, body));
                     }
                 });
             }
@@ -206,15 +199,14 @@ public class SectionServiceImpl implements SectionService {
 
     @Override
     public void deleteSection(UUID id) {
-        // Đồng bộ xóa điểm trong score-service trước khi xóa section
-        SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
+        // Publish event BẤT ĐỒNG BỘ để xóa điểm trong score-service
+        eventPublisher.publishScoreSync(new ScoreSyncEvent(
                 List.of(id),
                 Collections.emptyList(),
-                Collections.emptyList());
-        scoreAdminClient.syncScoresForClassroom(syncRequest);
+                Collections.emptyList()));
 
-        // Xóa nhóm chat
-        chatAdminClient.deleteGroupChat(id);
+        // Publish event BẤT ĐỒNG BỘ để xóa nhóm chat
+        eventPublisher.publishChatGroupDelete(new ChatGroupDeleteEvent(List.of(id)));
 
         sectionRepo.deleteById(id);
     }
@@ -272,7 +264,8 @@ public class SectionServiceImpl implements SectionService {
                         user -> user.lastName() + " " + user.firstName()));
     }
 
-    private void handleChatGroups(Classroom classroom, List<Section> savedSections, Map<UUID, UUID> existingTeacherMap) {
+    private void handleChatGroups(Classroom classroom, List<Section> savedSections,
+            Map<UUID, UUID> existingTeacherMap) {
         List<UUID> studentIds = classroom.getStudentClassroomSet().stream()
                 .map(StudentClassroom::getStudentId)
                 .toList();
@@ -291,31 +284,37 @@ public class SectionServiceImpl implements SectionService {
             UUID oldTeacherId = existingTeacherMap.get(sec.getId());
             UUID newTeacherId = sec.getTeacherId();
 
-            if (Objects.equals(oldTeacherId, newTeacherId)) continue; // No change
+            if (Objects.equals(oldTeacherId, newTeacherId))
+                continue; // No change
 
             if (oldTeacherId == null && newTeacherId != null) {
-                // Tạo mới group chat
+                // Tạo mới group chat - PUBLISH EVENT
                 String newEmail = getTeacherEmail(newTeacherId, teacherEmails);
                 if (newEmail != null) {
-                    String groupName = classroom.getName() + " - " + sec.getCurriculum().getSubject().getName() + " - " + sec.getCurriculum().getSemester().getName() + " - " + sec.getCurriculum().getSemester().getYear().getName();
-                    chatAdminClient.createGroupChat(new ChatAdminClient.CreateGroupRequest(sec.getId(), groupName, newEmail, studentEmails));
+                    String groupName = classroom.getName() + " - " + sec.getCurriculum().getSubject().getName() + " - "
+                            + sec.getCurriculum().getSemester().getName() + " - "
+                            + sec.getCurriculum().getSemester().getYear().getName();
+                    eventPublisher.publishChatGroupCreate(
+                            new ChatGroupCreateEvent(sec.getId(), groupName, newEmail, studentEmails));
                 }
             } else if (oldTeacherId != null && newTeacherId != null) {
-                // Đổi giáo viên
+                // Đổi giáo viên - PUBLISH EVENT
                 String oldEmail = getTeacherEmail(oldTeacherId, teacherEmails);
                 String newEmail = getTeacherEmail(newTeacherId, teacherEmails);
                 if (oldEmail != null && newEmail != null) {
-                    chatAdminClient.updateTeacher(new ChatAdminClient.UpdateTeacherRequest(sec.getId(), oldEmail, newEmail));
+                    eventPublisher.publishChatGroupUpdateTeacher(
+                            new ChatGroupUpdateTeacherEvent(sec.getId(), oldEmail, newEmail));
                 }
             } else if (oldTeacherId != null && newTeacherId == null) {
-                // Xóa group chat
-                chatAdminClient.deleteGroupChat(sec.getId());
+                // Xóa group chat - PUBLISH EVENT
+                eventPublisher.publishChatGroupDelete(new ChatGroupDeleteEvent(List.of(sec.getId())));
             }
         }
     }
 
     private String getTeacherEmail(UUID teacherId, Map<UUID, String> emailCache) {
-        if (emailCache.containsKey(teacherId)) return emailCache.get(teacherId);
+        if (emailCache.containsKey(teacherId))
+            return emailCache.get(teacherId);
         Page<UserMessageResponseDTO> users = userClient.getUsersMessages(List.of(teacherId), Map.of("page", ""));
         String email = users.getContent().stream()
                 .findFirst()

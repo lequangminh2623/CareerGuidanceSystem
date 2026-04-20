@@ -1,16 +1,15 @@
 package com.lqm.academic_service.services.Impl;
 
-import com.lqm.academic_service.clients.AttendanceClient;
-import com.lqm.academic_service.clients.ChatAdminClient;
-import com.lqm.academic_service.clients.DeviceClient;
-import com.lqm.academic_service.clients.ScoreAdminClient;
-import com.lqm.academic_service.dtos.SyncScoreRequestDTO;
+import com.lqm.academic_service.events.ClassroomDeletedEvent;
+import com.lqm.academic_service.events.ScoreSyncEvent;
+import com.lqm.academic_service.events.StudentsRemovedEvent;
 import com.lqm.academic_service.exceptions.BadRequestException;
 import com.lqm.academic_service.exceptions.ResourceNotFoundException;
 import com.lqm.academic_service.models.*;
 import com.lqm.academic_service.repositories.ClassroomRepository;
 import com.lqm.academic_service.repositories.SectionRepository;
 import com.lqm.academic_service.repositories.StudentClassroomRepository;
+import com.lqm.academic_service.services.AcademicEventPublisher;
 import com.lqm.academic_service.services.ClassroomService;
 import com.lqm.academic_service.services.CurriculumService;
 import com.lqm.academic_service.services.GradeService;
@@ -36,10 +35,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final GradeService gradeService;
     private final SectionRepository sectionRepo;
     private final CurriculumService curriculumService;
-    private final ScoreAdminClient scoreAdminClient;
-    private final AttendanceClient attendanceClient;
-    private final ChatAdminClient chatAdminClient;
-    private final DeviceClient deviceClient;
+    private final AcademicEventPublisher eventPublisher;
 
     @Override
     public Page<Classroom> getClassroomsByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
@@ -85,17 +81,18 @@ public class ClassroomServiceImpl implements ClassroomService {
                     : new ArrayList<>();
         }
 
-        // GỌI ĐỒNG BỘ ĐIỂM 1 LẦN DUY NHẤT NẾU CÓ SỰ THAY ĐỔI
+        // PUBLISH EVENTS BẤT ĐỒNG BỘ
         if (!sections.isEmpty() && (!newStudentIds.isEmpty() || !removedStudentIds.isEmpty())) {
             List<UUID> sectionIds = sections.stream().map(Section::getId).toList();
 
-            SyncScoreRequestDTO syncRequest = new SyncScoreRequestDTO(
-                    sectionIds,
-                    newStudentIds,
-                    removedStudentIds);
+            // Event cho score-service: đồng bộ điểm
+            eventPublisher.publishScoreSync(new ScoreSyncEvent(sectionIds, newStudentIds, removedStudentIds));
 
-            scoreAdminClient.syncScoresForClassroom(syncRequest);
-            attendanceClient.deleteAttendancesForClassroom(savedClassroom.getId(), removedStudentIds);
+            // Event cho attendance-service: xóa điểm danh của học sinh bị xóa
+            if (!removedStudentIds.isEmpty()) {
+                eventPublisher
+                        .publishStudentsRemoved(new StudentsRemovedEvent(savedClassroom.getId(), removedStudentIds));
+            }
         }
 
         return savedClassroom;
@@ -120,24 +117,27 @@ public class ClassroomServiceImpl implements ClassroomService {
                     messageSource.getMessage("classroom.delete.error.hasStudents", null, Locale.getDefault()));
         }
 
-        // Gỡ thiết bị khỏi lớp học trước khi xóa lớp
-        deviceClient.unassignDeviceByClassroomId(id);
-
-        // Lấy thông tin lớp học để xóa các nhóm chat của từng section
+        // Lấy thông tin lớp học để lấy sectionIds trước khi xóa
         Classroom classroom = classroomRepo.findById(id).orElse(null);
+        List<UUID> sectionIds = new ArrayList<>();
         if (classroom != null && classroom.getSectionSet() != null && !classroom.getSectionSet().isEmpty()) {
-            List<UUID> sectionIds = classroom.getSectionSet().stream()
+            sectionIds = classroom.getSectionSet().stream()
                     .map(Section::getId)
                     .collect(Collectors.toList());
-            try {
-                chatAdminClient.deleteGroupChatsBatch(sectionIds);
-            } catch (Exception e) {
-                // Log error but continue deleting the classroom
-                e.printStackTrace();
-            }
         }
 
+        // Xóa classroom (cascade xóa sections trong DB)
         classroomRepo.deleteById(id);
+
+        // Publish event BẤT ĐỒNG BỘ → attendance-service (unassign device) +
+        // chat-service (xóa group chats)
+        eventPublisher.publishClassroomDeleted(new ClassroomDeletedEvent(id, sectionIds));
+
+        // Publish score sync event để xóa điểm trong score-service
+        if (!sectionIds.isEmpty()) {
+            eventPublisher
+                    .publishScoreSync(new ScoreSyncEvent(sectionIds, Collections.emptyList(), Collections.emptyList()));
+        }
     }
 
     @Override

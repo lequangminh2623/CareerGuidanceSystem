@@ -1,6 +1,6 @@
 package com.lqm.attendance_service.services.Impl;
 
-import com.lqm.attendance_service.configs.RedisConfig;
+import com.lqm.attendance_service.configs.RabbitMQConfig;
 import com.lqm.attendance_service.models.Device;
 import com.lqm.attendance_service.repositories.AttendanceRepository;
 import com.lqm.attendance_service.repositories.DeviceRepository;
@@ -9,7 +9,7 @@ import com.lqm.attendance_service.services.AttendanceScheduler;
 import com.lqm.attendance_service.services.DeviceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.lqm.attendance_service.dtos.AbsentQueueMessage;
@@ -31,7 +31,7 @@ public class AttendanceSchedulerImpl implements AttendanceScheduler {
     private final DeviceService deviceService;
     private final FingerprintRepository fingerprintRepo;
     private final AttendanceRepository attendanceRepo;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     private static final String ZONE_VN = "Asia/Ho_Chi_Minh";
 
@@ -61,13 +61,13 @@ public class AttendanceSchedulerImpl implements AttendanceScheduler {
 
         absentByClass.forEach((classroomId, absentStudentIds) -> {
             if (!absentStudentIds.isEmpty()) {
-                // Đẩy vào Redis Queue để xử lý ABSENT bất đồng bộ theo lô
+                // Đẩy vào RabbitMQ Queue để xử lý ABSENT bất đồng bộ theo lô
                 AbsentQueueMessage message = AbsentQueueMessage.builder()
                         .studentIds(absentStudentIds.stream().map(UUID::toString).toList())
                         .classroomId(classroomId.toString())
                         .date(today.toString())
                         .build();
-                redisTemplate.opsForList().leftPush(RedisConfig.ABSENT_QUEUE, message);
+                rabbitTemplate.convertAndSend(RabbitMQConfig.ATTENDANCE_EXCHANGE, "", message);
                 log.info("Scheduler: Đẩy vào queue {} học sinh ABSENT lớp {}", absentStudentIds.size(), classroomId);
             }
         });

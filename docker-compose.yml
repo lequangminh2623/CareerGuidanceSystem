@@ -154,8 +154,10 @@ services:
       DB_URL: ${ACADEMIC_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASS: ${POSTGRES_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASS: ${MAIL_PASSWORD}
       MAIL_HOST: ${MAIL_HOST}
@@ -163,7 +165,7 @@ services:
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-academic: { condition: service_started }
-      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "${ACADEMIC_SERVICE_PORT}:8080"
     networks:
@@ -179,6 +181,10 @@ services:
       DB_URL: ${SCORE_DB_URL}
       DB_USERNAME: ${POSTGRES_USER}
       DB_PASS: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASS: ${MAIL_PASSWORD}
       MAIL_HOST: ${MAIL_HOST}
@@ -186,6 +192,7 @@ services:
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-score: { condition: service_started }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "${SCORE_SERVICE_PORT}:8080"
     networks:
@@ -212,8 +219,10 @@ services:
       MQTT_KEYSTORE_PATH: ${MQTT_KEYSTORE_PATH}
       MQTT_KEYSTORE_PASSWORD: ${MQTT_KEYSTORE_PASSWORD}
       MQTT_KEYSTORE_TYPE: ${MQTT_KEYSTORE_TYPE}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     volumes:
@@ -223,6 +232,7 @@ services:
       discovery-service: { condition: service_healthy }
       postgres-attendance: { condition: service_started }
       mosquitto: { condition: service_started }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "${ATTENDANCE_SERVICE_PORT}:8080"
     networks:
@@ -256,20 +266,24 @@ services:
       timeout: 10s
       retries: 3
 
-  redis:
-    image: ${REDIS_IMAGE}
-    container_name: redis-container
+  rabbitmq:
+    image: ${RABBITMQ_IMAGE}
+    container_name: rabbitmq
     ports:
-      - "${REDIS_PORT_EXTERNAL}:6379"
+      - "${RABBITMQ_PORT_EXTERNAL}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
     environment:
-      - TZ=${TIMEZONE}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      TZ: ${TIMEZONE}
     networks:
       - micro-net
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
 
   chat-service:
     build: ./careerguidanceapp/chat-service
@@ -279,8 +293,13 @@ services:
       TZ: ${TIMEZONE}
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       FIREBASE_SERVICE_ACCOUNT_BASE64: ${FIREBASE_SERVICE_ACCOUNT_BASE64}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     depends_on:
       discovery-service: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "${CHAT_SERVICE_PORT}:8080"
     networks:
@@ -344,6 +363,10 @@ services:
     container_name: careerguidance-model
     ports:
       - "8000:8000"
+    volumes:
+      - ./careerguidancemodel/service-account.json:/app/service-account.json:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json
     env_file:
       - ./careerguidancemodel/.env
     networks:

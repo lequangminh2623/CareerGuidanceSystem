@@ -21,7 +21,7 @@ from app.models.schemas import (
 from app.services import gemini_service, chat_manager
 from app.services.spring_boot_client import (
     get_student_scores,
-    get_current-user,
+    get_current_user,
     aggregate_subject_scores,
     map_scores_to_schema,
     SpringBootApiError,
@@ -207,7 +207,7 @@ async def guidance_from_springboot(
         scores = StudentScores(**score_fields)
 
         # 2. Get user profile (for gender)
-        user_data = get_current-user(token)
+        user_data = get_current_user(token)
         # gender in user-service is a boolean: true=male, false=female
         gender_bool = user_data.get("gender", True)
         gender = "nam" if gender_bool else "nữ"

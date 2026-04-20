@@ -1,6 +1,6 @@
 package com.lqm.score_service.services;
 
-import com.lqm.score_service.dtos.SyncScoreRequestDTO;
+
 import com.lqm.score_service.models.ScoreDetail;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +21,7 @@ public interface ScoreService {
 
     boolean isTranscriptFullyScored(UUID sectionId);
 
-    void syncScoresForClassroom(SyncScoreRequestDTO request);
+    void syncScoresForClassroom(List<UUID> sectionIds, List<UUID> newStudentIds, List<UUID> removedStudentIds);
 
     List<ScoreDetail> saveScores(List<ScoreDetail> scoreRequests);
 

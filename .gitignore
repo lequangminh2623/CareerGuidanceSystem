@@ -131,3 +131,4 @@ __pycache__/
 .docker/
 docker-compose.override.yml
 careerguidanceapp/data/postgres/
+careerguidancemodel/service-account.json

@@ -150,7 +150,7 @@ def get_student_statistics(token: str) -> Dict[str, Any]:
     return _make_request("GET", "/api/secure/statistics/student", token)
 
 
-def get_current-user(token: str) -> Dict[str, Any]:
+def get_current_user(token: str) -> Dict[str, Any]:
     """
     Fetch the current user's profile from the user-service.
 

@@ -16,7 +16,7 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
 import com.lqm.score_service.clients.ClassroomClient;
 import com.lqm.score_service.clients.SectionClient;
-import com.lqm.score_service.dtos.SyncScoreRequestDTO;
+
 import com.lqm.score_service.dtos.SectionResponseDTO;
 import com.lqm.score_service.dtos.UserResponseDTO;
 import com.lqm.score_service.exceptions.BadRequestException;
@@ -85,28 +85,28 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public void syncScoresForClassroom(SyncScoreRequestDTO request) {
+    public void syncScoresForClassroom(List<UUID> sectionIds, List<UUID> newStudentIds, List<UUID> removedStudentIds) {
 
         // 1. THỰC HIỆN XÓA (Clean up dữ liệu cũ trước)
-        if (request.sectionIds() != null && !request.sectionIds().isEmpty()) {
-            if (request.removedStudentIds() != null && !request.removedStudentIds().isEmpty()) {
+        if (sectionIds != null && !sectionIds.isEmpty()) {
+            if (removedStudentIds != null && !removedStudentIds.isEmpty()) {
                 scoreDetailRepo.deleteAllBySectionIdInAndStudentIdIn(
-                        request.sectionIds(),
-                        request.removedStudentIds());
-            } else if (request.newStudentIds() == null || request.newStudentIds().isEmpty()) {
+                        sectionIds,
+                        removedStudentIds);
+            } else if (newStudentIds == null || newStudentIds.isEmpty()) {
                 // Nếu không có học sinh mới và cũng không có học sinh bị xóa cụ thể, 
                 // nhưng có sectionIds -> Xóa toàn bộ điểm của các section này
-                request.sectionIds().forEach(scoreDetailRepo::deleteAllBySectionId);
+                sectionIds.forEach(scoreDetailRepo::deleteAllBySectionId);
             }
         }
 
         // 2. THỰC HIỆN THÊM (Khởi tạo điểm cho học sinh mới)
-        if (request.newStudentIds() != null && !request.newStudentIds().isEmpty()
-                && request.sectionIds() != null && !request.sectionIds().isEmpty()) {
+        if (newStudentIds != null && !newStudentIds.isEmpty()
+                && sectionIds != null && !sectionIds.isEmpty()) {
 
             List<ScoreDetail> toSave = new ArrayList<>();
 
-            for (UUID sectionId : request.sectionIds()) {
+            for (UUID sectionId : sectionIds) {
                 // Lấy số lượng cột extraScore lớn nhất hiện hành trong Section này
                 ScoreDetail sample = scoreDetailRepo.findFirstBySectionId(sectionId);
                 int currentMaxExtraScores = (sample != null && sample.getExtraScoreSet() != null)
@@ -117,7 +117,7 @@ public class ScoreServiceImpl implements ScoreService {
                 Set<UUID> existingStudentIds = scoreDetailRepo.findBySectionId(sectionId)
                         .stream().map(ScoreDetail::getStudentId).collect(Collectors.toSet());
 
-                for (UUID studentId : request.newStudentIds()) {
+                for (UUID studentId : newStudentIds) {
                     if (existingStudentIds.contains(studentId)) {
                         continue;
                     }
