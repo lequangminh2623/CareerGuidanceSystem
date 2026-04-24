@@ -12,6 +12,7 @@ from app.models.schemas import (
     ErrorResponse,
 )
 from app.services import gemini_service, chat_manager
+from app.services.redis_cache import get_cached, set_cached
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,15 @@ async def holland_guidance(request: HollandGuidanceRequest):
      Nghề nghiệp nào phù hợp với tôi?"
     """
     try:
-        result = gemini_service.get_holland_guidance(request.holland_codes)
+        # Check cache first
+        cache_input = {"holland_codes": request.holland_codes}
+        cached_result = get_cached("holland", cache_input)
+        if cached_result:
+            result = cached_result
+        else:
+            result = gemini_service.get_holland_guidance(request.holland_codes)
+            # Store in cache
+            set_cached("holland", cache_input, result)
 
         # Create a chat session with the Holland result as context
         session_id = chat_manager.create_session(

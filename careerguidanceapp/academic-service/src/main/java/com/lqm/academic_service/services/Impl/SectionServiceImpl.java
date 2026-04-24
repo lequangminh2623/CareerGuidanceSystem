@@ -13,7 +13,7 @@ import com.lqm.academic_service.models.*;
 import com.lqm.academic_service.repositories.SectionRepository;
 import com.lqm.academic_service.services.*;
 import com.lqm.academic_service.specifications.SectionSpecification;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SectionServiceImpl implements SectionService {
 
@@ -58,6 +58,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    @Transactional
     public void saveSections(Map<UUID, Section> curriculumSectionMap, UUID classroomId) {
         Classroom classroom = classroomService.getClassroomById(classroomId);
 
@@ -90,6 +91,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    @Transactional
     public Section saveSingleSection(Section section, UUID classroomId, UUID curriculumId) {
         Classroom classroom = classroomService.getClassroomById(classroomId);
         Curriculum curriculum = curriculumService.getCurriculumById(curriculumId);
@@ -118,6 +120,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    @Transactional
     public void changeScoreStatus(UUID id, ScoreStatusType scoreStatusType) {
         Section section = this.getSectionById(id);
         section.setScoreStatus(scoreStatusType);
@@ -125,6 +128,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    @Transactional
     public void lockSection(UUID sectionId) {
         Section section = getSectionById(sectionId);
 
@@ -198,6 +202,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
+    @Transactional
     public void deleteSection(UUID id) {
         // Publish event BẤT ĐỒNG BỘ để xóa điểm trong score-service
         eventPublisher.publishScoreSync(new ScoreSyncEvent(

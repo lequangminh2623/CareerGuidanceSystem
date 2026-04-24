@@ -11,6 +11,9 @@ import com.lqm.academic_service.services.GradeService;
 import com.lqm.academic_service.services.SemesterService;
 import com.lqm.academic_service.services.YearService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,12 +37,20 @@ public class YearServiceImpl implements YearService {
     private final MessageSource messageSource;
 
     @Override
+    @Cacheable(value = "academic::years",
+            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<Year> getYears(Map<String, String> params, Pageable pageable) {
         String kw = (params != null) ? params.get("kw") : null;
         return yearRepo.findAllByKeyword(kw, pageable);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "academic::years", allEntries = true),
+            @CacheEvict(value = "academic::semesters", allEntries = true),
+            @CacheEvict(value = "academic::grades", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public Year saveYear(Year year) {
         boolean isNew = (year.getId() == null);
         Year savedYear = yearRepo.save(year);
@@ -56,6 +67,7 @@ public class YearServiceImpl implements YearService {
     }
 
     @Override
+    @Cacheable(value = "academic::years", key = "'id_' + #id")
     public Year getYearById(UUID id) {
         return yearRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
                 messageSource.getMessage("year.notFound", null, Locale.getDefault()))
@@ -63,6 +75,12 @@ public class YearServiceImpl implements YearService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "academic::years", allEntries = true),
+            @CacheEvict(value = "academic::semesters", allEntries = true),
+            @CacheEvict(value = "academic::grades", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public void deleteYearById(UUID id) {
         yearRepo.deleteById(id);
     }

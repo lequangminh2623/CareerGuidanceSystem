@@ -80,19 +80,19 @@ public class AdminDeviceController {
     }
 
     // Gán device vào lớp
-    @PostMapping("/assign")
+    @PostMapping("/assignments")
     public void assignDeviceToClassroom(@RequestBody @Valid DeviceRequestDTO assignDevice) {
         deviceService.assignDeviceToClassroom(deviceMapper.toEntity(assignDevice));
     }
 
     // Bỏ gán device từ lớp
-    @PostMapping("/{deviceId}/unassign")
+    @PostMapping("/{deviceId}/unassignment")
     public void unassignDeviceFromClassroom(@PathVariable String deviceId) {
         deviceService.unassignDeviceFromClassroom(deviceId);
     }
 
     // Bỏ gán device từ lớp theo classroomId
-    @PostMapping("/classrooms/{classroomId}/unassign")
+    @PostMapping("/classrooms/{classroomId}/unassignment")
     public void unassignDeviceByClassroomId(@PathVariable UUID classroomId) {
         deviceService.unassignDeviceByClassroomId(classroomId);
     }

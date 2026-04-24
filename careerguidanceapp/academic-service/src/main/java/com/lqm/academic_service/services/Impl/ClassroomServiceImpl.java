@@ -129,14 +129,15 @@ public class ClassroomServiceImpl implements ClassroomService {
         // Xóa classroom (cascade xóa sections trong DB)
         classroomRepo.deleteById(id);
 
-        // Publish event BẤT ĐỒNG BỘ → attendance-service (unassign device) +
-        // chat-service (xóa group chats)
+        // Publish event BẤT ĐỒNG BỘ → attendance-service (unassign device)
         eventPublisher.publishClassroomDeleted(new ClassroomDeletedEvent(id, sectionIds));
 
-        // Publish score sync event để xóa điểm trong score-service
+        // Publish score sync event để xóa điểm trong score-service và event xóa chat group
         if (!sectionIds.isEmpty()) {
             eventPublisher
                     .publishScoreSync(new ScoreSyncEvent(sectionIds, Collections.emptyList(), Collections.emptyList()));
+            eventPublisher
+                    .publishChatGroupDelete(new com.lqm.academic_service.events.ChatGroupDeleteEvent(sectionIds));
         }
     }
 

@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@FeignClient(name = "api-gateway", path = "/academic-service/api/internal/admin", contextId = "gradeClient")
+@FeignClient(name = "api-gateway", path = "/academic-service/api/internal/admin/grades", contextId = "gradeClient")
 public interface GradeClient {
 
-    @GetMapping("/years/{yearId}/grades")
+    @GetMapping("/by-year/{yearId}")
     List<AcademicResponseDTO> getGradesByYearId(@PathVariable UUID yearId, @RequestParam Map<String, String> params);
 
-    @GetMapping("/grades/details")
+    @GetMapping("/details")
     List<GradeDetailsResponseDTO> getGradesDetails(@RequestParam Map<String, String> params);
 
-    @GetMapping("/grades/{id}")
+    @GetMapping("/{id}")
     GradeRequestDTO getGradeRequestById(@PathVariable UUID id);
 
-    @PostMapping("/grades")
+    @PostMapping
     void saveGrade(@RequestBody GradeRequestDTO dto);
 
-    @DeleteMapping("/grades/{id}")
+    @DeleteMapping("/{id}")
     void deleteGradeById(@PathVariable UUID id);
 }

@@ -7,6 +7,7 @@ import com.lqm.score_service.models.ScoreDetail;
 import com.lqm.score_service.repositories.ScoreDetailRepository;
 import com.lqm.score_service.services.StatisticsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +21,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final SectionClient sectionClient;
 
     @Override
+    @Cacheable(value = "score::student-stats", key = "#studentId")
     public StudentStatisticsResponseDTO getStudentStatistics(UUID studentId) {
         List<ScoreDetail> scores = scoreDetailRepository.findByStudentId(studentId);
         if (scores.isEmpty()) {
@@ -115,6 +117,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
+    @Cacheable(value = "score::teacher-section-stats",
+            key = "#teacherId + '_' + (#yearName != null ? #yearName : 'latest')")
     public List<TeacherSectionAvgDTO> getTeacherSectionStatistics(UUID teacherId, String yearName) {
         List<SectionResponseDTO> allSections = sectionClient.getSectionsByTeacherId(teacherId);
 
@@ -176,6 +180,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
+    @Cacheable(value = "score::teacher-grade-stats",
+            key = "#teacherId + '_' + (#subjectName != null ? #subjectName : 'all')")
     public List<TeacherGradeStatisticsDTO> getTeacherGradeStatistics(UUID teacherId, String subjectName) {
         List<SectionResponseDTO> allSections = sectionClient.getSectionsByTeacherId(teacherId);
 

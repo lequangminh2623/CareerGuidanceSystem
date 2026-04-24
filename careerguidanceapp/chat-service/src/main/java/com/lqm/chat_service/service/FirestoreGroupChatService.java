@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -28,9 +27,15 @@ public class FirestoreGroupChatService {
         return email != null ? email : "";
     }
 
-    public void createGroupChat(@Nonnull UUID sectionId, String groupName, String teacherEmail, List<String> studentEmails) {
+    public void createGroupChat(@Nonnull UUID sectionId, String groupName, String teacherEmail,
+            List<String> studentEmails) {
         Firestore db = FirestoreClient.getFirestore();
-        DocumentReference docRef = db.collection(GROUPS_COLLECTION).document(Objects.requireNonNull(sectionId.toString()));
+        String sectionIdStr = sectionId.toString();
+        if (sectionIdStr == null) {
+            throw new IllegalArgumentException("Section ID cannot be null");
+        }
+        DocumentReference docRef = db.collection(GROUPS_COLLECTION)
+                .document(sectionIdStr);
 
         String adminId = sanitizeUid(teacherEmail);
         List<String> rawMembers = new ArrayList<>(studentEmails);
@@ -63,7 +68,12 @@ public class FirestoreGroupChatService {
 
     public void updateTeacher(@Nonnull UUID sectionId, String oldTeacherEmail, String newTeacherEmail) {
         Firestore db = FirestoreClient.getFirestore();
-        DocumentReference docRef = db.collection(GROUPS_COLLECTION).document(Objects.requireNonNull(sectionId.toString()));
+        String sectionIdStr = sectionId.toString();
+        if (sectionIdStr == null) {
+            throw new IllegalArgumentException("Section ID cannot be null");
+        }
+        DocumentReference docRef = db.collection(GROUPS_COLLECTION)
+                .document(sectionIdStr);
 
         String oldAdmin = sanitizeUid(oldTeacherEmail);
         String newAdmin = sanitizeUid(newTeacherEmail);
@@ -74,7 +84,8 @@ public class FirestoreGroupChatService {
 
         try {
             docRef.update(updates).get();
-            // Then add new member (requires two updates since FieldValue doesn't easily chain remove/union cleanly in this Map format predictably)
+            // Then add new member (requires two updates since FieldValue doesn't easily
+            // chain remove/union cleanly in this Map format predictably)
             Map<String, Object> addMember = new HashMap<>();
             addMember.put("members", FieldValue.arrayUnion(newAdmin));
             docRef.update(addMember).get();
@@ -87,7 +98,12 @@ public class FirestoreGroupChatService {
 
     public void deleteGroupChat(@Nonnull UUID sectionId) {
         Firestore db = FirestoreClient.getFirestore();
-        DocumentReference docRef = db.collection(GROUPS_COLLECTION).document(Objects.requireNonNull(sectionId.toString()));
+        String sectionIdStr = sectionId.toString();
+        if (sectionIdStr == null) {
+            throw new IllegalArgumentException("Section ID cannot be null");
+        }
+        DocumentReference docRef = db.collection(GROUPS_COLLECTION)
+                .document(sectionIdStr);
 
         try {
             docRef.delete().get();
@@ -97,15 +113,23 @@ public class FirestoreGroupChatService {
             throw new RuntimeException("Failed to delete group chat in Firestore", e);
         }
     }
+
     public void deleteGroupChatsBatch(List<UUID> sectionIds) {
-        if (sectionIds == null || sectionIds.isEmpty()) return;
+        if (sectionIds == null || sectionIds.isEmpty())
+            return;
 
         Firestore db = FirestoreClient.getFirestore();
         WriteBatch batch = db.batch();
 
         for (UUID sectionId : sectionIds) {
-            if (sectionId == null) continue;
-            DocumentReference docRef = db.collection(GROUPS_COLLECTION).document(Objects.requireNonNull(sectionId.toString()));
+            if (sectionId == null)
+                continue;
+            String sectionIdStr = sectionId.toString();
+            if (sectionIdStr == null) {
+                throw new IllegalArgumentException("Section ID cannot be null");
+            }
+            DocumentReference docRef = db.collection(GROUPS_COLLECTION)
+                    .document(sectionIdStr);
             batch.delete(docRef);
         }
 

@@ -30,7 +30,7 @@ public class InternalUserController {
     private final PageableUtil pageableUtil;
     private final UserMapper userMapper;
 
-    @PostMapping
+    @PostMapping("/batch")
     public Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
@@ -65,7 +65,12 @@ public class InternalUserController {
         }
     }
 
-    @GetMapping("/current-user")
+    @GetMapping("/{id}")
+    public UserResponseDTO getUserById(@PathVariable("id") UUID id) {
+        return userMapper.toUserResponseDTO(userService.getUserById(id));
+    }
+
+    @GetMapping("/me")
     public UserDetailsResponseDTO getCurrentUser() {
         return userMapper.toUserDetailsResponseDTO(userService.getCurrentUser());
     }

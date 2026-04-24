@@ -19,7 +19,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+@Transactional(readOnly = true)
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,11 +38,13 @@ public class FingerprintServiceImpl implements FingerprintService {
     }
 
     @Override
+    @Transactional
     public Fingerprint saveFingerprint(Fingerprint fingerprint) {
         return fingerprintRepo.save(fingerprint);
     }
 
     @Override
+    @Transactional
     public void deleteFingerprintsByClassroomAndStudentIds(UUID classroomId, List<UUID> studentIds) {
         // Lấy danh sách vân tay trước khi xóa để biết index cần xóa trên ESP32
         List<Fingerprint> toDelete = fingerprintRepo.findByClassroomIdAndStudentIdIn(classroomId, studentIds);
@@ -71,6 +73,7 @@ public class FingerprintServiceImpl implements FingerprintService {
     }
 
     @Override
+    @Transactional
     public void deleteFingerprintsByClassroomId(UUID classroomId) {
         // Gửi lệnh MQTT đến thiết bị để xóa vân tay khỏi bộ nhớ vật lý
         try {

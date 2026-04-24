@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lqm.attendance_service.dtos.AttendanceRequestDTO;
 import com.lqm.attendance_service.dtos.DeviceStatusDTO;
 import com.lqm.attendance_service.dtos.FingerprintRequestDTO;
+import com.lqm.attendance_service.dtos.UserResponseDTO;
+import com.lqm.attendance_service.dtos.WebSocketEventDTO;
 import com.lqm.attendance_service.mappers.FingerprintMapper;
 import com.lqm.attendance_service.models.Device;
 import com.lqm.attendance_service.models.Fingerprint;
 import com.lqm.attendance_service.services.*;
+import com.lqm.attendance_service.clients.UserClient;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -18,9 +21,12 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +42,8 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
     private final AttendanceService attendanceService;
     private final FingerprintMapper fingerprintMapper;
     private final RestTemplate restTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final UserClient userClient;
 
     @Value("${admin.service.url}")
     private String adminServiceUrl;
@@ -54,7 +62,9 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
             @Lazy FingerprintService fingerprintService,
             @Lazy AttendanceService attendanceService,
             FingerprintMapper fingerprintMapper,
-            RestTemplate restTemplate) {
+            RestTemplate restTemplate,
+            SimpMessagingTemplate messagingTemplate,
+            UserClient userClient) {
         this.deviceService = deviceService;
         this.mqttClient = mqttClient;
         this.objectMapper = objectMapper;
@@ -62,6 +72,8 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
         this.attendanceService = attendanceService;
         this.fingerprintMapper = fingerprintMapper;
         this.restTemplate = restTemplate;
+        this.messagingTemplate = messagingTemplate;
+        this.userClient = userClient;
     }
 
     @PostConstruct
@@ -188,12 +200,26 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
         String chipId = node.get("chipId").asText();
 
         log.info("Nhận yêu cầu discover thiết bị qua MQTT: {}", chipId);
+        boolean isNew = false;
         if (!deviceService.existDeviceById(chipId)) {
             log.info("Phát hiện thiết bị mới hoàn toàn qua MQTT: {}", chipId);
             deviceService.saveDevice(Device.builder().id(chipId).isActive(true).build());
+            isNew = true;
         } else {
             log.info("Thiết bị {} đã từng được gán trước đó (qua MQTT discover).", chipId);
         }
+
+        // Broadcast WebSocket event cho device discover
+        WebSocketEventDTO<Map<String, Object>> event = WebSocketEventDTO.<Map<String, Object>>builder()
+                .eventType("DEVICE_DISCOVERED")
+                .data(Map.of(
+                        "chipId", chipId,
+                        "isActive", true,
+                        "isNew", isNew))
+                .timestamp(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))
+                .build();
+        messagingTemplate.convertAndSend("/topic/devices", event);
+        log.info("Đã broadcast WebSocket event DEVICE_DISCOVERED cho chipId: {}", chipId);
     }
 
     private void handleChangeStatus(String payload) throws Exception {
@@ -253,9 +279,41 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
             Fingerprint fingerprint = fingerprintService.getFingerprintByFingerprintIndexAndClassroomId(
                     dto.fingerprintIndex(), device.getClassroomId());
 
-            attendanceService.recordAttendance(fingerprint.getStudentId(), device.getClassroomId());
-            log.info("Ghi nhận điểm danh cho học sinh {} tại lớp {} từ thiết bị {}",
-                    fingerprint.getStudentId(), device.getClassroomId(), device.getId());
+            var status = attendanceService.recordAttendance(fingerprint.getStudentId(), device.getClassroomId());
+            log.info("Ghi nhận điểm danh cho học sinh {} tại lớp {} từ thiết bị {} - Status: {}",
+                    fingerprint.getStudentId(), device.getClassroomId(), device.getId(), status);
+
+            // Lấy thông tin học sinh để broadcast đầy đủ (cho UI update)
+            String studentName = "N/A";
+            String studentCode = "N/A";
+            try {
+                UserResponseDTO user = userClient.getUserById(fingerprint.getStudentId());
+                if (user != null) {
+                    studentName = user.lastName() + " " + user.firstName();
+                    studentCode = user.code();
+                }
+            } catch (Exception e) {
+                log.error("Không thể lấy thông tin học sinh từ user-service: {}", e.getMessage());
+            }
+
+            // Broadcast WebSocket event cho attendance
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+            WebSocketEventDTO<Map<String, Object>> event = WebSocketEventDTO.<Map<String, Object>>builder()
+                    .eventType("ATTENDANCE_RECORDED")
+                    .data(Map.of(
+                            "studentId", fingerprint.getStudentId().toString(),
+                            "studentName", studentName,
+                            "studentCode", studentCode,
+                            "status", status.toString(),
+                            "classroomId", device.getClassroomId().toString(),
+                            "deviceId", device.getId(),
+                            "checkInTime", now.toLocalTime().toString().substring(0, 8),
+                            "attendanceDate", now.toLocalDate().toString()))
+                    .timestamp(now)
+                    .build();
+            messagingTemplate.convertAndSend("/topic/attendances", event);
+            log.info("Đã broadcast WebSocket event ATTENDANCE_RECORDED cho student: {}, classroom: {}",
+                    fingerprint.getStudentId(), device.getClassroomId());
         } else {
             log.warn("Nhận log điểm danh từ thiết bị {} nhưng thiết bị chưa được gán cho lớp nào.", device.getId());
         }

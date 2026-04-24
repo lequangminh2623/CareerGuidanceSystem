@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     GOOGLE_CLOUD_PROJECT: str = ""
     GOOGLE_CLOUD_REGION: str = "us-central1"
 
+    # ── Redis Cache ──
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: str = ""
+    REDIS_CACHE_TTL: int = 7200  # 2 hours in seconds
+
     @property
     def cors_origins(self) -> List[str]:
         """Parse comma-separated ALLOWED_ORIGINS into a list."""

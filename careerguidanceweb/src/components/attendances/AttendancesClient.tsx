@@ -4,7 +4,11 @@ import { useState } from "react";
 import {
     useGetAttendanceClassroomsQuery,
     useGetAttendancesByClassroomQuery,
+    apiSlice
 } from "@/store/features/api/apiSlice";
+import { useDispatch } from "react-redux";
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useEffect, useState as useReactState } from "react";
 import { useTranslation } from "react-i18next";
 import { FiBookOpen, FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiSearch, FiCalendar } from "react-icons/fi";
 
@@ -23,7 +27,35 @@ const getStatusConfig = (status: string, t: (k: string) => string) => {
 
 export default function AttendancesClient() {
     const { t, i18n } = useTranslation();
-    const [selectedClassroomId, setSelectedClassroomId] = useState<string>("");
+    const [selectedClassroomId, setSelectedClassroomId] = useReactState<string>("");
+    const dispatch = useDispatch();
+
+    // ── WebSocket Integration ──
+    const { latestAttendanceEvent } = useWebSocket();
+    const [toastMessage, setToastMessage] = useReactState<{ title: string, time: string } | null>(null);
+
+    // Xử lý sự kiện điểm danh từ WebSocket
+    useEffect(() => {
+        if (!latestAttendanceEvent || latestAttendanceEvent.eventType !== "ATTENDANCE_RECORDED") return;
+
+        const eventData = latestAttendanceEvent.data;
+
+        // Chỉ hiển thị thông báo và cập nhật dữ liệu nếu người dùng đang xem trang của lớp đó
+        if (eventData.classroomId === selectedClassroomId) {
+            // Hiển thị toast
+            setToastMessage({
+                title: "Có học sinh vừa điểm danh",
+                time: eventData.checkInTime || "--:--",
+            });
+
+            // Invalidate cache của RTK Query để tự động gọi API fetch lại danh sách điểm danh
+            dispatch(apiSlice.util.invalidateTags(["Attendance"]));
+
+            // Tự động ẩn toast sau 5 giây
+            const timer = setTimeout(() => setToastMessage(null), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [latestAttendanceEvent, selectedClassroomId, dispatch]);
 
     // ── RTK Query ──
     const {
@@ -72,6 +104,27 @@ export default function AttendancesClient() {
                 <div className="mb-8 p-4 bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-700 rounded-2xl shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
                     <FiAlertCircle className="w-5 h-5 shrink-0" />
                     <p className="font-medium text-sm">{error}</p>
+                </div>
+            )}
+
+            {/* WebSocket Toast Inline Notification */}
+            {toastMessage && (
+                <div className="mb-8 p-4 bg-indigo-50/80 backdrop-blur-sm border border-indigo-100 text-indigo-700 rounded-2xl shadow-sm flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-indigo-100 p-2 rounded-full text-indigo-600 animate-pulse">
+                            <FiCheckCircle className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-indigo-900">{toastMessage.title}</p>
+                            <p className="font-medium text-xs text-indigo-600">Thời gian: {toastMessage.time.substring(0, 5)}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setToastMessage(null)}
+                        className="text-indigo-400 hover:text-indigo-600 transition-colors p-1"
+                    >
+                        <FiXCircle className="w-5 h-5" />
+                    </button>
                 </div>
             )}
 

@@ -22,6 +22,7 @@ import datetime
 from app.config import settings
 from app.models.schemas import HealthResponse
 from app.services import gemini_service, chat_manager, admission_service
+from app.services import redis_cache
 from app.routers import holland, guidance, chat
 
 # ══════════════════════════════════════════════
@@ -70,6 +71,9 @@ async def lifespan(app: FastAPI):
 
     # Initialize MongoDB for admission score lookup
     admission_service.initialize()
+
+    # Initialize Redis cache
+    redis_cache.initialize()
 
     logger.info("✓ Spring Boot URL: %s", settings.SPRING_BOOT_BASE_URL)
     logger.info("✓ CORS origins: %s", settings.cors_origins)

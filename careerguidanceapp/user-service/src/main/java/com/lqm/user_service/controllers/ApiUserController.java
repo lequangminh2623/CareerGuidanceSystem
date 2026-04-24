@@ -33,7 +33,7 @@ public class ApiUserController {
         binder.setValidator(webAppValidator);
     }
 
-    @GetMapping("/profile")
+    @GetMapping("/me")
     public ResponseEntity<UserDetailsResponseDTO> getProfile() {
         User user = userService.getCurrentUser();
         UserDetailsResponseDTO userResponseDTO = userMapper.toUserDetailsResponseDTO(user);

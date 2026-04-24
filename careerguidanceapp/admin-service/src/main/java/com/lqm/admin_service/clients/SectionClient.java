@@ -17,10 +17,10 @@ import java.util.UUID;
 @FeignClient(name = "api-gateway",path = "/academic-service/api/internal/admin/sections",contextId = "sectionClient")
 public interface SectionClient {
 
-    @GetMapping("/request")
+    @GetMapping("/requests")
     Page<SectionRequestDTO> getSectionRequests(@RequestParam Map<String, String> params);
 
-    @PostMapping("/response")
+    @PostMapping("/batch")
     Page<SectionResponseDTO> getSectionResponses(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
 
     @PostMapping

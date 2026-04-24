@@ -31,9 +31,9 @@ public interface DeviceClient {
     @GetMapping("/classrooms/{classroomId}")
     DeviceResponseDTO getDeviceByClassroom(@PathVariable UUID classroomId);
 
-    @PostMapping("/assign")
+    @PostMapping("/assignments")
     void assignDeviceToClassroom(@RequestBody @Valid DeviceRequestDTO assignDevice);
 
-    @PostMapping("/{deviceId}/unassign")
+    @PostMapping("/{deviceId}/unassignment")
     void unassignDeviceFromClassroom(@PathVariable String deviceId);
 }

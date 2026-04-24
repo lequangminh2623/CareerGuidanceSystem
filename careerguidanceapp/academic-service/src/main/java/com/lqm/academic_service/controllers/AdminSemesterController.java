@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/internal/admin")
+@RequestMapping("/api/internal/admin/semesters")
 @RequiredArgsConstructor
 public class AdminSemesterController {
 
@@ -32,7 +32,7 @@ public class AdminSemesterController {
         binder.setValidator(webAppValidator);
     }
 
-    @GetMapping("/years/{yearId}/semesters")
+    @GetMapping("/by-year/{yearId}")
     public List<AcademicResponseDTO> getSemestersByYearId(@PathVariable UUID yearId,
                                                           @RequestParam Map<String, String> params) {
         return semesterService.getSemestersByYearId(yearId, params)
@@ -41,20 +41,20 @@ public class AdminSemesterController {
                 .toList();
     }
 
-    @GetMapping("/semesters/{id}")
+    @GetMapping("/{id}")
     public SemesterRequestDTO getSemesterRequestById(@PathVariable UUID id) {
         return semesterMapper.toSemesterRequestDTO(
                 semesterService.getSemesterById(id)
         );
     }
 
-    @PostMapping("/semesters")
+    @PostMapping
     public void saveSemester(@RequestBody @Valid SemesterRequestDTO dto) {
         Year year = yearService.getYearById(dto.yearId());
         semesterService.saveSemester(semesterMapper.toEntity(dto), year);
     }
 
-    @DeleteMapping("/semesters/{id}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSemesterById(@PathVariable UUID id) {
         semesterService.deleteSemesterById(id);

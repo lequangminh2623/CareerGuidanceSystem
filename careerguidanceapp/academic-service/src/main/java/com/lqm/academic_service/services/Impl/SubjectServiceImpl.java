@@ -5,6 +5,9 @@ import com.lqm.academic_service.models.Subject;
 import com.lqm.academic_service.repositories.SubjectRepository;
 import com.lqm.academic_service.services.SubjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,17 +27,24 @@ public class SubjectServiceImpl implements SubjectService {
     private final MessageSource messageSource;
 
     @Override
+    @Cacheable(value = "academic::subjects",
+            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<Subject> getSubjects(Map<String, String> params, Pageable pageable) {
         String kw = (params != null) ? params.get("kw") : null;
         return subjectRepo.findAllByKeyword(kw, pageable);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "academic::subjects", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public Subject saveSubject(Subject subject) {
         return subjectRepo.save(subject);
     }
 
     @Override
+    @Cacheable(value = "academic::subjects", key = "'id_' + #id")
     public Subject getSubjectById(UUID id) {
         return subjectRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -48,6 +58,10 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "academic::subjects", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public void deleteSubjectById(UUID id) {
         subjectRepo.deleteById(id);
     }

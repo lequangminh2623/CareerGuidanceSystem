@@ -64,7 +64,7 @@
                             <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
-                    <tbody class="border-top-0">
+                    <tbody id="deviceTableBody" class="border-top-0">
                         <tr th:each="device : ${devices != null ? devices.content : {}}"
                             class="transition-all duration-200">
 
@@ -120,7 +120,7 @@
                             </td>
                         </tr>
 
-                        <tr th:if="${devices == null or devices.totalElements == 0}">
+                        <tr th:if="${devices == null or devices.totalElements == 0}" class="empty-state-row">
                             <td colspan="4" class="text-center py-5">
                                 <div class="py-5">
                                     <div class="bg-light d-inline-flex p-4 rounded-circle mb-4">

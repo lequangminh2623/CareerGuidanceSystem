@@ -25,6 +25,8 @@ import com.lqm.score_service.models.*;
 import com.lqm.score_service.repositories.*;
 import com.lqm.score_service.services.*;
 import jakarta.annotation.PostConstruct;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -51,7 +53,7 @@ import java.util.stream.Collectors;
 import static com.lqm.score_service.specifications.ScoreDetailSpecification.filter;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ScoreServiceImpl implements ScoreService {
 
@@ -63,7 +65,6 @@ public class ScoreServiceImpl implements ScoreService {
     private final MessageSource messageSource;
 
     @Override
-    @Transactional(readOnly = true)
     public Page<ScoreDetail> getScoreDetails(Map<String, String> params, Pageable pageable) {
         Specification<ScoreDetail> spec = filter(params != null ? params : Map.of());
         return scoreDetailRepo.findAll(spec, pageable);
@@ -75,6 +76,12 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "score::student-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-section-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-grade-stats", allEntries = true)
+    })
     public void deleteScoreDetails(UUID studentId, List<UUID> transcriptIds) {
         scoreDetailRepo.deleteAllByStudentIdAndSectionIdIn(studentId, transcriptIds);
     }
@@ -85,6 +92,12 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "score::student-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-section-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-grade-stats", allEntries = true)
+    })
     public void syncScoresForClassroom(List<UUID> sectionIds, List<UUID> newStudentIds, List<UUID> removedStudentIds) {
 
         // 1. THỰC HIỆN XÓA (Clean up dữ liệu cũ trước)
@@ -154,6 +167,12 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "score::student-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-section-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-grade-stats", allEntries = true)
+    })
     public List<ScoreDetail> saveScores(List<ScoreDetail> scoreRequests) {
         UUID sectionId = scoreRequests.getFirst().getSectionId();
 
@@ -254,6 +273,12 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "score::student-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-section-stats", allEntries = true),
+            @CacheEvict(value = "score::teacher-grade-stats", allEntries = true)
+    })
     public void importScoresFromCsv(UUID sectionId, MultipartFile file) throws IOException {
         SectionResponseDTO sectionResponseDTO = sectionClient.getSectionResponseById(sectionId);
 

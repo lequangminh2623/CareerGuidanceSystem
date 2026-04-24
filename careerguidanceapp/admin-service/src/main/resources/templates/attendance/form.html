@@ -70,7 +70,7 @@
             </div>
 
             <div th:if="${params['attendanceDate'] == null or params['attendanceDate'] == ''}"
-                class="card border-1 shadow-sm py-5 text-center mt-3 rounded-xl border-dashed border-2">
+                class="card border-2 border-dashed shadow-sm py-5 text-center mt-3 rounded-xl">
                 <div class="bg-light p-4 rounded-circle d-inline-block mx-auto mb-3">
                     <i class="fas fa-calendar-alt text-indigo fs-2 opacity-50"></i>
                 </div>
@@ -79,7 +79,9 @@
                 </p>
             </div>
 
-            <div th:if="${params['attendanceDate'] != null and params['attendanceDate'] != '' and classroom != null}">
+            <div th:if="${params['attendanceDate'] != null and params['attendanceDate'] != '' and classroom != null}"
+                 data-current-classroom-id="${params['classroomId']}"
+                 th:attr="data-current-classroom-id=${params['classroomId']}">
                 <form th:action="@{/attendances}" method="post">
                     <input type="hidden" name="classroomId" th:value="${params['classroomId']}" />
                     <input type="hidden" name="attendanceDate" th:value="${params['attendanceDate']}" />
@@ -98,8 +100,9 @@
                                         <th class="text-center py-3" style="width: 120px;">Nghỉ Học</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="attendanceTableBody">
                                     <tr th:each="att, stat : ${attendances}"
+                                        th:attr="data-student-id=${att.studentId}"
                                         th:with="st=${students.get(att.studentId)}">
                                         <input type="hidden" th:name="|attendances[${stat.index}].studentId|"
                                             th:value="${att.studentId}" />
@@ -147,7 +150,7 @@
                                         </td>
                                     </tr>
 
-                                    <tr th:if="${#lists.isEmpty(attendances)}">
+                                    <tr th:if="${#lists.isEmpty(attendances)}" class="empty-state-row">
                                         <td colspan="6" class="text-center py-5">
                                             <div class="py-4 opacity-50">
                                                 <i class="fas fa-user-slash fs-2 mb-3"></i>

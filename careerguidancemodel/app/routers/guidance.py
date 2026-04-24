@@ -19,6 +19,7 @@ from app.models.schemas import (
     ErrorResponse,
 )
 from app.services import gemini_service, chat_manager
+from app.services.redis_cache import get_cached, set_cached
 from app.services.spring_boot_client import (
     get_student_scores,
     get_current_user,
@@ -57,11 +58,22 @@ async def academic_guidance(request: AcademicGuidanceRequest):
     Sends the exact prompt format matching the fine-tuned model's training data.
     """
     try:
-        result = gemini_service.get_academic_guidance(
-            scores=request.scores,
-            profile=request.profile,
-            survey=request.survey,
-        )
+        # Check cache
+        cache_input = {
+            "scores": request.scores.model_dump(),
+            "profile": request.profile.model_dump(),
+            "survey": request.survey.model_dump(),
+        }
+        cached_result = get_cached("academic", cache_input)
+        if cached_result:
+            result = cached_result
+        else:
+            result = gemini_service.get_academic_guidance(
+                scores=request.scores,
+                profile=request.profile,
+                survey=request.survey,
+            )
+            set_cached("academic", cache_input, result)
 
         session_id = chat_manager.create_session(
             initial_context={"academic_result": result}
@@ -109,17 +121,38 @@ async def full_guidance(request: FullGuidanceRequest):
     SEPARATELY, then creates a chat session with both results as context.
     """
     try:
-        # Flow 1: Holland guidance
-        holland_result = gemini_service.get_holland_guidance(
-            request.holland_codes
-        )
+        # Check cache for combined result
+        cache_input = {
+            "holland_codes": request.holland_codes,
+            "scores": request.scores.model_dump(),
+            "profile": request.profile.model_dump(),
+            "survey": request.survey.model_dump(),
+        }
+        cached = get_cached("full", cache_input)
+        if cached:
+            import json
+            cached_data = json.loads(cached)
+            holland_result = cached_data["holland_result"]
+            academic_result = cached_data["academic_result"]
+        else:
+            # Flow 1: Holland guidance
+            holland_result = gemini_service.get_holland_guidance(
+                request.holland_codes
+            )
 
-        # Flow 2: Academic guidance
-        academic_result = gemini_service.get_academic_guidance(
-            scores=request.scores,
-            profile=request.profile,
-            survey=request.survey,
-        )
+            # Flow 2: Academic guidance
+            academic_result = gemini_service.get_academic_guidance(
+                scores=request.scores,
+                profile=request.profile,
+                survey=request.survey,
+            )
+
+            # Cache combined result
+            import json
+            set_cached("full", cache_input, json.dumps({
+                "holland_result": holland_result,
+                "academic_result": academic_result,
+            }))
 
         # Create chat session with both results as context
         session_id = chat_manager.create_session(
@@ -215,15 +248,36 @@ async def guidance_from_springboot(
         # Absences: default to 0 (can be extended to call attendance-service)
         profile = StudentProfile(gender=gender, absences=0)
 
-        # ── Run both guidance flows ──
-        holland_result = gemini_service.get_holland_guidance(
-            request.holland_codes
-        )
-        academic_result = gemini_service.get_academic_guidance(
-            scores=scores,
-            profile=profile,
-            survey=request.survey,
-        )
+        # ── Check cache ──
+        cache_input = {
+            "holland_codes": request.holland_codes,
+            "scores": scores.model_dump(),
+            "profile": profile.model_dump(),
+            "survey": request.survey.model_dump(),
+        }
+        cached = get_cached("springboot", cache_input)
+        if cached:
+            import json
+            cached_data = json.loads(cached)
+            holland_result = cached_data["holland_result"]
+            academic_result = cached_data["academic_result"]
+        else:
+            # ── Run both guidance flows ──
+            holland_result = gemini_service.get_holland_guidance(
+                request.holland_codes
+            )
+            academic_result = gemini_service.get_academic_guidance(
+                scores=scores,
+                profile=profile,
+                survey=request.survey,
+            )
+
+            # Cache combined result
+            import json
+            set_cached("springboot", cache_input, json.dumps({
+                "holland_result": holland_result,
+                "academic_result": academic_result,
+            }))
 
         session_id = chat_manager.create_session(
             initial_context={

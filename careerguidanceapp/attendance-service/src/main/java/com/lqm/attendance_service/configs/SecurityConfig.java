@@ -58,7 +58,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthFilter headerFilter) {
 
-        http.securityMatcher("/api/**")
+        http.securityMatcher("/api/**", "/ws/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm
@@ -67,6 +67,7 @@ public class SecurityConfig {
                 .addFilterBefore(headerFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/secure/**").authenticated()
                         .requestMatchers("/api/internal/secure/**").authenticated()
                         .requestMatchers("/api/internal/admin/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())

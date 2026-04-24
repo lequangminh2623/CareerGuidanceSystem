@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@FeignClient(name = "api-gateway", path = "/academic-service/api/internal/admin", contextId = "semesterClient")
+@FeignClient(name = "api-gateway", path = "/academic-service/api/internal/admin/semesters", contextId = "semesterClient")
 public interface SemesterClient {
 
-    @GetMapping("/years/{yearId}/semesters")
+    @GetMapping("/by-year/{yearId}")
     List<AcademicResponseDTO> getSemestersByYearId(@PathVariable UUID yearId,
                                                    @RequestParam Map<String, String> params);
 
-    @GetMapping("/semesters/{id}")
+    @GetMapping("/{id}")
     SemesterRequestDTO getSemesterRequestById(@PathVariable UUID id);
 
-    @PostMapping("/semesters")
+    @PostMapping
     void saveSemester(@RequestBody SemesterRequestDTO dto);
 
-    @DeleteMapping("/semesters/{id}")
+    @DeleteMapping("/{id}")
     void deleteSemesterById(@PathVariable UUID id);
 }

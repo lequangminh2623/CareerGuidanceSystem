@@ -3,7 +3,7 @@ package com.lqm.attendance_service.services;
 import com.lqm.attendance_service.dtos.AttendanceResponseDTO;
 import com.lqm.attendance_service.dtos.AttendanceSummaryDTO;
 import com.lqm.attendance_service.models.Attendance;
-
+import com.lqm.attendance_service.models.AttendanceStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +15,7 @@ public interface AttendanceService {
 
     void deleteAttendancesByClassroomAndDate(UUID classroomId, LocalDate attendanceDate);
 
-    void recordAttendance(UUID studentId, UUID classroomId);
+    AttendanceStatus recordAttendance(UUID studentId, UUID classroomId);
 
     List<AttendanceResponseDTO> getStudentAttendanceByClassroom(UUID studentId, UUID classroomId);
 

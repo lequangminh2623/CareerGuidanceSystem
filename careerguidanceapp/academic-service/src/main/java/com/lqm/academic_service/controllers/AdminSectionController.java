@@ -38,7 +38,7 @@ public class AdminSectionController {
         binder.setValidator(webAppValidator);
     }
 
-    @GetMapping("/request")
+    @GetMapping("/requests")
     public Page<SectionRequestDTO> getSectionRequests(@RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
@@ -48,7 +48,7 @@ public class AdminSectionController {
         return sectionService.getSections(params, pageable).map(sectionMapper::toSectionRequestDTO);
     }
 
-    @PostMapping("/response")
+    @PostMapping("/batch")
     Page<SectionResponseDTO> getSectionResponses(@RequestBody List<UUID> ids,
             @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(

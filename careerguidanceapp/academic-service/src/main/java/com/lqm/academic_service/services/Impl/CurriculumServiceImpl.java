@@ -9,6 +9,8 @@ import com.lqm.academic_service.services.CurriculumService;
 import com.lqm.academic_service.specifications.CurriculumSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +34,15 @@ public class CurriculumServiceImpl implements CurriculumService {
     }
 
     @Override
+    @Cacheable(value = "academic::curriculums", 
+            key = "'all_' + #params?.getOrDefault('gradeId', '') + '_' + #params?.getOrDefault('semesterId', '') + '_' + #params?.getOrDefault('subjectId', '') + '_' + #params?.getOrDefault('yearId', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
     public Page<Curriculum> getCurriculums(Map<String, String> params, Pageable pageable) {
         Specification<Curriculum> spec = CurriculumSpecification.filterByParams(params);
         return curriculumRepo.findAll(spec, pageable);
     }
 
     @Override
+    @Cacheable(value = "academic::curriculums", key = "'id_' + #id")
     public Curriculum getCurriculumById(UUID id) {
         return curriculumRepo.findById(id).orElseThrow(() -> new RuntimeException(
                 messageSource.getMessage("curriculum.notFound", null, Locale.getDefault())
@@ -45,6 +50,7 @@ public class CurriculumServiceImpl implements CurriculumService {
     }
 
     @Override
+    @CacheEvict(value = "academic::curriculums", allEntries = true)
     public Curriculum saveCurriculum(Curriculum entity, Grade grade, Semester semester, Subject subject) {
         entity.setGrade(grade);
         entity.setSemester(semester);
@@ -54,6 +60,7 @@ public class CurriculumServiceImpl implements CurriculumService {
     }
 
     @Override
+    @CacheEvict(value = "academic::curriculums", allEntries = true)
     public void deleteCurriculum(UUID id) {
         curriculumRepo.deleteById(id);
     }

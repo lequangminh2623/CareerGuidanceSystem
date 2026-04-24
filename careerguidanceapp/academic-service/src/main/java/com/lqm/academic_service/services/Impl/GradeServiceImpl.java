@@ -7,13 +7,16 @@ import com.lqm.academic_service.repositories.CurriculumRepository;
 import com.lqm.academic_service.repositories.GradeRepository;
 import com.lqm.academic_service.services.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class GradeServiceImpl implements GradeService {
@@ -26,18 +29,27 @@ public class GradeServiceImpl implements GradeService {
     private final SubjectService subjectService;
 
     @Override
+    @Cacheable(value = "academic::grades",
+            key = "'yearId_' + #id + '_' + #params?.getOrDefault('kw', '')")
     public List<Grade> getGradesByYearId(UUID id, Map<String, String> params) {
         String kw = (params != null) ? params.get("kw") : null;
         return gradeRepo.findByYearId(id, kw);
     }
 
     @Override
+    @Cacheable(value = "academic::grades",
+            key = "'all_' + #params?.getOrDefault('kw', '')")
     public List<Grade> getGrades(Map<String, String> params) {
         String kw = (params != null) ? params.get("kw") : null;
         return gradeRepo.findAllByKeyword(kw);
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "academic::grades", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public Grade saveGrade(Grade grade, Year year) {
         boolean isNew = (grade.getId() == null);
         grade.setYear(year);
@@ -68,6 +80,7 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
+    @Cacheable(value = "academic::grades", key = "'id_' + #id")
     public Grade getGradeById(UUID id) {
         return gradeRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
                 messageSource.getMessage("grade.notFound", null, Locale.getDefault()))
@@ -75,6 +88,11 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "academic::grades", allEntries = true),
+            @CacheEvict(value = "academic::curriculums", allEntries = true)
+    })
     public void deleteGradeById(UUID id) {
         gradeRepo.deleteById(id);
     }

@@ -39,7 +39,7 @@ public class AdminUserController {
         binder.setValidator(webAppValidator);
     }
 
-    @PostMapping
+    @PostMapping("/batch")
     Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
@@ -82,7 +82,7 @@ public class AdminUserController {
         return userMapper.toUserResponseDTO(userService.getUserById(id));
     }
 
-    @PostMapping(path = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void saveUser(@RequestPart("user") @Valid AdminUserRequestDTO adminUserRequestDTO,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         User user = userMapper.toEntity(adminUserRequestDTO);
@@ -99,7 +99,7 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.getUserStatistics());
     }
 
-    @GetMapping("/current-user")
+    @GetMapping("/me")
     public UserDetailsResponseDTO getCurrentUser() {
         return userMapper.toUserDetailsResponseDTO(userService.getCurrentUser());
     }

@@ -10,9 +10,9 @@ export const endpoints = {
     login: "/user-service/api/auth/login",
     "sign-up": "/user-service/api/auth/signup",
     "login-google": "/user-service/api/auth/google",
-    profile: "/user-service/api/secure/profile",
+    profile: "/user-service/api/secure/me",
 
-    "attendances-classrooms": "/academic-service/api/secure/classrooms/current-student",
+    "attendances-classrooms": "/academic-service/api/secure/classrooms/me",
     "attendances-by-classroom": (classroomId: string | number) => `/attendance-service/api/secure/classrooms/${classroomId}/attendances`,
 
     // Transcripts points to score-service
@@ -23,7 +23,7 @@ export const endpoints = {
     "export-csv": (sectionId: number | string) => `/score-service/api/secure/transcripts/${sectionId}/scores/export/csv`,
     "export-pdf": (sectionId: number | string) => `/score-service/api/secure/transcripts/${sectionId}/scores/export/pdf`,
 
-    "student-scores": "score-service/api/secure/scores/current-student",
+    "student-scores": "/score-service/api/secure/scores/me",
     // Statistics endpoints
     "statistics-student-scores": "/score-service/api/secure/statistics/student",
     "statistics-student-attendance": "/attendance-service/api/secure/statistics/attendance",

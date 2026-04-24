@@ -17,7 +17,7 @@ import java.util.UUID;
 @FeignClient(name = "api-gateway", path = "/user-service/api/internal/admin/users", contextId = "userClient")
 public interface UserClient {
 
-    @PostMapping
+    @PostMapping("/batch")
     Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
 
     @GetMapping
@@ -32,7 +32,7 @@ public interface UserClient {
     @GetMapping("/{id}/response")
     UserResponseDTO getUserResponseById(@PathVariable UUID id);
 
-    @PostMapping(path = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     void saveUser(@RequestPart("user") AdminUserRequestDTO adminUserRequestDTO,
             @RequestPart(value = "file", required = false) MultipartFile file);
 
@@ -42,7 +42,7 @@ public interface UserClient {
     @GetMapping("/stats")
     ResponseEntity<Map<String, Object>> getStats();
 
-    @GetMapping("/current-user")
+    @GetMapping("/me")
     UserDetailsResponseDTO getCurrentUser();
 
 }

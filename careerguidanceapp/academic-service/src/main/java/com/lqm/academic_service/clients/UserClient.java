@@ -13,14 +13,14 @@ import java.util.UUID;
 @FeignClient(name = "api-gateway", path = "/user-service/api/internal/secure/users", contextId = "userClient")
 public interface UserClient {
 
-    @PostMapping
+    @PostMapping("/batch")
     Page<UserResponseDTO> getUsers(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params);
 
     @PostMapping("/messages")
     Page<UserMessageResponseDTO> getUsersMessages(@RequestBody List<UUID> ids,
             @RequestParam Map<String, String> params);
 
-    @GetMapping("/current-user")
+    @GetMapping("/me")
     UserResponseDTO getCurrentUser();
 
 }

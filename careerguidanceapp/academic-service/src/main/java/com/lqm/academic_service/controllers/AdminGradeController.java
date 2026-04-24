@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/internal/admin")
+@RequestMapping("/api/internal/admin/grades")
 @RequiredArgsConstructor
 public class AdminGradeController {
 
@@ -34,7 +34,7 @@ public class AdminGradeController {
         binder.setValidator(webAppValidator);
     }
 
-    @GetMapping("/years/{yearId}/grades")
+    @GetMapping("/by-year/{yearId}")
     public List<AcademicResponseDTO> getGradesByYearId(@PathVariable UUID yearId,
                                                        @RequestParam Map<String, String> params) {
         return gradeService.getGradesByYearId(yearId, params)
@@ -43,7 +43,7 @@ public class AdminGradeController {
                 .toList();
     }
 
-    @GetMapping("/grades/details")
+    @GetMapping("/details")
     public List<GradeDetailsResponseDTO> getGradesDetails(@RequestParam Map<String, String> params) {
         return gradeService.getGrades(params)
                 .stream()
@@ -51,17 +51,17 @@ public class AdminGradeController {
                 .toList();
     }
 
-    @GetMapping("/grades/{id}")
+    @GetMapping("/{id}")
     public GradeRequestDTO getGradeRequestById(@PathVariable UUID id) {
         return gradeMapper.toGradeRequestDTO(gradeService.getGradeById(id));
     }
 
-    @PostMapping("/grades")
+    @PostMapping
     public void saveGrade(@RequestBody @Valid GradeRequestDTO dto) {
         Year year = yearService.getYearById(dto.yearId());
         gradeService.saveGrade(gradeMapper.toEntity(dto), year);}
 
-    @DeleteMapping("/grades/{id}")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteGradeById(@PathVariable UUID id) {
         gradeService.deleteGradeById(id);

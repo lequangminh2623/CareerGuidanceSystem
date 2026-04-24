@@ -137,9 +137,13 @@ services:
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-user: { condition: service_started }
+      redis: { condition: service_started }
     ports:
       - "${USER_SERVICE_PORT}:8080"
     networks:
@@ -162,10 +166,14 @@ services:
       MAIL_PASS: ${MAIL_PASSWORD}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-academic: { condition: service_started }
       rabbitmq: { condition: service_healthy }
+      redis: { condition: service_started }
     ports:
       - "${ACADEMIC_SERVICE_PORT}:8080"
     networks:
@@ -189,10 +197,14 @@ services:
       MAIL_PASS: ${MAIL_PASSWORD}
       MAIL_HOST: ${MAIL_HOST}
       MAIL_PORT: ${MAIL_PORT}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-score: { condition: service_started }
       rabbitmq: { condition: service_healthy }
+      redis: { condition: service_started }
     ports:
       - "${SCORE_SERVICE_PORT}:8080"
     networks:
@@ -225,6 +237,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      WS_ALLOWED_ORIGINS: http://admin-service:8080,http://localhost:3000,http://localhost:8080,${ALLOWED_ORIGINS}
     volumes:
       # Mount folder client certs cho Backend đọc file .p12 và .jks
       - ./careerguidanceapp/mosquitto/certs/client:/app/certs:ro
@@ -270,12 +283,14 @@ services:
     image: ${RABBITMQ_IMAGE}
     container_name: rabbitmq
     ports:
-      - "${RABBITMQ_PORT_EXTERNAL}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+      - "${RABBITMQ_PORT_EXTERNAL}"
+      - "${RABBITMQ_MANAGEMENT_PORT}"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       TZ: ${TIMEZONE}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - micro-net
     healthcheck:
@@ -313,6 +328,7 @@ services:
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      ATTENDANCE_WS_URL: http://localhost:8080/attendance-service/ws
     depends_on:
       discovery-service: { condition: service_healthy }
     ports:
@@ -357,6 +373,31 @@ services:
     networks:
       - micro-net
 
+  # ===== Redis for Gateway Rate Limiter =====
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      TZ: ${TIMEZONE}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - micro-net
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
   # ===== New Python Model Service =====
   careerguidance-model:
     build: ./careerguidancemodel
@@ -367,8 +408,13 @@ services:
       - ./careerguidancemodel/service-account.json:/app/service-account.json:ro
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     env_file:
       - ./careerguidancemodel/.env
+    depends_on:
+      redis: { condition: service_started }
     networks:
       - micro-net
 
@@ -394,5 +440,7 @@ volumes:
   mosquitto_data:
   mosquitto_log:
   mongodb_data:
+  redis_data:
+  rabbitmq_data:
 
 

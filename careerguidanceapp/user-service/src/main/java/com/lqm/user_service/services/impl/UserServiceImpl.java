@@ -12,6 +12,9 @@ import com.lqm.user_service.services.UserService;
 import com.lqm.user_service.specifications.UserSpecification;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
@@ -40,9 +43,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
+    @Cacheable(value = "user::profile", key = "#id")
     public User getUserById(UUID id) {
         return userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException(
                 messageSource.getMessage("user.notFound", null, Locale.getDefault())));
+    }
+
+    @Cacheable(value = "user::profile", key = "#email")
+    public Optional<User> getUserByEmail(String email) {
+        return userRepo.findByEmailAndActiveTrue(email);
     }
 
     @Override
@@ -59,20 +68,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<User> getUsersByIds(List<UUID> ids, Map<String, String> params, Pageable pageable) {
         Specification<User> spec = UserSpecification.filterByParams(params).and(UserSpecification.hasIdIn(ids));
         return userRepo.findAll(spec, pageable);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<User> getUsers(Map<String, String> params, Pageable pageable) {
         Specification<User> spec = UserSpecification.filterByParams(params);
         return userRepo.findAll(spec, pageable);
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "user::profile", key = "#user.id", condition = "#user.id != null"),
+            @CacheEvict(value = "user::profile", key = "#user.email"),
+            @CacheEvict(value = "user::statistics", allEntries = true)
+    })
     public User saveUser(User user, MultipartFile file, String code) {
         // Encode password
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
@@ -120,6 +133,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "user::profile", key = "#id"),
+            @CacheEvict(value = "user::profile", allEntries = true), // Phòng hờ xóa theo email chưa biết
+            @CacheEvict(value = "user::statistics", allEntries = true)
+    })
     public void deleteUser(UUID id) {
         User user = this.getUserById(id);
         cloudinaryService.deleteFile(user.getAvatar());
@@ -132,6 +151,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user::profile", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getPrincipal()")
     public User getCurrentUser() {
         String email = (String) Objects.requireNonNull(SecurityContextHolder.getContext()
                 .getAuthentication())
@@ -142,11 +162,12 @@ public class UserServiceImpl implements UserService {
                     messageSource.getMessage("user.notLoggedIn", null, Locale.getDefault()));
         }
 
-        return userRepo.findByEmailAndActiveTrue(email)
+        return this.getUserByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         messageSource.getMessage("user.notFound", null, Locale.getDefault())));
     }
 
+    @Cacheable("user::statistics")
     public Map<String, Object> getUserStatistics() {
         Map<String, Object> stats = new HashMap<>();
 

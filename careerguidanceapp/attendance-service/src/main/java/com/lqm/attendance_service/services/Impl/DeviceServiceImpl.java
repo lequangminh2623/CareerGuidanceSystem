@@ -8,7 +8,7 @@ import com.lqm.attendance_service.repositories.DeviceRepository;
 import com.lqm.attendance_service.services.DeviceService;
 import com.lqm.attendance_service.services.MqttService;
 import com.lqm.attendance_service.specifications.DeviceSpecification;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class DeviceServiceImpl implements DeviceService {
@@ -53,11 +53,13 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Transactional
     public Device saveDevice(Device device) {
         return deviceRepository.save(device);
     }
 
     @Override
+    @Transactional
     public void updateDeviceActiveStatus(String id, boolean active, boolean notifyMqtt) {
         Device device = this.getDeviceById(id);
 
@@ -72,6 +74,7 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Transactional
     public void deleteDevice(String deviceId) {
         if (!deviceRepository.existsById(deviceId)) {
             throw new ResourceNotFoundException(
@@ -101,6 +104,7 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Transactional
     public Device assignDeviceToClassroom(Device device) {
         Device dbDevice = this.getDeviceById(device.getId());
         dbDevice.setClassroomId(device.getClassroomId());
@@ -108,6 +112,7 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Transactional
     public void unassignDeviceFromClassroom(String deviceId) {
         Device device = this.getDeviceById(deviceId);
         
@@ -121,6 +126,7 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
+    @Transactional
     public void unassignDeviceByClassroomId(UUID classroomId) {
         deviceRepository.findByClassroomId(classroomId).ifPresent(device -> {
             this.unassignDeviceFromClassroom(device.getId());

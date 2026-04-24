@@ -21,7 +21,7 @@ public class ApiClassroomController {
     private final ClassroomMapper classroomMapper;
     private final UserClient userClient;
 
-    @GetMapping("/current-student")
+    @GetMapping("/me")
     public List<AcademicResponseDTO> getStudentClassrooms() {
         UserResponseDTO currentUser = userClient.getCurrentUser();
         return studentClassroomService.getClassroomsByStudentId(currentUser.id()).stream()

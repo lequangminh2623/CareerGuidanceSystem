@@ -33,7 +33,7 @@ public class ApiScoreController {
     private final ScoreMapper scoreMapper;
     private final MessageSource messageSource;
 
-    @GetMapping("/current-student")
+    @GetMapping("/me")
     public ResponseEntity<?> getStudentScores(@RequestParam Map<String, String> params) {
         UserResponseDTO currentUser = userClient.getCurrentUser();
 

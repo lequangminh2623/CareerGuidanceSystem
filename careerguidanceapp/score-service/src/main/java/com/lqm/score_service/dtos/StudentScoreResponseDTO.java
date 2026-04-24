@@ -8,6 +8,7 @@ import lombok.Builder;
 
 import java.util.List;
 import java.util.UUID;
+import java.io.Serializable;
 
 @Builder
 public record StudentScoreResponseDTO(
@@ -19,4 +20,6 @@ public record StudentScoreResponseDTO(
         String classroomName,
         String semesterName,
         String yearName
-) {}
+) implements Serializable {
+    private static final long serialVersionUID = 1L;
+}

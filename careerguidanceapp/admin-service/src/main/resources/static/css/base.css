@@ -157,3 +157,19 @@ footer {
 .tracking-tight { letter-spacing: -0.025em; }
 .tracking-wider { letter-spacing: 0.05em; }
 .tracking-tighter { letter-spacing: -0.05em; }.grow { flex-grow: 1 !important; }
+
+/* WebSocket real-time animations */
+.ws-new-row {
+    animation: wsNewRow 2s ease-out;
+}
+@keyframes wsNewRow {
+    0% { background-color: rgba(99, 102, 241, 0.2); transform: scale(1.01); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+.ws-attendance-highlight {
+    animation: wsAttendanceHighlight 3s ease-out;
+}
+@keyframes wsAttendanceHighlight {
+    0% { background-color: rgba(16, 185, 129, 0.25); }
+    100% { background-color: transparent; }
+}
