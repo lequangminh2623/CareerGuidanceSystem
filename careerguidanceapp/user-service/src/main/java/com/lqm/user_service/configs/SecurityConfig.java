@@ -1,11 +1,17 @@
 package com.lqm.user_service.configs;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.lqm.user_service.filters.AuthFilter;
 import com.lqm.user_service.models.Role;
 import com.lqm.user_service.validators.UserLoginDTOValidator;
 import com.lqm.user_service.validators.UserRequestDTOValidator;
 import com.lqm.user_service.validators.AdminUserRequestDTOValidator;
 import com.lqm.user_service.validators.WebAppValidator;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +33,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -48,6 +55,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 })
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthFilter headerFilter) {
@@ -105,7 +115,6 @@ public class SecurityConfig {
 
     @Bean
     public WebAppValidator webAppValidator(
-            jakarta.validation.Validator beanValidator,
             UserLoginDTOValidator userLoginDTOValidator,
             UserRequestDTOValidator userRequestDTOValidator,
             AdminUserRequestDTOValidator adminUserRequestDTOValidator) {
@@ -114,7 +123,7 @@ public class SecurityConfig {
         springValidators.add(userLoginDTOValidator);
         springValidators.add(userRequestDTOValidator);
 
-        return new WebAppValidator(beanValidator, springValidators);
+        return new WebAppValidator(springValidators);
     }
 
     @Bean
@@ -139,6 +148,19 @@ public class SecurityConfig {
         AccessDeniedHandlerImpl handler = new AccessDeniedHandlerImpl();
         handler.setErrorPage("/access-deny");
         return handler;
+    }
+
+    /**
+     * Expose {@link GoogleIdTokenVerifier} như một singleton bean.
+     * Lợi ích: có thể inject vào {@link com.lqm.user_service.services.impl.AuthServiceImpl}
+     * và mock hoàn toàn trong unit test.
+     */
+    @Bean
+    public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
+        return new GoogleIdTokenVerifier.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance()
+        ).setAudience(Collections.singletonList(googleClientId)).build();
     }
 
 }

@@ -40,7 +40,6 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final MessageSource messageSource;
-    private final UserRepository userRepository;
 
     @Override
     @Cacheable(value = "user::profile", key = "#id")
@@ -171,15 +170,15 @@ public class UserServiceImpl implements UserService {
     public Map<String, Object> getUserStatistics() {
         Map<String, Object> stats = new HashMap<>();
 
-        stats.put("totalUsers", userRepository.countBy());
+        stats.put("totalUsers", userRepo.countBy());
 
-        stats.put("byRole", userRepository.countUserByRole().stream()
+        stats.put("byRole", userRepo.countUserByRole().stream()
                 .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1])));
 
-        stats.put("byStatus", userRepository.countUserByStatus().stream()
+        stats.put("byStatus", userRepo.countUserByStatus().stream()
                 .collect(Collectors.toMap(row -> (Boolean) row[0] ? "active" : "deactive", row -> row[1])));
 
-        stats.put("studentGrowth", userRepository.countStudentGrowthByYear().stream()
+        stats.put("studentGrowth", userRepo.countStudentGrowthByYear().stream()
                 .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1])));
 
         return stats;

@@ -135,6 +135,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-rabbitmq</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 			<version>5.0.0</version>
@@ -203,6 +209,17 @@
 							<version>1.5.5.Final</version>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkedProcessExitTimeoutInSeconds>2</forkedProcessExitTimeoutInSeconds>
+					<systemPropertyVariables>
+						<testcontainers.reuse.enable>true</testcontainers.reuse.enable>
+					</systemPropertyVariables>
 				</configuration>
 			</plugin>
 

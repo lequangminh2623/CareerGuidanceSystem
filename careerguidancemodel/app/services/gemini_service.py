@@ -6,7 +6,6 @@ Handles both fine-tuned model calls and follow-up chat with system instruction.
 import logging
 from typing import List, Dict, Optional
 
-import google.generativeai as genai
 import vertexai
 from vertexai.generative_models import GenerativeModel as VertexGenerativeModel, Content, Part
 

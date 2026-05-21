@@ -50,12 +50,14 @@ const axiosInstance: AxiosInstance = axios.create({
 export default axiosInstance;
 
 // Axios instance có token (dùng khi cần auth)
-export const authApis = (): AxiosInstance => {
-    const token = getCookie("token");
+// Có thể truyền token trực tiếp để tránh race condition khi getCookie chưa
+// đọc được cookie vừa set trong quá trình hydration lần đầu.
+export const authApis = (token?: string): AxiosInstance => {
+    const resolvedToken = token ?? getCookie("token");
     return axios.create({
         baseURL: BASE_URL,
         headers: {
-            Authorization: token ? `Bearer ${token}` : "",
+            Authorization: resolvedToken ? `Bearer ${resolvedToken}` : "",
         },
     });
 };

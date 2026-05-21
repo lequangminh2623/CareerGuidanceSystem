@@ -81,7 +81,7 @@ const TeacherStatistics = () => {
             },
         });
         return () => { barChartInstance.current?.destroy(); };
-    }, [sectionAvgs, t]);
+    }, [sectionAvgs, t, loading]);
 
     // Grade line charts — re-draw when gradeStats changes
     useEffect(() => {

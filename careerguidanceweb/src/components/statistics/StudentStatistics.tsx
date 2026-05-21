@@ -69,7 +69,7 @@ const StudentStatistics = () => {
             },
         });
         return () => { lineChartInstance.current?.destroy(); };
-    }, [semesterAverages, t]);
+    }, [semesterAverages, t, loading]);
 
     // Bar chart — yearly averages
     useEffect(() => {
@@ -106,7 +106,7 @@ const StudentStatistics = () => {
             },
         });
         return () => { barChartInstance.current?.destroy(); };
-    }, [yearAverages, t]);
+    }, [yearAverages, t, loading]);
 
     // Doughnut chart — attendance
     useEffect(() => {
@@ -151,7 +151,7 @@ const StudentStatistics = () => {
             },
         });
         return () => { pieChartInstance.current?.destroy(); };
-    }, [attendance, t]);
+    }, [attendance, t, loading]);
 
     if (loading) {
         return <div className="flex justify-center items-center py-20"><MySpinner /></div>;

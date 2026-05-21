@@ -36,11 +36,11 @@ public class AdminUserController {
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-        binder.setValidator(webAppValidator);
+        binder.addValidators(webAppValidator);
     }
 
     @PostMapping("/batch")
-    Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
+    public Page<UserResponseDTO> getUsersByIds(@RequestBody List<UUID> ids, @RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,
@@ -51,7 +51,7 @@ public class AdminUserController {
     }
 
     @GetMapping
-    Page<UserResponseDTO> getUsers(@RequestParam Map<String, String> params) {
+    public Page<UserResponseDTO> getUsers(@RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.USER_PAGE_SIZE,

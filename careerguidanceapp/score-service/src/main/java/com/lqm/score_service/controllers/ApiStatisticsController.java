@@ -3,7 +3,7 @@ package com.lqm.score_service.controllers;
 import com.lqm.score_service.clients.UserClient;
 import com.lqm.score_service.dtos.*;
 import com.lqm.score_service.services.StatisticsService;
-import jakarta.ws.rs.ForbiddenException;
+import com.lqm.score_service.exceptions.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;

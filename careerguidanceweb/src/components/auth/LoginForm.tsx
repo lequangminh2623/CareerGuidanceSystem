@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { loginSuccess } from "@/store/features/auth/authSlice";
 import Apis, { authApis, endpoints } from "@/lib/utils/api";
@@ -43,7 +43,7 @@ const LoginForm = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-    const router = useRouter();
+
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
     const { t } = useTranslation();
@@ -94,14 +94,19 @@ const LoginForm = () => {
             const res = await Apis.post(endpoints['login'], user);
 
             // Lưu token
-            setCookie('token', res.data.token);
+            const token = res.data.token as string;
+            setCookie('token', token);
 
-            // Lấy profile - Đảm bảo authApis sử dụng token mới nhất
-            const profileRes = await authApis().get(endpoints['profile']);
+            // Truyền token trực tiếp thay vì đọc lại từ cookie để tránh race condition
+            // (getCookie có thể trả undefined ngay sau setCookie trong lần hydration đầu tiên)
+            const profileRes = await authApis(token).get(endpoints['profile']);
 
             dispatch(loginSuccess(profileRes.data));
 
-            router.push("/");
+            // Dùng full page reload để đảm bảo cookie được gửi đúng trong
+            // HTTP request, middleware nhận diện được token, tránh race condition
+            // với Next.js soft navigation trong App Router.
+            window.location.href = "/";
         } catch (ex: unknown) {
             console.error(t('login-error-log'), ex);
 

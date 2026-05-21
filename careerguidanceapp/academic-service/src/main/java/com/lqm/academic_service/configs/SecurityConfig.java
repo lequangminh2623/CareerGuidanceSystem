@@ -111,7 +111,6 @@ public class SecurityConfig {
 
     @Bean
     public WebAppValidator webAppValidator(
-            jakarta.validation.Validator beanValidator,
             YearRequestDTOValidator yearRequestDTOValidator,
             SemesterRequestDTOValidator semesterRequestDTOValidator,
             GradeRequestDTOValidator gradeRequestDTOValidator,
@@ -129,7 +128,7 @@ public class SecurityConfig {
         springValidators.add(curriculumRequestDTOValidator);
         springValidators.add(sectionListRequestValidator);
 
-        return new WebAppValidator(beanValidator, springValidators);
+        return new WebAppValidator(springValidators);
     }
 
 

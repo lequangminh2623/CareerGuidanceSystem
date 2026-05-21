@@ -32,7 +32,7 @@ public class AdminDeviceController {
 
     @InitBinder("assignDevice")
     public void initBinder(WebDataBinder binder) {
-        binder.setValidator(webAppValidator);
+        binder.addValidators(webAppValidator);
     }
 
     // Hiển thị danh sách devices

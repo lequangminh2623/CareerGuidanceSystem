@@ -21,7 +21,7 @@ function isTokenExpired(token: string): boolean {
     }
 }
 
-export default function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
     const { pathname } = request.nextUrl;
 

@@ -30,7 +30,7 @@ public class ApiUserController {
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-        binder.setValidator(webAppValidator);
+        binder.addValidators(webAppValidator);
     }
 
     @GetMapping("/me")

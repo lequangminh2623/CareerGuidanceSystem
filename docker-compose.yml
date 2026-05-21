@@ -266,14 +266,11 @@ services:
       - ./careerguidanceapp/mosquitto/certs:/mosquitto/certs:ro
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
     environment:
       - TZ=${TIMEZONE}
     networks:
       - micro-net
     healthcheck:
-      # Kiểm tra cổng 8883 thay vì dùng lệnh sub vì vướng mTLS
       test: [ "CMD-SHELL", "netstat -an | grep 8883 || exit 1" ]
       interval: 30s
       timeout: 10s
@@ -337,7 +334,7 @@ services:
       - micro-net
 
   mongodb:
-    image: mongo:latest
+    image: mongo:6.0
     container_name: mongodb
     command: [ "--quiet", "--logpath", "/var/log/mongodb/mongod.log", "--logappend" ]
     environment:

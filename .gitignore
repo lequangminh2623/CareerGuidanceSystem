@@ -78,6 +78,12 @@ yarn-error.log*
 !.yarn/releases
 !.yarn/versions
 
+# Next.js & Playwright Testing
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
 ### Database ###
 *.db
 *.sqlite
@@ -126,9 +132,18 @@ __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
+.coverage
+.pytest_cache/
+htmlcov/
 
 ### Docker ###
 .docker/
 docker-compose.override.yml
 careerguidanceapp/data/postgres/
 careerguidancemodel/service-account.json
+
+### ESP32 & IoT ###
+esp32project/.pio/
+esp32project/build/
+*.bin
+*.elf

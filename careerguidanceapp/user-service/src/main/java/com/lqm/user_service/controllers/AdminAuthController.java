@@ -4,9 +4,10 @@ import com.lqm.user_service.dtos.AdminUserLoginDTO;
 import com.lqm.user_service.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.lqm.user_service.exceptions.ResourceNotFoundException;
 
 @RestController
 @RequestMapping("/api/internal/auth")
@@ -18,10 +19,15 @@ public class AdminAuthController {
 
     @GetMapping("/{email}")
     public ResponseEntity<AdminUserLoginDTO> getUserForAuth(@PathVariable String email) {
-        UserDetails user = userService.loadUserByUsername(email);
+        UserDetails user;
+        try {
+            user = userService.loadUserByUsername(email);
+        } catch (UsernameNotFoundException ex) {
+            throw new ResourceNotFoundException("User not found: " + email);
+        }
 
         String role = user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse("STUDENT");
 
@@ -29,7 +35,6 @@ public class AdminAuthController {
                 .email(user.getUsername())
                 .password(user.getPassword())
                 .role(role.replace("ROLE_", ""))
-                .build()
-        );
+                .build());
     }
 }

@@ -110,12 +110,11 @@ public class SecurityConfig {
 
     @Bean
     public WebAppValidator webAppValidator(
-            jakarta.validation.Validator beanValidator,
             DeviceRequestDTOValidator deviceRequestDTOValidator) {
         Set<Validator> springValidators = new HashSet<>();
         springValidators.add(deviceRequestDTOValidator);
 
-        return new WebAppValidator(beanValidator, springValidators);
+        return new WebAppValidator(springValidators);
     }
 
     @Bean

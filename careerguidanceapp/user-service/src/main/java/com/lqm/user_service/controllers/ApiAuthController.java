@@ -30,7 +30,7 @@ public class ApiAuthController {
 
     @InitBinder({ "userLoginDTO", "data" })
     public void initBinder(WebDataBinder binder) {
-        binder.setValidator(webAppValidator);
+        binder.addValidators(webAppValidator);
     }
 
     @PostMapping("/google")

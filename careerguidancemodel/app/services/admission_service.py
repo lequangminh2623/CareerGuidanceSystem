@@ -6,7 +6,7 @@ Queries MongoDB for admission cutoff scores (điểm chuẩn) by major name.
 import os
 import logging
 import re
-import pandas as pd
+import csv
 from typing import Optional, List, Dict, Any
 from pymongo import MongoClient
 
@@ -42,12 +42,17 @@ def auto_seed():
     csv_path = "diem_chuan.csv"  # File này đã được COPY vào /app trong Docker
     if os.path.exists(csv_path):
         try:
-            df = pd.read_csv(csv_path)
-            df = df.fillna("")
-            records = df.to_dict(orient="records")
-            if records:
-                _db.admission_scores.insert_many(records)
-                logger.info("✓ Tự động Seed thành công %d bản ghi.", len(records))
+            with open(csv_path, mode="r", encoding="utf-8-sig") as f:
+                reader = csv.DictReader(f)
+                records = []
+                for row in reader:
+                    # fillna equivalent: replace None or missing keys with empty string
+                    cleaned_row = {k: (v if v is not None else "") for k, v in row.items()}
+                    records.append(cleaned_row)
+                
+                if records:
+                    _db.admission_scores.insert_many(records)
+                    logger.info("✓ Tự động Seed thành công %d bản ghi.", len(records))
         except Exception as e:
             logger.error("✘ Lỗi khi tự động seed: %s", str(e))
     else:

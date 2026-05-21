@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -29,7 +30,7 @@ public class UserSpecification {
                                         cb.concat(root.get("lastName"), " "),
                                         root.get("firstName"))
                                 ), likeKw),
-                                cb.like(cb.lower(root.get("student").get("code")), likeKw)
+                                cb.like(cb.lower(root.join("student", JoinType.LEFT).get("code")), likeKw)
                         )
                 );
             }

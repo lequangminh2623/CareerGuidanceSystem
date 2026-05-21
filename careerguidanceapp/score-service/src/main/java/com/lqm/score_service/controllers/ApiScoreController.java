@@ -8,7 +8,7 @@ import com.lqm.score_service.dtos.UserResponseDTO;
 import com.lqm.score_service.mappers.ScoreMapper;
 import com.lqm.score_service.models.ScoreDetail;
 import com.lqm.score_service.services.ScoreService;
-import jakarta.ws.rs.ForbiddenException;
+import com.lqm.score_service.exceptions.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;

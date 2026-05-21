@@ -39,7 +39,7 @@ public class AdminClassroomController {
 
     @InitBinder()
     public void initBinder(WebDataBinder binder) {
-        binder.setValidator(webAppValidator);
+        binder.addValidators(webAppValidator);
     }
 
     @GetMapping
@@ -47,8 +47,7 @@ public class AdminClassroomController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.CLASSROOM_PAGE_SIZE,
-                List.of()
-        );
+                List.of());
 
         return classroomService.getClassrooms(params, pageable).map(classroomMapper::toClassroomResponseDTO);
     }
@@ -83,10 +82,9 @@ public class AdminClassroomController {
 
     @GetMapping("/{classroomId}/students")
     public Page<UserResponseDTO> getStudentsInClassroom(@PathVariable UUID classroomId,
-                                                        @RequestParam Map<String, String> params) {
+            @RequestParam Map<String, String> params) {
         params.put("page", "");
         return userClient.getUsers(studentClassroomService.getStudentClassroomsByClassroomId(classroomId).stream()
                 .map(StudentClassroom::getStudentId).toList(), params);
     }
 }
-

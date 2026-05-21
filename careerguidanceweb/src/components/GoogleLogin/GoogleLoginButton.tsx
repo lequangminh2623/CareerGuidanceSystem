@@ -39,20 +39,20 @@ export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
       }
 
       // Lưu token vào Cookie (7 ngày)
-      setCookie("token", res.data.token, {
+      const token = res.data.token as string;
+      setCookie("token", token, {
         maxAge: 60 * 60 * 24 * 7,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       });
 
-      // Lấy Profile từ Backend sau khi đã có Token
-      const profileRes = await authApis().get(endpoints["profile"]);
+      // Truyền token trực tiếp để tránh race condition với getCookie
+      const profileRes = await authApis(token).get(endpoints["profile"]);
 
-      // Cập nhật Global State
       dispatch(loginSuccess(profileRes.data));
 
-      // Chuyển hướng về trang chủ
-      router.push("/");
+      // Dùng full page reload để đảm bảo cookie được gửi đúng trong HTTP request
+      window.location.href = "/";
 
     } catch (ex: unknown) {
       console.error("Google Auth Error:", ex);
