@@ -1,5 +1,8 @@
 name: Model CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [ "main" ]
@@ -42,5 +45,5 @@ jobs:
         export REDIS_HOST=localhost
         export REDIS_PORT=6379
         export REDIS_PASSWORD=dummy
-        pytest
+        PYTHONPATH=. python -m pytest
       continue-on-error: true # Tạm thời để true nếu chưa hoàn thiện bộ test
