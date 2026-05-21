@@ -59,5 +59,15 @@ jobs:
         EUREKA_SERVER: http://localhost:8761/eureka
         MQTT_BROKER_URL: ssl://localhost:8883
         MQTT_TLS_ENABLED: false
+        GOOGLE_CLIENT_ID: dummy-google-client-id
+        GOOGLE_CLIENT_SECRET: dummy-google-client-secret
+        CLOUDINARY_CLOUD_NAME: dummy-cloud
+        CLOUDINARY_API_KEY: dummy-key
+        CLOUDINARY_API_SECRET: dummy-secret
+        MAIL_USERNAME: dummy@gmail.com
+        MAIL_PASSWORD: dummy-password
+        FIREBASE_SERVICE_ACCOUNT_BASE64: dummy-firebase-base64
+        ADMIN_SERVICE_URL: http://localhost:8080/admin-service
+        ALLOWED_ORIGINS: http://localhost:3000
       run: mvn -B clean verify
       continue-on-error: true # Tạm thời để true cho tới khi tất cả các bài test đều Passed.
