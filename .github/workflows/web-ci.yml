@@ -55,5 +55,6 @@ jobs:
       - name: Deploy Next.js Web
         run: |
           cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env
+          cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidancemodel/.env $GITHUB_WORKSPACE/careerguidancemodel/.env
           docker compose up -d --build careerguidance-web
           docker image prune -f
