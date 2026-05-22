@@ -121,6 +121,7 @@ export interface TranscriptDTO {
     semesterName: string;
     yearName: string;
     subjectName: string;
+    scoreStatus: string;
 }
 
 export interface TranscriptPageDTO {
@@ -132,6 +133,7 @@ export interface TranscriptListArgs {
     page: number;
     kw?: string;
     sortBy?: string;
+    scoreStatus?: string;
 }
 
 // Transcript Detail
@@ -242,8 +244,11 @@ export const apiSlice = createApi({
         }),
 
         /* ── Attendances: records by classroom ── */
-        getAttendancesByClassroom: builder.query<AttendanceRecordDTO[], string>({
-            query: (classroomId) => endpoints["attendances-by-classroom"](classroomId),
+        getAttendancesByClassroom: builder.query<AttendanceRecordDTO[], { classroomId: string; date?: string }>({
+            query: ({ classroomId, date }) => {
+                const url = endpoints["attendances-by-classroom"](classroomId);
+                return date ? `${url}?date=${date}` : url;
+            },
             providesTags: ['Attendance'],
         }),
 
@@ -278,10 +283,11 @@ export const apiSlice = createApi({
 
         /* ── Transcripts list (paginated) ── */
         getTranscriptList: builder.query<{ transcripts: TranscriptPageDTO }, TranscriptListArgs>({
-            query: ({ page, kw, sortBy }) => {
+            query: ({ page, kw, sortBy, scoreStatus }) => {
                 let url = `${endpoints.transcripts}?page=${page}`;
                 if (kw) url += `&kw=${kw}`;
                 if (sortBy) url += `&sortBy=${sortBy}`;
+                if (scoreStatus) url += `&scoreStatus=${scoreStatus}`;
                 return url;
             },
             providesTags: ['Transcripts'],

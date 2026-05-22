@@ -108,7 +108,8 @@ const Header = () => {
     ];
 
     return (
-        <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md py-2' : 'bg-white py-4'}`}>
+        <>
+            <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/80 backdrop-blur-md shadow-md py-2' : 'bg-white py-4'}`}>
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex justify-between items-center">
                     {/* Logo */}
@@ -224,6 +225,7 @@ const Header = () => {
                     </button>
                 </div>
             </div>
+        </header>
 
             {/* Mobile Sidebar Overlay */}
             <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
@@ -240,18 +242,6 @@ const Header = () => {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            {/* Search in Mobile */}
-                            <form onSubmit={search} className="relative">
-                                <input
-                                    type="search"
-                                    value={kw}
-                                    onChange={(e) => setKw(e.target.value)}
-                                    placeholder={t('search')}
-                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white"
-                                />
-                                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                            </form>
-
                             {/* Nav Links in Mobile */}
                             <nav className="flex flex-col space-y-2">
                                 {navLinks.map((link) => (
@@ -306,7 +296,7 @@ const Header = () => {
                     </div>
                 </div>
             </div>
-        </header>
+        </>
     );
 };
 

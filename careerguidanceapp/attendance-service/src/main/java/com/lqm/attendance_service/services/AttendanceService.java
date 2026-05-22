@@ -19,6 +19,8 @@ public interface AttendanceService {
 
     List<AttendanceResponseDTO> getStudentAttendanceByClassroom(UUID studentId, UUID classroomId);
 
+    List<AttendanceResponseDTO> getStudentAttendanceByClassroomAndDate(UUID studentId, UUID classroomId, LocalDate date);
+
     AttendanceSummaryDTO getAttendanceSummary(UUID studentId);
 
     void deleteAttendancesByClassroomAndStudentIds(UUID classroomId, List<UUID> studentIds);

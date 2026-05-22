@@ -79,7 +79,6 @@ export default function GoogleLoginButton({ onError }: GoogleLoginButtonProps) {
         onError={() => onError("Đăng nhập Google thất bại. Vui lòng kiểm tra lại trình duyệt.")}
         theme="outline"
         shape="pill"
-        width="350"
       />
     </div>
   );

@@ -23,4 +23,6 @@ public interface SectionRepository extends JpaRepository<Section, UUID>, JpaSpec
                         @Param("curriculumIds") Set<UUID> curriculumIds);
 
         List<Section> findByTeacherId(UUID teacherId);
+
+        List<Section> findByCurriculumId(UUID curriculumId);
 }

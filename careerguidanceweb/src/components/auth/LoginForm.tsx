@@ -162,7 +162,7 @@ const LoginForm = () => {
                     </div>
 
                     {/* Cột phải: Form */}
-                    <div className="md:w-1/2 bg-white p-10 lg:p-14">
+                    <div className="md:w-1/2 bg-white p-6 md:p-10 lg:p-14">
                         <div className="mb-10">
                             <h2 className="text-3xl font-bold text-gray-900">{t('login')}</h2>
                             <p className="text-gray-500">{t('welcome-back')}</p>

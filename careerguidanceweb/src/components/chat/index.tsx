@@ -157,8 +157,15 @@ export default function ChatBox() {
     const currentUid = firebaseUser?.uid ?? user.email;
     const currentUserName = `${user.lastName} ${user.firstName}`;
 
+    const isChatActive = !!((activeView === "direct" && activeChatId && selectedOtherUser) || (activeView === "group" && activeGroupId && selectedGroup));
+
+    const handleBack = () => {
+        setSelectedOtherUser(null);
+        setSelectedGroup(null);
+    };
+
     return (
-        <div className="flex h-[calc(100vh-160px)] max-h-full bg-white/20 backdrop-blur-sm animate-in fade-in zoom-in duration-500">
+        <div className="flex h-[calc(100vh-160px)] max-h-full bg-white/20 backdrop-blur-sm animate-in fade-in zoom-in duration-500 overflow-hidden">
             <Sidebar
                 currentUserUid={currentUid}
                 users={allUsers}
@@ -175,21 +182,25 @@ export default function ChatBox() {
                 hasMore={hasMore}
                 onScrollEnd={handleScrollEnd}
                 currentUserRole={user.role}
+                className={isChatActive ? 'hidden md:flex' : 'flex'}
             />
 
             {/* Direct Chat */}
             {activeView === "direct" && activeChatId && selectedOtherUser && firebaseUser ? (
-                <ChatPanel
-                    currentUid={firebaseUser.uid}
-                    activeChatId={activeChatId}
-                    otherUser={selectedOtherUser}
-                    firebaseChat={firebaseChat}
-                    currentUserName={currentUserName}
-                    allUsers={allUsers}
-                />
+                <div className="flex-1 min-w-0 h-full flex flex-col">
+                    <ChatPanel
+                        currentUid={firebaseUser.uid}
+                        activeChatId={activeChatId}
+                        otherUser={selectedOtherUser}
+                        firebaseChat={firebaseChat}
+                        currentUserName={currentUserName}
+                        allUsers={allUsers}
+                        onBack={handleBack}
+                    />
+                </div>
             ) : activeView === "group" && activeGroupId && selectedGroup && firebaseUser ? (
                 /* Group Chat */
-                <>
+                <div className="flex-1 min-w-0 h-full flex flex-col relative">
                     <ChatPanel
                         currentUid={firebaseUser.uid}
                         activeChatId={activeGroupId}
@@ -203,6 +214,7 @@ export default function ChatBox() {
                         onOpenGroupSettings={() => setShowGroupSettings(prev => !prev)}
                         currentUserName={currentUserName}
                         allUsers={allUsers}
+                        onBack={handleBack}
                     />
                     {showGroupSettings && (
                         <GroupSettingsPanel
@@ -222,9 +234,9 @@ export default function ChatBox() {
                             currentUserAvatar={user?.avatar}
                         />
                     )}
-                </>
+                </div>
             ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-gray-50">
+                <div className="flex-1 flex-col items-center justify-center text-gray-400 bg-gray-50 hidden md:flex">
                     <svg className="w-16 h-16 mb-4 opacity-30" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
                     </svg>

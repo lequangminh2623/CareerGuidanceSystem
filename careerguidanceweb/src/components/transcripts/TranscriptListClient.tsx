@@ -1,30 +1,50 @@
 'use client';
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/store/hooks";
 import { useGetTranscriptListQuery } from "@/store/features/api/apiSlice";
 import MySpinner from "@/components/layout/MySpinner";
 import { useTranslation } from "react-i18next";
 import { capitalizeFirstWord } from "@/lib/utils";
-import { FiUser, FiCalendar, FiBookOpen, FiAlertCircle } from "react-icons/fi";
+import { FiUser, FiCalendar, FiBookOpen, FiAlertCircle, FiSearch, FiX, FiFilter, FiLock } from "react-icons/fi";
 import { FaChalkboardTeacher } from "react-icons/fa";
+import { MdOutlinePending } from "react-icons/md";
 
 export default function TranscriptListClient() {
     const [page, setPage] = useState(1);
-    const searchParams = useSearchParams();
+    const [kwInput, setKwInput] = useState("");
+    const [kw, setKw] = useState<string | undefined>(undefined);
+    const [scoreStatus, setScoreStatus] = useState<string | undefined>(undefined);
     const router = useRouter();
     const user = useAppSelector((state) => state.auth.user);
     const { t } = useTranslation();
 
-    const kw = searchParams.get('kw') ?? undefined;
-    const sortBy = searchParams.get('sortBy') ?? undefined;
+    const sortBy = undefined;
 
-    // ── RTK Query: replaces useCallback + useEffect + useState(loading/error/transcripts) ──
-    const { data, isLoading, isFetching, isError } = useGetTranscriptListQuery({ page, kw, sortBy });
+    // ── RTK Query ──
+    const { data, isLoading, isFetching, isError } = useGetTranscriptListQuery({ page, kw, sortBy, scoreStatus });
 
     const transcripts = data?.transcripts?.content ?? [];
     const totalPages = data?.transcripts?.totalPages ?? 1;
+
+    const handleSearch = useCallback((e: React.FormEvent) => {
+        e.preventDefault();
+        setPage(1);
+        setKw(kwInput.trim() || undefined);
+    }, [kwInput]);
+
+    const handleClear = useCallback(() => {
+        setKwInput("");
+        setKw(undefined);
+        setScoreStatus(undefined);
+        setPage(1);
+    }, []);
+
+    const handleStatusChange = (val: string) => {
+        setScoreStatus(val || undefined);
+        setPage(1);
+    };
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl min-h-screen">
@@ -36,6 +56,45 @@ export default function TranscriptListClient() {
                         {capitalizeFirstWord(t('list-transcripts'))}
                     </h1>
                     <p className="mt-2 text-sm text-gray-500">{t('transcripts-subtitle')}</p>
+                </div>
+
+                {/* Search box */}
+                <form onSubmit={handleSearch} className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-72">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                            type="text"
+                            value={kwInput}
+                            onChange={(e) => setKwInput(e.target.value)}
+                            placeholder={t('search-class-placeholder', { defaultValue: 'Tìm theo tên lớp...' })}
+                            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                        />
+                        {kwInput && (
+                            <button type="button" onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                                <FiX className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        type="submit"
+                        className="px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all text-sm shadow-sm shadow-blue-200 whitespace-nowrap"
+                    >
+                        {t('search', { defaultValue: 'Tìm kiếm' })}
+                    </button>
+                </form>
+
+                {/* Status filter */}
+                <div className="flex items-center gap-2">
+                    <FiFilter className="text-gray-400 h-4 w-4 shrink-0" />
+                    <select
+                        value={scoreStatus ?? ""}
+                        onChange={(e) => handleStatusChange(e.target.value)}
+                        className="px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                    >
+                        <option value="">{t('all-status', { defaultValue: 'Tất cả trạng thái' })}</option>
+                        <option value="DRAFT">{t('status-draft', { defaultValue: 'Chưa khóa' })}</option>
+                        <option value="LOCKED">{t('status-locked', { defaultValue: 'Đã khóa' })}</option>
+                    </select>
                 </div>
             </div>
 
@@ -57,7 +116,14 @@ export default function TranscriptListClient() {
                         <FaChalkboardTeacher className="h-8 w-8 text-blue-500" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{capitalizeFirstWord(t("none-transcripts"))}</h3>
-                    <p className="text-gray-500 text-sm max-w-sm">{t('no-transcripts-available')}</p>
+                    <p className="text-gray-500 text-sm max-w-sm">
+                        {kw ? t('no-transcripts-for-kw', { kw, defaultValue: `Không tìm thấy lớp nào khớp với "${kw}"` }) : t('no-transcripts-available')}
+                    </p>
+                    {kw && (
+                        <button onClick={handleClear} className="mt-4 text-sm text-blue-600 hover:underline font-medium">
+                            {t('clear-search', { defaultValue: 'Xóa tìm kiếm' })}
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -77,9 +143,22 @@ export default function TranscriptListClient() {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                                         {tItem.gradeName}
                                     </span>
-                                    <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                                        {tItem.semesterName}
-                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                            {tItem.semesterName}
+                                        </span>
+                                        {tItem.scoreStatus === 'Locked' ? (
+                                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                                                <FiLock className="h-2.5 w-2.5" />
+                                                {t('status-locked', { defaultValue: 'Đã khóa' })}
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                                                <MdOutlinePending className="h-2.5 w-2.5" />
+                                                {t('status-draft', { defaultValue: 'Chưa khóa' })}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <h3 className="text-xl font-extrabold text-gray-900 line-clamp-1 group-hover:text-blue-700 transition-colors">
                                     {tItem.subjectName}
@@ -154,3 +233,4 @@ export default function TranscriptListClient() {
         </div>
     );
 }
+

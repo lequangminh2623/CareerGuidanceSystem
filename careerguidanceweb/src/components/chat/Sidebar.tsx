@@ -28,6 +28,7 @@ interface SidebarProps {
     hasMore: boolean;
     onScrollEnd: () => void;
     currentUserRole?: string;
+    className?: string;
 }
 
 /** Find a direct chatRoom for this user, matching by Firebase UID */
@@ -64,6 +65,7 @@ export default function Sidebar({
     hasMore,
     onScrollEnd,
     currentUserRole,
+    className = "",
 }: SidebarProps) {
     const { t, i18n } = useTranslation();
     const [activeTab, setActiveTab] = useState<"personal" | "group">("personal");
@@ -82,7 +84,7 @@ export default function Sidebar({
     );
 
     return (
-        <div className="flex flex-col w-[320px] h-full max-h-full bg-white/60 backdrop-blur-md border-r border-white/20 overflow-hidden shadow-sm">
+        <div className={`flex flex-col w-full md:w-[320px] shrink-0 h-full max-h-full bg-white/60 backdrop-blur-md border-r border-white/20 overflow-hidden shadow-sm ${className}`}>
             {/* Header */}
             <div className="px-4 py-5 border-b border-gray-100/50">
                 <div className="flex items-center justify-between mb-4 px-1">

@@ -98,6 +98,14 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
+    public List<AttendanceResponseDTO> getStudentAttendanceByClassroomAndDate(UUID studentId, UUID classroomId, LocalDate date) {
+        return attendanceRepo.findByStudentIdAndClassroomIdAndAttendanceDate(studentId, classroomId, date)
+                .stream()
+                .map(attendanceMapper::toAttendanceResponseDTO)
+                .toList();
+    }
+
+    @Override
     public AttendanceSummaryDTO getAttendanceSummary(UUID studentId) {
         List<Attendance> attendances = attendanceRepo.findByStudentId(studentId);
 

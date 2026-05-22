@@ -40,7 +40,10 @@ const StudentStatistics = () => {
         lineChartInstance.current = new Chart(ctx, {
             type: "line",
             data: {
-                labels: semesterAverages.map(s => s.semesterLabel),
+                labels: semesterAverages.map(s => {
+                    const parts = s.semesterLabel.split(" (");
+                    return parts.length === 2 ? [parts[0], "(" + parts[1]] : s.semesterLabel;
+                }),
                 datasets: [{
                     label: t('avg-semester'),
                     data: semesterAverages.map(s => s.avgScore),
@@ -64,7 +67,7 @@ const StudentStatistics = () => {
                 },
                 scales: {
                     y: { beginAtZero: true, max: 10, ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.06)" } },
-                    x: { ticks: { font: { size: 11 }, maxRotation: 45 }, grid: { display: false } },
+                    x: { ticks: { font: { size: 10 }, maxRotation: 0, minRotation: 0 }, grid: { display: false } },
                 },
             },
         });

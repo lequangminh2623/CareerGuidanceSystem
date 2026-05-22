@@ -1,5 +1,6 @@
 package com.lqm.academic_service.specifications;
 
+import com.lqm.academic_service.models.ScoreStatusType;
 import com.lqm.academic_service.models.Section;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -46,6 +47,21 @@ public class SectionSpecification {
                     UUID curriculumId = UUID.fromString(curriculumIdStr);
                     predicate = cb.and(predicate,
                             cb.equal(root.get("curriculum").get("id"), curriculumId));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+
+            String kw = params.get("kw");
+            if (kw != null && !kw.isBlank()) {
+                predicate = cb.and(predicate,
+                        cb.like(cb.lower(root.get("classroom").get("name")), "%" + kw.toLowerCase() + "%"));
+            }
+
+            String scoreStatus = params.get("scoreStatus");
+            if (scoreStatus != null && !scoreStatus.isBlank()) {
+                try {
+                    ScoreStatusType status = ScoreStatusType.valueOf(scoreStatus.toUpperCase());
+                    predicate = cb.and(predicate, cb.equal(root.get("scoreStatus"), status));
                 } catch (IllegalArgumentException ignored) {
                 }
             }

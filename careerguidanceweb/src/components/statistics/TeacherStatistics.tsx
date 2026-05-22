@@ -102,7 +102,10 @@ const TeacherStatistics = () => {
             gradeChartInstances.current[grade.gradeName] = new Chart(ctx, {
                 type: "line",
                 data: {
-                    labels: grade.semesterAverages.map(s => s.semesterLabel),
+                    labels: grade.semesterAverages.map(s => {
+                        const parts = s.semesterLabel.split(" (");
+                        return parts.length === 2 ? [parts[0], "(" + parts[1]] : s.semesterLabel;
+                    }),
                     datasets: [{
                         label: `${t('avg-grade')} ${grade.gradeName}`,
                         data: grade.semesterAverages.map(s => s.avgScore),
@@ -122,7 +125,7 @@ const TeacherStatistics = () => {
                     },
                     scales: {
                         y: { beginAtZero: true, max: 10, ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.06)" } },
-                        x: { ticks: { font: { size: 11 }, maxRotation: 45 }, grid: { display: false } },
+                        x: { ticks: { font: { size: 10 }, maxRotation: 0, minRotation: 0 }, grid: { display: false } },
                     },
                 },
             });
@@ -153,7 +156,7 @@ const TeacherStatistics = () => {
                     <FiBarChart2 className="text-blue-500" />
                     {t('avg-section-recent')}
                 </h3>
-                <div className="h-80">
+                <div className="relative w-full h-80">
                     {sectionAvgs.length > 0
                         ? <canvas ref={barChartRef} />
                         : <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('no-data-scores')}</div>}
@@ -191,7 +194,7 @@ const TeacherStatistics = () => {
                                 <h4 className="text-sm font-bold text-gray-600 mb-3 text-center uppercase tracking-wide">
                                     {grade.gradeName}
                                 </h4>
-                                <div className="h-56">
+                                <div className="relative w-full h-56">
                                     {grade.semesterAverages.length > 0 ? (
                                         <canvas
                                             ref={el => { gradeChartRefs.current[grade.gradeName] = el; }}

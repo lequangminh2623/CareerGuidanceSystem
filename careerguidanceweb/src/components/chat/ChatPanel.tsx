@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, FormEvent, useMemo } from "react";
 import Image from "next/image";
 import { ChatMessage, useFirebaseChat } from "@/hooks/useFirebaseChat";
 import { GroupMessage, useFirebaseGroupChat } from "@/hooks/useFirebaseGroupChat";
-import { PaperAirplaneIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
+import { PaperAirplaneIcon, Cog6ToothIcon, ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { ApiUser } from "@/components/chat/index";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +22,7 @@ interface ChatPanelProps {
     onOpenGroupSettings?: () => void;
     currentUserName?: string;
     allUsers?: ApiUser[];
+    onBack?: () => void;
 }
 
 export default function ChatPanel({
@@ -37,6 +38,7 @@ export default function ChatPanel({
     onOpenGroupSettings,
     currentUserName,
     allUsers = [],
+    onBack,
 }: ChatPanelProps) {
     const { t } = useTranslation();
     const [text, setText] = useState("");
@@ -106,9 +108,17 @@ export default function ChatPanel({
         : (otherUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.lastName + ' ' + otherUser.firstName)}&background=6366f1&color=fff&bold=true`);
 
     return (
-        <div className="flex flex-col flex-1 h-full bg-white/40 backdrop-blur-md text-gray-800 border-l border-white/20 overflow-hidden">
+        <div className="flex flex-col flex-1 h-full bg-white/40 backdrop-blur-md text-gray-800 border-l border-white/20 overflow-hidden w-full">
             {/* Header */}
             <div className="flex items-center p-4 border-b border-white/20 bg-white/30 backdrop-blur-md shadow-sm z-10">
+                {onBack && (
+                    <button
+                        onClick={onBack}
+                        className="md:hidden p-2 -ml-2 mr-2 rounded-xl hover:bg-gray-100/80 text-gray-500 hover:text-gray-700 transition-all"
+                    >
+                        <ArrowLeftIcon className="w-5 h-5" />
+                    </button>
+                )}
                 <div className="relative">
                     <div className={`p-0.5 rounded-full ${isGroup ? 'bg-linear-to-tr from-emerald-500 to-teal-500' : 'bg-linear-to-tr from-blue-500 to-indigo-500'} shadow-sm`}>
                         <Image

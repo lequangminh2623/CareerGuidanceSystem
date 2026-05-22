@@ -28,6 +28,7 @@ const getStatusConfig = (status: string, t: (k: string) => string) => {
 export default function AttendancesClient() {
     const { t, i18n } = useTranslation();
     const [selectedClassroomId, setSelectedClassroomId] = useReactState<string>("");
+    const [selectedDate, setSelectedDate] = useReactState<string>("");
     const dispatch = useDispatch();
 
     // ── WebSocket Integration ──
@@ -68,10 +69,10 @@ export default function AttendancesClient() {
         data: attendances = [],
         isLoading: loadingAttendances,
         isError: attendancesError,
-    } = useGetAttendancesByClassroomQuery(selectedClassroomId, {
-        // Only fetch when a classroom is selected
-        skip: !selectedClassroomId,
-    });
+    } = useGetAttendancesByClassroomQuery(
+        { classroomId: selectedClassroomId, date: selectedDate || undefined },
+        { skip: !selectedClassroomId }
+    );
 
     const error = classroomsError
         ? t("cannot-load-classrooms")
@@ -167,6 +168,40 @@ export default function AttendancesClient() {
                     )}
                 </div>
             </div>
+
+            {/* Date picker — only shown after classroom is selected */}
+            {selectedClassroomId && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm p-6 mb-8 border border-white/50 ring-1 ring-gray-200/50 animate-in fade-in duration-300">
+                    <div className="max-w-md mx-auto">
+                        <label htmlFor="date-picker" className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2 uppercase tracking-wider">
+                            <FiCalendar className="text-indigo-600 w-3.5 h-3.5" />
+                            {t('select-date', { defaultValue: 'Chọn ngày' })}
+                        </label>
+                        <div className="flex items-center gap-3">
+                            <input
+                                id="date-picker"
+                                type="date"
+                                value={selectedDate}
+                                max={new Date().toISOString().split('T')[0]}
+                                onChange={(e) => { setSelectedDate(e.target.value); }}
+                                className="flex-1 p-3 bg-white/50 border-2 border-gray-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-gray-800 font-bold text-sm shadow-sm hover:border-gray-200"
+                            />
+                            {selectedDate && (
+                                <button
+                                    onClick={() => setSelectedDate("")}
+                                    className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-gray-500 hover:text-red-500 border border-gray-200 hover:border-red-200 rounded-xl transition-all"
+                                >
+                                    <FiXCircle className="w-3.5 h-3.5" />
+                                    {t('clear', { defaultValue: 'Xóa' })}
+                                </button>
+                            )}
+                        </div>
+                        {!selectedDate && (
+                            <p className="mt-2 text-xs text-gray-400 italic">{t('all-dates-hint', { defaultValue: 'Không chọn ngày sẽ hiển thị toàn bộ lịch sử' })}</p>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Attendance table */}
             {selectedClassroomId && (
