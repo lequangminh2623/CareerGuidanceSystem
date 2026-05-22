@@ -43,3 +43,18 @@ jobs:
 
     - name: Build Next.js App
       run: npm run build
+
+  deploy:
+    needs: build-and-test
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Deploy Next.js Web
+      run: |
+        docker compose up -d --build careerguidance-web
+        docker image prune -f
+
+

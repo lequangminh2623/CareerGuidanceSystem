@@ -47,3 +47,18 @@ jobs:
         export REDIS_PASSWORD=dummy
         PYTHONPATH=. python -m pytest
       continue-on-error: true # Tạm thời để true nếu chưa hoàn thiện bộ test
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Deploy Python Model
+      run: |
+        docker compose up -d --build careerguidance-model
+        docker image prune -f
+
+

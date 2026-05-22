@@ -10,18 +10,20 @@ interface SemesterTableProps {
 }
 
 const calculateSubjectAverage = (subject: Subject): number | null => {
-    if (subject.midTermScore === null || subject.finalScore === null) return null;
-    const sumTX = subject.extraScore.reduce((sum, score) => sum + score, 0);
-    const countTX = subject.extraScore.length;
+    if (subject.midTermScore === null || subject.midTermScore === undefined || subject.finalScore === null || subject.finalScore === undefined) return null;
+    const extra = subject.extraScore ?? [];
+    const sumTX = extra.reduce((sum, score) => sum + (score ?? 0), 0);
+    const countTX = extra.length;
     return (sumTX + 2 * subject.midTermScore + 3 * subject.finalScore) / (countTX + 5);
 };
 
 const calculateSemesterAverage = (subjects: Subject[]): number | null => {
     let total = 0;
     let count = 0;
-    for (const s of subjects) {
+    const list = subjects ?? [];
+    for (const s of list) {
         const avg = calculateSubjectAverage(s);
-        if (avg !== null) {
+        if (avg !== null && avg !== undefined) {
             total += avg;
             count++;
         }
@@ -89,12 +91,12 @@ const SemesterTable = ({ semesterTitle, classroomName, subjects }: SemesterTable
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex flex-wrap gap-1.5">
-                                        {s.extraScore.length > 0 ? s.extraScore.map((g, index) => (
+                                        {(s.extraScore ?? []).length > 0 ? (s.extraScore ?? []).map((g, index) => (
                                             <span
                                                 key={index}
                                                 className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md border border-gray-200"
                                             >
-                                                {g.toFixed(1)}
+                                                {g !== null && g !== undefined ? g.toFixed(1) : '-'}
                                             </span>
                                         )) : (
                                             <span className="text-gray-400 italic">-</span>
@@ -103,17 +105,17 @@ const SemesterTable = ({ semesterTitle, classroomName, subjects }: SemesterTable
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs ${getScoreBadgeColor(s.midTermScore)}`}>
-                                        {s.midTermScore !== null ? s.midTermScore.toFixed(1) : '-'}
+                                        {s.midTermScore !== null && s.midTermScore !== undefined ? s.midTermScore.toFixed(1) : '-'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-sm ${getScoreBadgeColor(s.finalScore)} shadow-sm`}>
-                                        {s.finalScore !== null ? s.finalScore.toFixed(1) : '-'}
+                                        {s.finalScore !== null && s.finalScore !== undefined ? s.finalScore.toFixed(1) : '-'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-sm ${getScoreBadgeColor(subjectAvg)} shadow-sm`}>
-                                        {subjectAvg !== null ? subjectAvg.toFixed(1) : '-'}
+                                        {subjectAvg !== null && subjectAvg !== undefined ? subjectAvg.toFixed(1) : '-'}
                                     </span>
                                 </td>
                             </tr>

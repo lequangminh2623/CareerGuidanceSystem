@@ -181,7 +181,9 @@ const StudentStatistics = () => {
                         <span className="text-sm font-medium text-blue-100">{t('avg-semester-recent')}</span>
                     </div>
                     <p className="text-3xl font-bold">
-                        {semesterAverages.length > 0 ? semesterAverages[semesterAverages.length - 1].avgScore.toFixed(2) : "—"}
+                        {semesterAverages.length > 0 && semesterAverages[semesterAverages.length - 1].avgScore !== null && semesterAverages[semesterAverages.length - 1].avgScore !== undefined 
+                            ? semesterAverages[semesterAverages.length - 1].avgScore.toFixed(2) 
+                            : "—"}
                     </p>
                 </div>
                 <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
@@ -190,7 +192,9 @@ const StudentStatistics = () => {
                         <span className="text-sm font-medium text-emerald-100">{t('avg-year-recent')}</span>
                     </div>
                     <p className="text-3xl font-bold">
-                        {yearAverages.length > 0 ? yearAverages[yearAverages.length - 1].avgScore.toFixed(2) : "—"}
+                        {yearAverages.length > 0 && yearAverages[yearAverages.length - 1].avgScore !== null && yearAverages[yearAverages.length - 1].avgScore !== undefined 
+                            ? yearAverages[yearAverages.length - 1].avgScore.toFixed(2) 
+                            : "—"}
                     </p>
                 </div>
                 <div className="bg-linear-to-br from-purple-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg shadow-purple-500/20">

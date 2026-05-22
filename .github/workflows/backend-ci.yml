@@ -108,3 +108,26 @@ jobs:
         ALLOWED_ORIGINS: http://localhost:3000
       run: mvn -B clean verify
       continue-on-error: true # Tạm thời để true cho tới khi tất cả các bài test đều Passed.
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Deploy Backend Services
+      run: |
+        docker compose up -d --build \
+          discovery-service \
+          api-gateway \
+          user-service \
+          academic-service \
+          score-service \
+          attendance-service \
+          chat-service \
+          admin-service
+        docker image prune -f
+
+
