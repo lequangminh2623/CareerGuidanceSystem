@@ -56,11 +56,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Deploy Python Model
+    - name: Inject secrets & certs
       run: |
         cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env
         cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidancemodel/.env $GITHUB_WORKSPACE/careerguidancemodel/.env
+        mkdir -p $GITHUB_WORKSPACE/careerguidanceapp/attendance-service/src/main/resources/certs
+        cp -r /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidanceapp/attendance-service/src/main/resources/certs/* $GITHUB_WORKSPACE/careerguidanceapp/attendance-service/src/main/resources/certs/
+        mkdir -p $GITHUB_WORKSPACE/careerguidanceapp/mosquitto/certs
+        cp -r /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidanceapp/mosquitto/certs/* $GITHUB_WORKSPACE/careerguidanceapp/mosquitto/certs/
+
+    - name: Deploy Python Model
+      run: |
         docker compose up -d --build careerguidance-model
         docker image prune -f
-
-
