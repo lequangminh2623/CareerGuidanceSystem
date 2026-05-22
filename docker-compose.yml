@@ -326,6 +326,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
       ATTENDANCE_WS_URL: http://localhost:8080/attendance-service/ws
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
       discovery-service: { condition: service_healthy }
     ports:

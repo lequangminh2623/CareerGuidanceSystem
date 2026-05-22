@@ -21,7 +21,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/internal/secure/users")
-@CrossOrigin
 @RequiredArgsConstructor
 public class InternalUserController {
 

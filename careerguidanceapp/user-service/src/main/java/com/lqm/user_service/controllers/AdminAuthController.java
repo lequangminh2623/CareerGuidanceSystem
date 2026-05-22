@@ -11,7 +11,6 @@ import com.lqm.user_service.exceptions.ResourceNotFoundException;
 
 @RestController
 @RequestMapping("/api/internal/auth")
-@CrossOrigin
 @RequiredArgsConstructor
 public class AdminAuthController {
 

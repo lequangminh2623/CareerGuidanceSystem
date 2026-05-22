@@ -25,7 +25,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/internal/admin/users")
-@CrossOrigin
 @RequiredArgsConstructor
 public class AdminUserController {
 
