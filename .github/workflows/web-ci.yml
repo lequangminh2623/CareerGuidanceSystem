@@ -5,15 +5,15 @@ env:
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'careerguidanceweb/**'
-      - '.github/workflows/web-ci.yml'
+      - "careerguidanceweb/**"
+      - ".github/workflows/web-ci.yml"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'careerguidanceweb/**'
-      - '.github/workflows/web-ci.yml'
+      - "careerguidanceweb/**"
+      - ".github/workflows/web-ci.yml"
 
 jobs:
   build-and-test:
@@ -24,37 +24,36 @@ jobs:
         working-directory: ./careerguidanceweb
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: ./careerguidanceweb/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: ./careerguidanceweb/package-lock.json
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Lint Code
-      run: npx eslint --no-error-on-unmatched-pattern src/
-      continue-on-error: true # Đặt true nếu chưa fix hết lỗi lint
+      - name: Lint Code
+        run: npx eslint --no-error-on-unmatched-pattern src/
+        continue-on-error: true # Đặt true nếu chưa fix hết lỗi lint
 
-    - name: Build Next.js App
-      run: npm run build
+      - name: Build Next.js App
+        run: npm run build
 
   deploy:
     needs: build-and-test
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Deploy Next.js Web
-      run: |
-        docker compose up -d --build careerguidance-web
-        docker image prune -f
-
-
+      - name: Deploy Next.js Web
+        run: |
+          cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env
+          docker compose up -d --build careerguidance-web
+          docker image prune -f

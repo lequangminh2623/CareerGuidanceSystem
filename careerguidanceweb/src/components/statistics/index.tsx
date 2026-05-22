@@ -26,7 +26,6 @@ const StatisticsClient = () => {
                             ? t("teacher-stats-desc")
                             : t("general-stats-desc")}
                 </p>
-                <p> test </p>
             </div>
 
             {/* Role-based content */}

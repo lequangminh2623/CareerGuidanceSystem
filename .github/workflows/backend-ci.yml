@@ -119,6 +119,7 @@ jobs:
 
     - name: Deploy Backend Services
       run: |
+        cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env
         docker compose up -d --build \
           discovery-service \
           api-gateway \
