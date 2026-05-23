@@ -237,7 +237,7 @@ services:
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
-      WS_ALLOWED_ORIGINS: http://admin-service:8080,http://localhost:3000,http://localhost:8080,${ALLOWED_ORIGINS}
+      WS_ALLOWED_ORIGINS: http://localhost:8080,${ALLOWED_ORIGINS}
     volumes:
       # Mount folder client certs cho Backend đọc file .p12 và .jks
       - ./careerguidanceapp/mosquitto/certs/client:/app/certs:ro
@@ -325,7 +325,7 @@ services:
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_SERVER}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
-      ATTENDANCE_WS_URL: http://localhost:8080/attendance-service/ws
+      ATTENDANCE_WS_URL: ${ATTENDANCE_WS_URL}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
       discovery-service: { condition: service_healthy }
@@ -401,16 +401,22 @@ services:
     build: ./careerguidancemodel
     container_name: careerguidance-model
     ports:
-      - "8000:8000"
+      - "${MODEL_PORT}:8000"
     volumes:
       - ./careerguidancemodel/service-account.json:/app/service-account.json:ro
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/service-account.json
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    env_file:
-      - ./careerguidancemodel/.env
+      GOOGLE_APPLICATION_CREDENTIALS: /app/service-account.json
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT}
+      GOOGLE_CLOUD_REGION: ${GOOGLE_CLOUD_REGION}
+      GEMINI_MODEL_NAME: ${GEMINI_MODEL_NAME}
+      SPRING_BOOT_BASE_URL: ${MODEL_SPRING_BOOT_BASE_URL}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       redis: { condition: service_started }
     networks:

@@ -37,21 +37,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${ALLOWED_ORIGINS:http://localhost:3000}")
+    @Value("${ALLOWED_ORIGINS}")
     private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain webSecurity(HttpSecurity http) {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/favicon.ico", "/css/**", "/js/**", "/access-deny", "/internal/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/login", "/favicon.ico", "/css/**", "/js/**", "/access-deny", "/internal/**",
+                                "/v3/api-docs/**", "/swagger-ui/**")
+                        .permitAll()
                         .requestMatchers("/", "/users", "/users/**", "/classrooms", "/classrooms/**",
                                 "/subjects", "/subjects/**", "/years", "/years/**",
                                 "/semesters", "/semesters/**", "/grades", "/grades/**",
-                                "/curriculums", "/curriculums/**","/sections", "/sections/**",
+                                "/curriculums", "/curriculums/**", "/sections", "/sections/**",
                                 "/devices", "/devices/**", "/attendances", "/attendances/**",
-                                "/transcripts/**", "/fragments/**").hasRole("ADMIN")
-                )
+                                "/transcripts/**", "/fragments/**")
+                        .hasRole("ADMIN"))
                 .formLogin(form -> form.loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/", true)
@@ -69,8 +71,7 @@ public class SecurityConfig {
 
     @Bean
     public MessageSource messageSource() {
-        ResourceBundleMessageSource resource
-                = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource resource = new ResourceBundleMessageSource();
         resource.setBasename("messages");
         resource.setDefaultEncoding("UTF-8");
         return resource;
@@ -78,8 +79,7 @@ public class SecurityConfig {
 
     @Bean
     public jakarta.validation.Validator validator() {
-        LocalValidatorFactoryBean bean
-                = new LocalValidatorFactoryBean();
+        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSource());
         return bean;
     }

@@ -27,13 +27,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
 /**
  *
  * @author Le Quang Minh
@@ -61,23 +58,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .addFilterBefore(headerFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/secure/**").authenticated()
                         .requestMatchers("/api/internal/admin/**").hasRole(Role.ROLE_ADMIN.getRoleName().toUpperCase())
-                        .anyRequest().authenticated()
-                );
+                        .anyRequest().authenticated());
 
         http.exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"Unauthorized\", \"message\":\"Token validation required\"}");
-                })
-        );
+                }));
 
         return http.build();
     }
@@ -94,8 +89,7 @@ public class SecurityConfig {
 
     @Bean
     public MessageSource messageSource() {
-        ResourceBundleMessageSource resource
-                = new ResourceBundleMessageSource();
+        ResourceBundleMessageSource resource = new ResourceBundleMessageSource();
         resource.setBasename("messages");
         resource.setDefaultEncoding("UTF-8");
         return resource;
@@ -103,8 +97,7 @@ public class SecurityConfig {
 
     @Bean
     public jakarta.validation.Validator validator() {
-        LocalValidatorFactoryBean bean
-                = new LocalValidatorFactoryBean();
+        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
         bean.setValidationMessageSource(messageSource());
         return bean;
     }
@@ -117,8 +110,7 @@ public class SecurityConfig {
             SubjectRequestDTOValidator subjectRequestDTOValidator,
             ClassroomRequestDTOValidator classroomRequestDTOValidator,
             CurriculumRequestDTOValidator curriculumRequestDTOValidator,
-            SectionListRequestValidator sectionListRequestValidator
-    ) {
+            SectionListRequestValidator sectionListRequestValidator) {
         Set<Validator> springValidators = new HashSet<>();
         springValidators.add(yearRequestDTOValidator);
         springValidators.add(semesterRequestDTOValidator);
@@ -129,24 +121,6 @@ public class SecurityConfig {
         springValidators.add(sectionListRequestValidator);
 
         return new WebAppValidator(springValidators);
-    }
-
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of("http://localhost:3000/"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setExposedHeaders(List.of("Authorization"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
     }
 
     @Bean

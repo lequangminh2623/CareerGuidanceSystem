@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,9 +36,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -127,23 +123,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return source;
-    }
-
-    @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         AccessDeniedHandlerImpl handler = new AccessDeniedHandlerImpl();
         handler.setErrorPage("/access-deny");
@@ -152,15 +131,15 @@ public class SecurityConfig {
 
     /**
      * Expose {@link GoogleIdTokenVerifier} như một singleton bean.
-     * Lợi ích: có thể inject vào {@link com.lqm.user_service.services.impl.AuthServiceImpl}
+     * Lợi ích: có thể inject vào
+     * {@link com.lqm.user_service.services.impl.AuthServiceImpl}
      * và mock hoàn toàn trong unit test.
      */
     @Bean
     public GoogleIdTokenVerifier googleIdTokenVerifier() throws GeneralSecurityException, IOException {
         return new GoogleIdTokenVerifier.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance()
-        ).setAudience(Collections.singletonList(googleClientId)).build();
+                GsonFactory.getDefaultInstance()).setAudience(Collections.singletonList(googleClientId)).build();
     }
 
 }
