@@ -70,7 +70,7 @@ class AdminAttendanceControllerTest {
             UUID studentId = UUID.randomUUID();
             
             AttendanceResponseDTO responseDTO = new AttendanceResponseDTO(
-                    attendanceId, studentId, attendanceDate, LocalTime.of(8, 0), AttendanceStatus.PRESENT.name()
+                    attendanceId, studentId, attendanceDate, LocalTime.of(8, 0), AttendanceStatus.PRESENT.name(), null
             );
 
             given(attendanceService.getAttendancesByClassroomAndDate(classroomId, attendanceDate))

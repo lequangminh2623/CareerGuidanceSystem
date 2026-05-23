@@ -3,6 +3,7 @@ package com.lqm.attendance_service.consumers;
 import com.lqm.attendance_service.configs.RabbitMQConfig;
 import com.lqm.attendance_service.dtos.AbsentQueueMessage;
 import com.lqm.attendance_service.models.Attendance;
+import com.lqm.attendance_service.models.AttendanceSession;
 import com.lqm.attendance_service.models.AttendanceStatus;
 import com.lqm.attendance_service.repositories.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +25,14 @@ public class AbsentQueueConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_ABSENT)
     public void processAbsentQueue(AbsentQueueMessage message) {
-        log.info("Received AbsentQueueMessage: classroomId={}, students={}",
-                message.getClassroomId(), message.getStudentIds().size());
+        log.info("Received AbsentQueueMessage: classroomId={}, students={}, session={}",
+                message.getClassroomId(), message.getStudentIds().size(), message.getSession());
         try {
             UUID classroomId = UUID.fromString(message.getClassroomId());
             LocalDate date = LocalDate.parse(message.getDate());
+            AttendanceSession session = message.getSession() != null
+                    ? AttendanceSession.valueOf(message.getSession())
+                    : AttendanceSession.MORNING;
 
             List<Attendance> absentAttendances = new ArrayList<>();
             for (String idStr : message.getStudentIds()) {
@@ -38,13 +42,14 @@ public class AbsentQueueConsumer {
                         .classroomId(classroomId)
                         .attendanceDate(date)
                         .status(AttendanceStatus.ABSENT)
+                        .session(session)
                         .build());
             }
 
             if (!absentAttendances.isEmpty()) {
                 attendanceRepo.saveAll(absentAttendances);
-                log.info("Worker: Ghi nhận ABSENT cho {} học sinh tại lớp {} ngày {}",
-                        absentAttendances.size(), classroomId, date);
+                log.info("Worker: Ghi nhận ABSENT cho {} học sinh buổi {} tại lớp {} ngày {}",
+                        absentAttendances.size(), session, classroomId, date);
             }
         } catch (Exception e) {
             log.error("Error processing AbsentQueueMessage: {}", e.getMessage(), e);

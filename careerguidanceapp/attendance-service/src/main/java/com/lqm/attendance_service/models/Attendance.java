@@ -44,4 +44,8 @@ public class Attendance implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AttendanceStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "session")
+    private AttendanceSession session;
 }

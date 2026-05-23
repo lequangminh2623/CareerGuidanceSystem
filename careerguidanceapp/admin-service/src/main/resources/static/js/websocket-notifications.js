@@ -93,21 +93,34 @@ function handleAttendanceEvent(event) {
     if (event.eventType !== 'ATTENDANCE_RECORDED') return;
 
     const data = event.data;
-
-    // Lấy classroomId hiện đang xem (nếu có)
     const currentClassroomId = document.querySelector('[data-current-classroom-id]')?.getAttribute('data-current-classroom-id');
 
-    // Chỉ hiển thị nếu đang xem trang attendance của cùng lớp
     if (currentClassroomId && currentClassroomId === data.classroomId) {
-        showWsToast(
-            `Học sinh ${data.studentName} vừa điểm danh lúc ${data.checkInTime?.substring(0, 5)}`,
-            'success'
-        );
+        if (!data.session) {
+            showWsToast(
+                `Học sinh ${data.studentName} vừa điểm danh ngoài khung giờ cho phép`,
+                'warning'
+            );
+            return;
+        }
+
+        const sessionLabel = data.session === 'MORNING' ? 'sáng' : data.session === 'AFTERNOON' ? 'chiều' : '';
+
+        if (data.isNew) {
+            showWsToast(
+                `Học sinh ${data.studentName} vừa điểm danh buổi ${sessionLabel} lúc ${data.checkInTime?.substring(0, 5)}`,
+                'success'
+            );
+        } else {
+            showWsToast(
+                `Học sinh ${data.studentName} đã điểm danh buổi ${sessionLabel} rồi`,
+                'info'
+            );
+        }
 
         // Tìm table body của trang attendance
         const attendanceTableBody = document.getElementById('attendanceTableBody');
         if (attendanceTableBody) {
-            // Thêm row hoặc highlight row hiện có
             insertOrUpdateAttendanceRow(attendanceTableBody, data);
         }
     }
@@ -115,19 +128,32 @@ function handleAttendanceEvent(event) {
 
 /**
  * Thêm row mới vào bảng điểm danh hoặc cập nhật row hiện có.
+ * Sử dụng data-student-id + data-session để phân biệt buổi sáng/chiều.
+ * Nếu isNew=false (đã điểm danh rồi), chỉ highlight row mà KHÔNG thay đổi trạng thái.
  */
 function insertOrUpdateAttendanceRow(tbody, data) {
-    // Tìm row bằng data-student-id
-    let row = tbody.querySelector(`[data-student-id="${data.studentId}"]`);
+    // Tìm row bằng data-student-id VÀ data-session
+    const session = data.session || '';
+    let row = tbody.querySelector(`[data-student-id="${data.studentId}"][data-session="${session}"]`);
 
     if (!row) {
+        // Không có row cho buổi này → tạo mới
+        if (!data.isNew) return; // Không tạo row mới nếu chỉ là duplicate
+
         // Xóa row "trống dữ liệu" nếu có
         const emptyRow = tbody.querySelector('.empty-state-row');
         if (emptyRow) emptyRow.remove();
 
-        const rowCount = tbody.querySelectorAll('tr').length;
+        const rowCount = tbody.querySelectorAll('tr:not(.empty-state-row)').length;
+        const sessionBadge = session === 'MORNING' 
+            ? `<span class="badge bg-warning-soft text-warning fw-black px-3 py-2 rounded-pill fs-12 uppercase tracking-tighter">Sáng</span>` 
+            : session === 'AFTERNOON' 
+            ? `<span class="badge bg-indigo-soft text-indigo fw-black px-3 py-2 rounded-pill fs-12 uppercase tracking-tighter">Chiều</span>` 
+            : `<span class="badge bg-light text-secondary fw-black px-3 py-2 rounded-pill fs-12 uppercase tracking-tighter">-</span>`;
+        
         row = document.createElement('tr');
         row.setAttribute('data-student-id', data.studentId);
+        row.setAttribute('data-session', session);
         row.className = 'transition-all duration-200 ws-attendance-highlight';
         row.innerHTML = `
             <input type="hidden" name="attendances[${rowCount}].studentId" value="${data.studentId}" />
@@ -138,6 +164,7 @@ function insertOrUpdateAttendanceRow(tbody, data) {
                 </span>
             </td>
             <td class="fw-bold text-dark">${data.studentName}</td>
+            <td class="text-center">${sessionBadge}</td>
             <td class="text-center">
                 <label class="custom-radio present" title="Vân tay: ${data.checkInTime.substring(0, 5)}">
                     <input type="radio" name="attendances[${rowCount}].status" value="Present" ${data.status === 'Present' ? 'checked' : ''}>
@@ -159,12 +186,18 @@ function insertOrUpdateAttendanceRow(tbody, data) {
         `;
         tbody.appendChild(row);
     } else {
-        // Highlight row hiện có và cập nhật trạng thái
-        row.classList.add('ws-attendance-highlight');
-        const radio = row.querySelector(`input[value="${data.status}"]`);
-        if (radio) {
-            radio.checked = true;
-            radio.dispatchEvent(new Event('change'));
+        // Row đã tồn tại cho buổi này
+        if (!data.isNew) {
+            // Đã điểm danh rồi → chỉ highlight, KHÔNG thay đổi trạng thái
+            row.classList.add('ws-attendance-highlight');
+        } else {
+            // Trường hợp hiếm: row tồn tại nhưng isNew=true → cập nhật status
+            row.classList.add('ws-attendance-highlight');
+            const radio = row.querySelector(`input[value="${data.status}"]`);
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
         }
     }
 

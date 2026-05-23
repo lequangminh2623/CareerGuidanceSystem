@@ -279,9 +279,10 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
             Fingerprint fingerprint = fingerprintService.getFingerprintByFingerprintIndexAndClassroomId(
                     dto.fingerprintIndex(), device.getClassroomId());
 
-            var status = attendanceService.recordAttendance(fingerprint.getStudentId(), device.getClassroomId());
-            log.info("Ghi nhận điểm danh cho học sinh {} tại lớp {} từ thiết bị {} - Status: {}",
-                    fingerprint.getStudentId(), device.getClassroomId(), device.getId(), status);
+            var result = attendanceService.recordAttendance(fingerprint.getStudentId(), device.getClassroomId());
+            log.info("Ghi nhận điểm danh cho học sinh {} tại lớp {} từ thiết bị {} - Status: {}, Session: {}, isNew: {}",
+                    fingerprint.getStudentId(), device.getClassroomId(), device.getId(),
+                    result.status(), result.session(), result.isNew());
 
             // Lấy thông tin học sinh để broadcast đầy đủ (cho UI update)
             String studentName = "N/A";
@@ -304,7 +305,9 @@ public class MqttServiceImpl implements MqttService, MqttCallback {
                             "studentId", fingerprint.getStudentId().toString(),
                             "studentName", studentName,
                             "studentCode", studentCode,
-                            "status", status.toString(),
+                            "status", result.status().toString(),
+                            "session", result.session() != null ? result.session().name() : "",
+                            "isNew", result.isNew(),
                             "classroomId", device.getClassroomId().toString(),
                             "deviceId", device.getId(),
                             "checkInTime", now.toLocalTime().toString().substring(0, 8),

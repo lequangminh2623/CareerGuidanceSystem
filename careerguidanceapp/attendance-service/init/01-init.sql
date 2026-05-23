@@ -23,9 +23,20 @@ CREATE TABLE attendances (
                                     classroom_id UUID NOT NULL,
                                     attendance_date DATE NOT NULL,
                                     check_in_time TIME,
-                                    status VARCHAR(20) NOT NULL,
+                                    status VARCHAR(255) NOT NULL,
+                                    session VARCHAR(255) CHECK (session IN ('MORNING', 'AFTERNOON')),
 
-                                    CONSTRAINT unique_daily_attendance UNIQUE (student_id, attendance_date)
+                                    CONSTRAINT unique_daily_attendance UNIQUE (student_id, attendance_date, session)
 );
 
 CREATE INDEX idx_search_attendance ON attendances(attendance_date, classroom_id);
+
+-- Bảng cấu hình điểm danh (singleton, id=1)
+CREATE TABLE attendance_config (
+                                    id BIGINT PRIMARY KEY DEFAULT 1,
+                                    sessions_per_day INT NOT NULL DEFAULT 1,
+                                    morning_start_time TIME NOT NULL DEFAULT '07:00',
+                                    morning_end_time TIME NOT NULL DEFAULT '11:30',
+                                    afternoon_start_time TIME NOT NULL DEFAULT '13:00',
+                                    afternoon_end_time TIME NOT NULL DEFAULT '17:00'
+);

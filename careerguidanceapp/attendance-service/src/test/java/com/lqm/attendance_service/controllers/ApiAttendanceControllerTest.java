@@ -57,7 +57,7 @@ class ApiAttendanceControllerTest {
             
             UserResponseDTO currentUser = new UserResponseDTO(studentId, "STU001", "John", "Doe");
             AttendanceResponseDTO responseDTO = new AttendanceResponseDTO(
-                    attendanceId, studentId, LocalDate.now(), LocalTime.of(8, 0), AttendanceStatus.PRESENT.name()
+                    attendanceId, studentId, LocalDate.now(), LocalTime.of(8, 0), AttendanceStatus.PRESENT.name(), null
             );
 
             given(userClient.getCurrentUser()).willReturn(currentUser);

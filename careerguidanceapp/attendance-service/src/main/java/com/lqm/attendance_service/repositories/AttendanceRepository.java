@@ -1,6 +1,7 @@
 package com.lqm.attendance_service.repositories;
 
 import com.lqm.attendance_service.models.Attendance;
+import com.lqm.attendance_service.models.AttendanceSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
     void deleteByClassroomIdAndAttendanceDate(UUID classroomId, LocalDate attendanceDate);
 
     Optional<Attendance> findByStudentIdAndAttendanceDate(UUID studentId, LocalDate attendanceDate);
+
+    Optional<Attendance> findByStudentIdAndAttendanceDateAndSession(UUID studentId, LocalDate attendanceDate, AttendanceSession session);
 
     List<Attendance> findByStudentIdAndClassroomId(UUID studentId, UUID classroomId);
 

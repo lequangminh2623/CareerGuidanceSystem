@@ -10,6 +10,7 @@ public record AdminAttendanceResponseDTO(
         UUID id,
         UUID studentId,
         LocalTime checkInTime,
-        String status
+        String status,
+        String session
 ) {}
 

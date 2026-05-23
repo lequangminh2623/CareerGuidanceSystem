@@ -42,6 +42,9 @@ class DeviceControllerTest {
     private DeviceClient deviceClient;
 
     @MockitoBean
+    private com.lqm.admin_service.clients.AttendanceConfigClient attendanceConfigClient;
+
+    @MockitoBean
     private JwtConfig jwtConfig;
 
     @MockitoBean

@@ -70,6 +70,7 @@ export interface AttendanceRecordDTO {
     attendanceDate: string;
     checkInTime: string;
     status: string;
+    session?: string;
 }
 
 // Statistics — Student

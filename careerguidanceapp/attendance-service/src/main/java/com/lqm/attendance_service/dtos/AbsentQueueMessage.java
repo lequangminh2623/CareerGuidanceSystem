@@ -16,4 +16,5 @@ public class AbsentQueueMessage implements Serializable {
     private List<String> studentIds;
     private String classroomId;
     private String date;
+    private String session; // "MORNING" or "AFTERNOON"
 }

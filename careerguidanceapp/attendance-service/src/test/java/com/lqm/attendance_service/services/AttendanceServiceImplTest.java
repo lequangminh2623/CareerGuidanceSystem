@@ -4,6 +4,8 @@ import com.lqm.attendance_service.dtos.AttendanceResponseDTO;
 import com.lqm.attendance_service.dtos.AttendanceSummaryDTO;
 import com.lqm.attendance_service.mappers.AttendanceMapper;
 import com.lqm.attendance_service.models.Attendance;
+import com.lqm.attendance_service.models.AttendanceConfig;
+import com.lqm.attendance_service.models.AttendanceSession;
 import com.lqm.attendance_service.models.AttendanceStatus;
 import com.lqm.attendance_service.repositories.AttendanceRepository;
 import com.lqm.attendance_service.services.Impl.AttendanceServiceImpl;
@@ -35,6 +37,9 @@ public class AttendanceServiceImplTest {
     @Mock
     private AttendanceMapper attendanceMapper;
 
+    @Mock
+    private AttendanceConfigService configService;
+
     @InjectMocks
     private AttendanceServiceImpl attendanceService;
 
@@ -43,6 +48,7 @@ public class AttendanceServiceImplTest {
     private LocalDate today;
     private Attendance attendance;
     private AttendanceResponseDTO attendanceResponseDTO;
+    private AttendanceConfig defaultConfig;
 
     @BeforeEach
     void setUp() {
@@ -57,6 +63,7 @@ public class AttendanceServiceImplTest {
                 .attendanceDate(today)
                 .status(AttendanceStatus.PRESENT)
                 .checkInTime(LocalTime.of(6, 30))
+                .session(AttendanceSession.MORNING)
                 .build();
 
         attendanceResponseDTO = new AttendanceResponseDTO(
@@ -64,8 +71,18 @@ public class AttendanceServiceImplTest {
                 studentId,
                 today,
                 LocalTime.of(6, 30),
-                AttendanceStatus.PRESENT.name()
+                AttendanceStatus.PRESENT.name(),
+                "MORNING"
         );
+
+        defaultConfig = AttendanceConfig.builder()
+                .id(1L)
+                .sessionsPerDay(2)
+                .morningStartTime(LocalTime.of(7, 0))
+                .morningEndTime(LocalTime.of(12, 30))
+                .afternoonStartTime(LocalTime.of(13, 0))
+                .afternoonEndTime(LocalTime.of(23, 59))
+                .build();
     }
 
     @Test
@@ -126,21 +143,29 @@ public class AttendanceServiceImplTest {
 
     @Test
     void recordAttendance_WhenAlreadyExists_ShouldReturnExistingStatus() {
-        when(attendanceRepo.findByStudentIdAndAttendanceDate(studentId, today)).thenReturn(Optional.of(attendance));
+        when(configService.getConfig()).thenReturn(defaultConfig);
+        when(attendanceRepo.findByStudentIdAndAttendanceDateAndSession(eq(studentId), any(LocalDate.class), any(AttendanceSession.class)))
+                .thenReturn(Optional.of(attendance));
 
-        AttendanceStatus status = attendanceService.recordAttendance(studentId, classroomId);
+        var result = attendanceService.recordAttendance(studentId, classroomId);
 
-        assertEquals(AttendanceStatus.PRESENT, status);
+        assertEquals(AttendanceStatus.PRESENT, result.status());
+        assertFalse(result.isNew());
+        assertNotNull(result.session());
         verify(attendanceRepo, never()).save(any());
     }
 
     @Test
     void recordAttendance_WhenNotExists_ShouldSaveAndReturnStatus() {
-        when(attendanceRepo.findByStudentIdAndAttendanceDate(eq(studentId), any(LocalDate.class))).thenReturn(Optional.empty());
+        when(configService.getConfig()).thenReturn(defaultConfig);
+        when(attendanceRepo.findByStudentIdAndAttendanceDateAndSession(eq(studentId), any(LocalDate.class), any(AttendanceSession.class)))
+                .thenReturn(Optional.empty());
 
-        AttendanceStatus status = attendanceService.recordAttendance(studentId, classroomId);
+        var result = attendanceService.recordAttendance(studentId, classroomId);
 
-        assertNotNull(status);
+        assertNotNull(result.status());
+        assertTrue(result.isNew());
+        assertNotNull(result.session());
         verify(attendanceRepo, times(1)).save(any(Attendance.class));
     }
 

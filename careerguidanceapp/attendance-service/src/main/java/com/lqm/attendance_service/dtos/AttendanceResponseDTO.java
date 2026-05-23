@@ -12,5 +12,6 @@ public record AttendanceResponseDTO(
                 UUID studentId,
                 LocalDate attendanceDate,
                 LocalTime checkInTime,
-                String status) {
+                String status,
+                String session) {
 }

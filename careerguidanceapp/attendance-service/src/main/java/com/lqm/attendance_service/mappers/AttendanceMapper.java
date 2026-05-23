@@ -15,6 +15,7 @@ public interface AttendanceMapper {
     AdminAttendanceRequestDTO toAttendanceRequestDTO(Attendance entity);
 
     @Mapping(target = "status", source = "status.name")
+    @Mapping(target = "session", expression = "java(entity.getSession() != null ? entity.getSession().name() : null)")
     AttendanceResponseDTO toAttendanceResponseDTO(Attendance entity);
 
     @Mapping(target = "status", expression = "java(com.lqm.attendance_service.models.AttendanceStatus.fromStatusName(dto.status()))")

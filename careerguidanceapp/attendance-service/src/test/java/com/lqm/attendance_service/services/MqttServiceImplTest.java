@@ -3,12 +3,14 @@ package com.lqm.attendance_service.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lqm.attendance_service.clients.UserClient;
+import com.lqm.attendance_service.dtos.AttendanceRecordResult;
 import com.lqm.attendance_service.dtos.AttendanceRequestDTO;
 import com.lqm.attendance_service.dtos.DeviceStatusDTO;
 import com.lqm.attendance_service.dtos.FingerprintRequestDTO;
 import com.lqm.attendance_service.dtos.UserResponseDTO;
 import com.lqm.attendance_service.dtos.WebSocketEventDTO;
 import com.lqm.attendance_service.mappers.FingerprintMapper;
+import com.lqm.attendance_service.models.AttendanceSession;
 import com.lqm.attendance_service.models.AttendanceStatus;
 import com.lqm.attendance_service.models.Device;
 import com.lqm.attendance_service.models.Fingerprint;
@@ -172,7 +174,12 @@ public class MqttServiceImplTest {
         Fingerprint fingerprint = Fingerprint.builder().studentId(studentId).build();
         when(fingerprintService.getFingerprintByFingerprintIndexAndClassroomId(1, classroomId)).thenReturn(fingerprint);
 
-        when(attendanceService.recordAttendance(studentId, classroomId)).thenReturn(AttendanceStatus.PRESENT);
+        when(attendanceService.recordAttendance(studentId, classroomId)).thenReturn(
+                AttendanceRecordResult.builder()
+                        .status(AttendanceStatus.PRESENT)
+                        .session(AttendanceSession.MORNING)
+                        .isNew(true)
+                        .build());
 
         UserResponseDTO user = new UserResponseDTO(studentId, "STU001", "John", "Doe");
         when(userClient.getUserById(studentId)).thenReturn(user);

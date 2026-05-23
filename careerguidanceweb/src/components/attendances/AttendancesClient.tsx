@@ -242,6 +242,7 @@ export default function AttendancesClient() {
                                 <thead>
                                     <tr className="bg-gray-50/50">
                                         <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-100">{t("date")}</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-100">{t("session")}</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-100">{t("check-in-time")}</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-100">{t("status")}</th>
                                     </tr>
@@ -261,10 +262,23 @@ export default function AttendancesClient() {
                                                                 ? new Date(attendance.attendanceDate).toLocaleDateString(
                                                                     i18n.language === "en" ? "en-US" : "vi-VN",
                                                                     { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }
-                                                                )
+                                                                 )
                                                                 : 'N/A'}
                                                         </div>
                                                     </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {attendance.session === "MORNING" ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all duration-300 shadow-sm bg-amber-50 text-amber-700 border-amber-200">
+                                                            {t("morning")}
+                                                        </span>
+                                                    ) : attendance.session === "AFTERNOON" ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all duration-300 shadow-sm bg-indigo-50 text-indigo-700 border-indigo-200">
+                                                            {t("afternoon")}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-400 font-bold">-</span>
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs text-gray-700 font-bold group-hover:bg-white group-hover:shadow-sm transition-all duration-300">

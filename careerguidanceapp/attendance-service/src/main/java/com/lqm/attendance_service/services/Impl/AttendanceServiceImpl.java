@@ -1,10 +1,14 @@
 package com.lqm.attendance_service.services.Impl;
 
+import com.lqm.attendance_service.dtos.AttendanceRecordResult;
 import com.lqm.attendance_service.dtos.AttendanceResponseDTO;
 import com.lqm.attendance_service.dtos.AttendanceSummaryDTO;
 import com.lqm.attendance_service.mappers.AttendanceMapper;
 import com.lqm.attendance_service.models.Attendance;
+import com.lqm.attendance_service.models.AttendanceConfig;
+import com.lqm.attendance_service.models.AttendanceSession;
 import com.lqm.attendance_service.repositories.AttendanceRepository;
+import com.lqm.attendance_service.services.AttendanceConfigService;
 import com.lqm.attendance_service.services.AttendanceService;
 import com.lqm.attendance_service.models.AttendanceStatus;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     private final AttendanceRepository attendanceRepo;
     private final AttendanceMapper attendanceMapper;
+    private final AttendanceConfigService configService;
 
     @Override
     public List<AttendanceResponseDTO> getAttendancesByClassroomAndDate(UUID classroomId, LocalDate attendanceDate) {
@@ -60,23 +65,33 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional
-    public AttendanceStatus recordAttendance(UUID studentId, UUID classroomId) {
+    public AttendanceRecordResult recordAttendance(UUID studentId, UUID classroomId) {
         LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalTime now = LocalTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
 
-        var existing = attendanceRepo.findByStudentIdAndAttendanceDate(studentId, today);
-        if (existing.isPresent()) {
-            return existing.get().getStatus();
+        AttendanceConfig config = configService.getConfig();
+        AttendanceSession session = determineSession(now, config);
+
+        if (session == null) {
+            // Ngoài giờ điểm danh — không ghi nhận
+            return AttendanceRecordResult.builder()
+                    .status(AttendanceStatus.ABSENT)
+                    .session(null)
+                    .isNew(false)
+                    .build();
         }
 
-        AttendanceStatus status;
-        if (now.isBefore(LocalTime.of(7, 0))) {
-            status = AttendanceStatus.PRESENT;
-        } else if (now.isBefore(LocalTime.of(17, 0))) {
-            status = AttendanceStatus.LATE;
-        } else {
-            status = AttendanceStatus.ABSENT;
+        // Kiểm tra đã điểm danh buổi này chưa
+        var existing = attendanceRepo.findByStudentIdAndAttendanceDateAndSession(studentId, today, session);
+        if (existing.isPresent()) {
+            return AttendanceRecordResult.builder()
+                    .status(existing.get().getStatus())
+                    .session(session)
+                    .isNew(false)
+                    .build();
         }
+
+        AttendanceStatus status = determineStatus(now, session, config);
 
         Attendance attendance = Attendance.builder()
                 .studentId(studentId)
@@ -84,9 +99,14 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .attendanceDate(today)
                 .checkInTime(now)
                 .status(status)
+                .session(session)
                 .build();
         attendanceRepo.save(attendance);
-        return status;
+        return AttendanceRecordResult.builder()
+                .status(status)
+                .session(session)
+                .isNew(true)
+                .build();
     }
 
     @Override
@@ -130,6 +150,45 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Transactional
     public void deleteAttendancesByClassroomAndStudentIds(UUID classroomId, List<UUID> studentIds) {
         attendanceRepo.deleteByClassroomIdAndStudentIdIn(classroomId, studentIds);
+    }
+
+    /**
+     * Xác định buổi điểm danh dựa trên giờ hiện tại và cấu hình.
+     * Trả về null nếu ngoài khung giờ điểm danh.
+     */
+    private AttendanceSession determineSession(LocalTime now, AttendanceConfig config) {
+        // Khung giờ buổi sáng: từ (giờ bắt đầu - 1 tiếng) đến giờ kết thúc
+        LocalTime morningCheckInStart = config.getMorningStartTime().minusHours(1);
+        if ((now.isAfter(morningCheckInStart) || now.equals(morningCheckInStart)) && !now.isAfter(config.getMorningEndTime())) {
+            return AttendanceSession.MORNING;
+        }
+
+        // Khung giờ buổi chiều: từ (giờ bắt đầu chiều - 1 tiếng) đến giờ kết thúc chiều (nếu cấu hình 2 buổi)
+        if (config.getSessionsPerDay() == 2) {
+            LocalTime afternoonCheckInStart = config.getAfternoonStartTime().minusHours(1);
+            if ((now.isAfter(afternoonCheckInStart) || now.equals(afternoonCheckInStart)) && !now.isAfter(config.getAfternoonEndTime())) {
+                return AttendanceSession.AFTERNOON;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Xác định trạng thái điểm danh dựa trên giờ check-in và cấu hình buổi.
+     * - Check-in trước giờ bắt đầu buổi → PRESENT
+     * - Check-in sau giờ bắt đầu nhưng trước giờ kết thúc → LATE
+     */
+    private AttendanceStatus determineStatus(LocalTime now, AttendanceSession session, AttendanceConfig config) {
+        if (session == AttendanceSession.MORNING) {
+            return now.isBefore(config.getMorningStartTime()) || now.equals(config.getMorningStartTime())
+                    ? AttendanceStatus.PRESENT
+                    : AttendanceStatus.LATE;
+        } else {
+            return now.isBefore(config.getAfternoonStartTime()) || now.equals(config.getAfternoonStartTime())
+                    ? AttendanceStatus.PRESENT
+                    : AttendanceStatus.LATE;
+        }
     }
 
 }
