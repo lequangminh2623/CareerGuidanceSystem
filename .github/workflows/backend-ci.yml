@@ -106,6 +106,7 @@ jobs:
 
         # === CORS ===
         ALLOWED_ORIGINS: http://localhost:3000
+        WS_ALLOWED_ORIGINS: http://localhost:3000
       run: mvn -B clean verify
       continue-on-error: true # Tạm thời để true cho tới khi tất cả các bài test đều Passed.
 

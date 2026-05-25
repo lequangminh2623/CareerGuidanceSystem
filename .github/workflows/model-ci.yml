@@ -58,8 +58,7 @@ jobs:
 
     - name: Inject secrets & certs
       run: |
-        cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env
-        cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidancemodel/.env $GITHUB_WORKSPACE/careerguidancemodel/.env
+        cp /home/$USER/Documents/Thesis/CareerGuidanceSystem/.env $GITHUB_WORKSPACE/.env || true
         mkdir -p $GITHUB_WORKSPACE/careerguidanceapp/attendance-service/src/main/resources/certs
         cp -r /home/$USER/Documents/Thesis/CareerGuidanceSystem/careerguidanceapp/attendance-service/src/main/resources/certs/* $GITHUB_WORKSPACE/careerguidanceapp/attendance-service/src/main/resources/certs/
         mkdir -p $GITHUB_WORKSPACE/careerguidanceapp/mosquitto/certs

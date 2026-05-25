@@ -50,8 +50,10 @@ def test_full_guidance_cache_hit(client, mocker):
 def test_guidance_from_springboot_success(client, mocker):
     mocker.patch("app.routers.guidance.get_student_scores", return_value=[])
     mocker.patch("app.routers.guidance.aggregate_subject_scores", return_value={})
-    # This will result in missing scores being filled with 0.0
-    mocker.patch("app.routers.guidance.map_scores_to_schema", return_value={}) 
+    mocker.patch("app.routers.guidance.map_scores_to_schema", return_value={
+        "math_score": 8, "history_score": 7, "physics_score": 8,
+        "chemistry_score": 8, "biology_score": 7, "english_score": 8, "geography_score": 7
+    })
     mocker.patch("app.routers.guidance.get_current_user", return_value={"gender": True})
     
     mocker.patch("app.routers.guidance.get_cached", return_value=None)
