@@ -140,10 +140,15 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     depends_on:
       discovery-service: { condition: service_healthy }
       postgres-user: { condition: service_started }
       redis: { condition: service_started }
+      rabbitmq: { condition: service_healthy }
     ports:
       - "${USER_SERVICE_PORT}:8080"
     networks:

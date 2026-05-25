@@ -36,6 +36,15 @@ public class ClassroomSpecification {
                 } catch (IllegalArgumentException ignored) {}
             }
 
+            String studentIdStr = params.get("studentId");
+            if (studentIdStr != null && !studentIdStr.isBlank()) {
+                try {
+                    UUID studentId = UUID.fromString(studentIdStr);
+                    jakarta.persistence.criteria.Join<Object, Object> scJoin = root.join("studentClassroomSet");
+                    predicate = cb.and(predicate, cb.equal(scJoin.get("studentId"), studentId));
+                } catch (IllegalArgumentException ignored) {}
+            }
+
             return predicate;
         };
     }

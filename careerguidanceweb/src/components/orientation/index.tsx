@@ -23,20 +23,13 @@ import type { SubjectAvg, SurveyData } from '@/store/features/orientation/orient
 
 /* ───── Subject name mapping ───── */
 const SUBJECT_FIELD_MAP: Record<string, string> = {
-    'Toán': 'math_score', 'Toán học': 'math_score',
-    'Vật lý': 'physics_score', 'Lý': 'physics_score',
-    'Hóa học': 'chemistry_score', 'Hóa': 'chemistry_score',
-    'Sinh học': 'biology_score', 'Sinh': 'biology_score',
-    'Lịch sử': 'history_score', 'Sử': 'history_score',
-    'Tiếng Anh': 'english_score', 'Anh': 'english_score',
-    'Địa lý': 'geography_score', 'Địa': 'geography_score',
-    'Math': 'math_score', 'MATH': 'math_score',
-    'Physics': 'physics_score', 'PHYSICS': 'physics_score',
-    'Chemistry': 'chemistry_score', 'CHEMISTRY': 'chemistry_score',
-    'Biology': 'biology_score', 'BIOLOGY': 'biology_score',
-    'History': 'history_score', 'HISTORY': 'history_score',
-    'English': 'english_score', 'ENGLISH': 'english_score',
-    'Geography': 'geography_score', 'GEOGRAPHY': 'geography_score',
+    'toán': 'math_score', 'toán học': 'math_score', 'math': 'math_score',
+    'vật lý': 'physics_score', 'vật lí': 'physics_score', 'lý': 'physics_score', 'lí': 'physics_score', 'physics': 'physics_score',
+    'hóa học': 'chemistry_score', 'hóa': 'chemistry_score', 'chemistry': 'chemistry_score',
+    'sinh học': 'biology_score', 'sinh': 'biology_score', 'biology': 'biology_score',
+    'lịch sử': 'history_score', 'sử': 'history_score', 'history': 'history_score',
+    'tiếng anh': 'english_score', 'anh': 'english_score', 'english': 'english_score',
+    'địa lý': 'geography_score', 'địa lí': 'geography_score', 'địa': 'geography_score', 'geography': 'geography_score',
 };
 
 function mapScoresToApi(scores: SubjectAvg[]): Record<string, number> {
@@ -45,8 +38,8 @@ function mapScoresToApi(scores: SubjectAvg[]): Record<string, number> {
         chemistry_score: 0, biology_score: 0, english_score: 0, geography_score: 0,
     };
     for (const s of scores) {
-        const field = SUBJECT_FIELD_MAP[s.name];
-        if (field) result[field] = s.score;
+        const field = SUBJECT_FIELD_MAP[s.name.trim().toLowerCase()];
+        if (field && s.score !== null) result[field] = s.score;
     }
     return result;
 }

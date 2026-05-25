@@ -9,6 +9,8 @@ import com.lqm.user_service.repositories.StudentRepository;
 import com.lqm.user_service.repositories.UserRepository;
 import com.lqm.user_service.services.CloudinaryService;
 import com.lqm.user_service.services.UserService;
+import com.lqm.user_service.services.UserEventPublisher;
+import com.lqm.user_service.events.UserDeletedEvent;
 import com.lqm.user_service.specifications.UserSpecification;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final MessageSource messageSource;
+    private final UserEventPublisher userEventPublisher;
 
     @Override
     @Cacheable(value = "user::profile", key = "#id")
@@ -142,6 +145,7 @@ public class UserServiceImpl implements UserService {
         User user = this.getUserById(id);
         cloudinaryService.deleteFile(user.getAvatar());
         userRepo.deleteById(id);
+        userEventPublisher.publishUserDeleted(new UserDeletedEvent(user.getId(), user.getRole().name()));
     }
 
     @Override

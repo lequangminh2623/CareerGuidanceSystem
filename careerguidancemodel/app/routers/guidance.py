@@ -233,9 +233,10 @@ async def guidance_from_springboot(
         missing = [f for f in required_fields if f not in score_fields]
         if missing:
             logger.warning("Missing subject scores: %s", missing)
-            # Fill missing with 0.0
-            for f in missing:
-                score_fields[f] = 0.0
+            raise HTTPException(
+                status_code=400,
+                detail="Học sinh chưa có đủ điểm các môn học bắt buộc. Vui lòng cập nhật đầy đủ điểm số trước khi tư vấn."
+            )
 
         scores = StudentScores(**score_fields)
 

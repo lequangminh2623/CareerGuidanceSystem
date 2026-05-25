@@ -12,6 +12,7 @@ public class RabbitMQConfig {
     // ===== Exchange =====
     public static final String ACADEMIC_EVENTS_EXCHANGE = "academic.events";
     public static final String EMAIL_EXCHANGE = "email.exchange";
+    public static final String USER_EVENTS_EXCHANGE = "user.events";
 
     // ===== Routing Keys =====
     public static final String RK_SCORE_SYNC = "score.sync";
@@ -20,6 +21,7 @@ public class RabbitMQConfig {
     public static final String RK_CHAT_GROUP_CREATE = "chat.group.create";
     public static final String RK_CHAT_GROUP_UPDATE_TEACHER = "chat.group.update-teacher";
     public static final String RK_CHAT_GROUP_DELETE = "chat.group.delete";
+    public static final String RK_USER_DELETED = "user.deleted";
 
     // ===== Queues =====
     public static final String QUEUE_SCORE_SYNC = "q.score.sync";
@@ -29,6 +31,7 @@ public class RabbitMQConfig {
     public static final String QUEUE_CHAT_GROUP_UPDATE_TEACHER = "q.chat.group-update-teacher";
     public static final String QUEUE_CHAT_GROUP_DELETE = "q.chat.group-delete";
     public static final String QUEUE_EMAIL = "q.email";
+    public static final String QUEUE_ACADEMIC_USER_DELETED = "q.academic.user-deleted";
 
     // ===== Exchanges =====
 
@@ -40,6 +43,11 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange emailExchange() {
         return new DirectExchange(EMAIL_EXCHANGE);
+    }
+
+    @Bean
+    public TopicExchange userEventsExchange() {
+        return new TopicExchange(USER_EVENTS_EXCHANGE);
     }
 
     // ===== Queues =====
@@ -79,6 +87,11 @@ public class RabbitMQConfig {
         return QueueBuilder.durable(QUEUE_EMAIL).build();
     }
 
+    @Bean
+    public Queue academicUserDeletedQueue() {
+        return QueueBuilder.durable(QUEUE_ACADEMIC_USER_DELETED).build();
+    }
+
     // ===== Bindings: academic.events exchange =====
 
     @Bean
@@ -116,6 +129,13 @@ public class RabbitMQConfig {
     @Bean
     public Binding emailBinding(Queue emailQueue, DirectExchange emailExchange) {
         return BindingBuilder.bind(emailQueue).to(emailExchange).with("");
+    }
+
+    // ===== Binding: user.events exchange =====
+
+    @Bean
+    public Binding academicUserDeletedBinding(Queue academicUserDeletedQueue, TopicExchange userEventsExchange) {
+        return BindingBuilder.bind(academicUserDeletedQueue).to(userEventsExchange).with(RK_USER_DELETED);
     }
 
     // ===== Message Converter =====

@@ -3,6 +3,7 @@ package com.lqm.user_service.services;
 import com.lqm.user_service.exceptions.ResourceNotFoundException;
 import com.lqm.user_service.models.Role;
 import com.lqm.user_service.models.User;
+import com.lqm.user_service.events.UserDeletedEvent;
 import com.lqm.user_service.repositories.StudentRepository;
 import com.lqm.user_service.repositories.UserRepository;
 import com.lqm.user_service.services.impl.UserServiceImpl;
@@ -50,6 +51,8 @@ class UserServiceImplTest {
     private CloudinaryService cloudinaryService;
     @Mock
     private MessageSource messageSource;
+    @Mock
+    private UserEventPublisher userEventPublisher;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -255,6 +258,7 @@ class UserServiceImplTest {
             // Assert
             verify(cloudinaryService).deleteFile("avatar_url");
             verify(userRepo).deleteById(id);
+            verify(userEventPublisher).publishUserDeleted(new UserDeletedEvent(id, Role.ROLE_STUDENT.name()));
         }
 
         @Test

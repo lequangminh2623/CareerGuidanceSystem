@@ -4,7 +4,7 @@ import type { HollandCategory } from '@/components/orientation/HollandQuestions'
 /* ── Shared types (re-exported for consumers) ── */
 export interface SubjectAvg {
     name: string;
-    score: number;
+    score: number | null;
     icon: string;
 }
 

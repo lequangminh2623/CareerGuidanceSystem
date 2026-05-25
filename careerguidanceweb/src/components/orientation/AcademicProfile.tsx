@@ -13,7 +13,7 @@ import { FiBookOpen, FiClock, FiBriefcase, FiUsers, FiArrowRight } from 'react-i
 /* ───── Types ───── */
 export interface SubjectAvg {
     name: string;
-    score: number;
+    score: number | null;
     icon: string;
 }
 
@@ -59,20 +59,75 @@ export default function AcademicProfile({ onSubmit, isLoading }: Props) {
 
     // Aggregate scores per subject
     const scores: SubjectAvg[] = (() => {
-        if (!rawScores || !Array.isArray(rawScores)) return [];
-        const subjectMap: Record<string, number[]> = {};
-        for (const s of rawScores) {
-            const name = s.subjectName || '';
-            if (!subjectMap[name]) subjectMap[name] = [];
-            const mid = s.midtermScore ?? 0;
-            const fin = s.finalScore ?? 0;
-            subjectMap[name].push(Math.round(((mid + fin) / 2) * 10) / 10);
+        const subjectMap: Record<string, (number | null)[]> = {};
+        
+        if (rawScores && Array.isArray(rawScores)) {
+            for (const s of rawScores) {
+                const name = s.subjectName || '';
+                if (!subjectMap[name]) subjectMap[name] = [];
+                
+                if (s.midtermScore == null && s.finalScore == null) {
+                    subjectMap[name].push(null);
+                } else {
+                    const mid = s.midtermScore ?? 0;
+                    const fin = s.finalScore ?? 0;
+                    subjectMap[name].push(Math.round(((mid + fin) / 2) * 10) / 10);
+                }
+            }
         }
-        return Object.entries(subjectMap).map(([name, vals]) => ({
-            name,
-            score: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10,
-            icon: '',
-        }));
+
+        const computedScores: SubjectAvg[] = Object.entries(subjectMap).map(([name, vals]) => {
+            const validVals = vals.filter((v): v is number => v !== null);
+            let score: number | null = null;
+            if (validVals.length > 0) {
+                score = Math.round((validVals.reduce((a, b) => a + b, 0) / validVals.length) * 10) / 10;
+            }
+            return { name, score, icon: '' };
+        });
+
+        // Ensure 7 required subjects always exist
+        const canonicalMap: Record<string, string> = {
+            'toán': 'Math', 'toán học': 'Math', 'math': 'Math',
+            'vật lý': 'Physics', 'vật lí': 'Physics', 'lý': 'Physics', 'lí': 'Physics', 'physics': 'Physics',
+            'hóa học': 'Chemistry', 'hóa': 'Chemistry', 'chemistry': 'Chemistry',
+            'sinh học': 'Biology', 'sinh': 'Biology', 'biology': 'Biology',
+            'lịch sử': 'History', 'sử': 'History', 'history': 'History',
+            'tiếng anh': 'English', 'anh': 'English', 'english': 'English',
+            'địa lý': 'Geography', 'địa lí': 'Geography', 'địa': 'Geography', 'geography': 'Geography',
+        };
+
+        const existingCanonicalNames = new Set(
+            computedScores.map(s => canonicalMap[s.name.trim().toLowerCase()] || s.name)
+        );
+
+        const requiredDefaults = ['Math', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'English'];
+        for (const req of requiredDefaults) {
+            if (!existingCanonicalNames.has(req)) {
+                computedScores.push({ name: req, score: null, icon: '' });
+            }
+        }
+
+        return computedScores;
+    })();
+
+    const hasMissingScores = (() => {
+        if (!scores || scores.length === 0) return true;
+        const requiredSubjectFields = [
+            "math_score", "history_score", "physics_score",
+            "chemistry_score", "biology_score", "english_score",
+            "geography_score"
+        ];
+        const fieldMap: Record<string, string> = {
+            'toán': 'math_score', 'toán học': 'math_score', 'math': 'math_score',
+            'vật lý': 'physics_score', 'vật lí': 'physics_score', 'lý': 'physics_score', 'lí': 'physics_score', 'physics': 'physics_score',
+            'hóa học': 'chemistry_score', 'hóa': 'chemistry_score', 'chemistry': 'chemistry_score',
+            'sinh học': 'biology_score', 'sinh': 'biology_score', 'biology': 'biology_score',
+            'lịch sử': 'history_score', 'sử': 'history_score', 'history': 'history_score',
+            'tiếng anh': 'english_score', 'anh': 'english_score', 'english': 'english_score',
+            'địa lý': 'geography_score', 'địa lí': 'geography_score', 'địa': 'geography_score', 'geography': 'geography_score',
+        };
+        const foundFields = new Set(scores.filter(s => s.score !== null).map(s => fieldMap[s.name.trim().toLowerCase()]).filter(Boolean));
+        return requiredSubjectFields.some(f => !foundFields.has(f));
     })();
 
     const handleSubmit = () => {
@@ -137,13 +192,13 @@ export default function AcademicProfile({ onSubmit, isLoading }: Props) {
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider truncate">{s.name}</span>
                                     </div>
-                                    <div className={`text-2xl font-extrabold bg-linear-to-r ${scoreColor(s.score)} bg-clip-text text-transparent`}>
-                                        {s.score}
+                                    <div className={`text-2xl font-extrabold bg-linear-to-r ${s.score !== null ? scoreColor(s.score) : 'from-gray-400 to-gray-500'} bg-clip-text text-transparent`}>
+                                        {s.score !== null ? s.score : '-'}
                                     </div>
                                     <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full rounded-full bg-linear-to-r ${scoreColor(s.score)} transition-all duration-700`}
-                                            style={{ width: `${(s.score / 10) * 100}%` }}
+                                            className={`h-full rounded-full bg-linear-to-r ${s.score !== null ? scoreColor(s.score) : 'bg-gray-300'} transition-all duration-700`}
+                                            style={{ width: `${s.score !== null ? (s.score / 10) * 100 : 0}%` }}
                                         />
                                     </div>
                                 </div>
@@ -231,23 +286,30 @@ export default function AcademicProfile({ onSubmit, isLoading }: Props) {
             </div>
 
             {/* ══════ Submit Button ══════ */}
-            <button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="w-full py-4 px-6 bg-blue-600 text-white font-bold text-base rounded-2xl shadow-lg hover:bg-blue-700 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-            >
-                {isLoading ? (
-                    <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        {t('analyzing')}
-                    </>
-                ) : (
-                    <>
-                        {t('get-advice')}
-                        <FiArrowRight className="w-5 h-5" />
-                    </>
+            <div className="space-y-3">
+                <button
+                    onClick={handleSubmit}
+                    disabled={isLoading || hasMissingScores}
+                    className="w-full py-4 px-6 bg-blue-600 text-white font-bold text-base rounded-2xl shadow-lg hover:bg-blue-700 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                >
+                    {isLoading ? (
+                        <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            {t('analyzing')}
+                        </>
+                    ) : (
+                        <>
+                            {t('get-advice')}
+                            <FiArrowRight className="w-5 h-5" />
+                        </>
+                    )}
+                </button>
+                {hasMissingScores && !loadingScores && !isError && (
+                    <p className="text-red-500 text-sm text-center font-medium mt-3">
+                        Bạn cần có đủ điểm của 7 môn học bắt buộc để nhận tư vấn.
+                    </p>
                 )}
-            </button>
+            </div>
         </div>
     );
 }
