@@ -82,7 +82,7 @@ class UserEventConsumerTest {
     }
 
     @Test
-    @DisplayName("Should process ROLE_TEACHER and set section teacherId to null")
+    @DisplayName("Should process ROLE_TEACHER and remove teacher from section")
     void testConsumeUserDeletedEvent_TeacherRole() {
         // Arrange
         UUID teacherId = UUID.randomUUID();
@@ -112,7 +112,6 @@ class UserEventConsumerTest {
         userEventConsumer.consumeUserDeletedEvent(event);
 
         // Assert
-        verify(sectionService).saveSingleSection(eq(section), eq(classroomId), eq(curriculumId));
-        assertThat(section.getTeacherId()).isNull();
+        verify(sectionService).removeTeacherFromSection(eq(sectionId));
     }
 }
