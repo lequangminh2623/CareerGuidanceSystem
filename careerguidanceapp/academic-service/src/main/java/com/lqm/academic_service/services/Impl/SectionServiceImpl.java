@@ -96,13 +96,22 @@ public class SectionServiceImpl implements SectionService {
         Classroom classroom = classroomService.getClassroomById(classroomId);
         Curriculum curriculum = curriculumService.getCurriculumById(curriculumId);
 
+        UUID oldTeacherId = null;
+        if (section.getId() != null) {
+            oldTeacherId = sectionRepo.findById(section.getId()).map(Section::getTeacherId).orElse(null);
+        }
+
         section.setCurriculum(curriculum);
         section.setClassroom(classroom);
 
         Section savedSection = sectionRepo.save(section);
 
         // Đồng bộ chat groups
-        handleChatGroups(classroom, List.of(savedSection), Map.of());
+        Map<UUID, UUID> existingTeacherMap = new HashMap<>();
+        if (oldTeacherId != null && section.getId() != null) {
+            existingTeacherMap.put(section.getId(), oldTeacherId);
+        }
+        handleChatGroups(classroom, List.of(savedSection), existingTeacherMap);
 
         // Đồng bộ điểm riêng cho section mới tạo - BẤT ĐỒNG BỘ qua RabbitMQ
         List<UUID> studentIds = classroom.getStudentClassroomSet().stream()
@@ -117,6 +126,23 @@ public class SectionServiceImpl implements SectionService {
         }
 
         return savedSection;
+    }
+
+    @Override
+    @Transactional
+    public void removeTeacherFromSection(UUID sectionId) {
+        Section section = this.getSectionById(sectionId);
+        UUID oldTeacherId = section.getTeacherId();
+
+        section.setTeacherId(null);
+        Section savedSection = sectionRepo.save(section);
+
+        Map<UUID, UUID> existingTeacherMap = new HashMap<>();
+        if (oldTeacherId != null) {
+            existingTeacherMap.put(sectionId, oldTeacherId);
+        }
+
+        handleChatGroups(section.getClassroom(), List.of(savedSection), existingTeacherMap);
     }
 
     @Override

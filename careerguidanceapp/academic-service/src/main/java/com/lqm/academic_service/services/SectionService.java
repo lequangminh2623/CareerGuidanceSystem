@@ -22,6 +22,8 @@ public interface SectionService {
 
     Section saveSingleSection(Section section, UUID classroomId, UUID curriculumId);
 
+    void removeTeacherFromSection(UUID sectionId);
+
     void changeScoreStatus(UUID id, ScoreStatusType scoreStatusType);
 
     void lockSection(UUID sectionId);

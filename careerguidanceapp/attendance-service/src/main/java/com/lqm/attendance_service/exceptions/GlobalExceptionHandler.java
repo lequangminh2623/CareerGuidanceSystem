@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import feign.FeignException;
-import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -64,16 +63,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ExceptionResponseDTO> handleUnauthorized(UnauthorizedException ex) {
         return createResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
-    }
-
-    @ExceptionHandler(NoFallbackAvailableException.class)
-    public ResponseEntity<ExceptionResponseDTO> handleNoFallbackAvailableException(NoFallbackAvailableException ex) {
-        Throwable cause = ex.getCause();
-        if (cause instanceof FeignException feignEx) {
-            return handleFeignException(feignEx);
-        }
-        log.error("Circuit breaker opened without fallback at {}: ", request.getRequestURI(), ex);
-        return createResponse(HttpStatus.SERVICE_UNAVAILABLE, "Service is currently unavailable. No fallback available.", null);
     }
 
     @ExceptionHandler(FeignException.class)

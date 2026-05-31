@@ -37,10 +37,9 @@ public class AdminYearController {
     @GetMapping
     public Page<AcademicResponseDTO> getYears(@RequestParam Map<String, String> params) {
         Pageable pageable = pageableUtil.getPageable(
-            params.getOrDefault("page", "1"),
-            PageSize.YEAR_PAGE_SIZE,
-            List.of("name:desc")
-        );
+                params.getOrDefault("page", "1"),
+                PageSize.YEAR_PAGE_SIZE,
+                List.of("name:desc"));
 
         return yearService.getYears(params, pageable)
                 .map(yearMapper::toAcademicResponseDTO);
@@ -67,4 +66,3 @@ public class AdminYearController {
         yearService.deleteYearById(id);
     }
 }
-

@@ -9,8 +9,8 @@
 #include <time.h>
 
 // --- CẤU HÌNH MẠNG & MQTT ---
-const char *ssid = "Home";
-const char *password = "1334815home";
+const char *ssid = "Galaxy S23";
+const char *password = "00000000";
 const char *mqtt_hostname = "server.local";
 const int mqtt_port = 8883;
 
@@ -324,7 +324,7 @@ void handleButtons() {
 // ======================= INITIALIZATION =======================
 void setupNetworkAndTime() {
   WiFi.begin(ssid, password);
-  showLCD("Connecting WiFi", "SSID: Home");
+  showLCD("Connecting WiFi", "SSID: S23");
   while (WiFi.status() != WL_CONNECTED) { delay(500); }
   showLCD("WiFi Connected", WiFi.localIP().toString());
   delay(1000);

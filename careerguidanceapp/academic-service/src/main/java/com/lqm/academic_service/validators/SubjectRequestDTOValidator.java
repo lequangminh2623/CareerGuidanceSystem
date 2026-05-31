@@ -10,7 +10,7 @@ import org.springframework.validation.Validator;
 
 @Component
 @RequiredArgsConstructor
-public class SubjectRequestDTOValidator implements Validator, SupportsClass{
+public class SubjectRequestDTOValidator implements Validator, SupportsClass {
 
     private final SubjectService subjectService;
 

@@ -75,7 +75,11 @@ const RegisterForm = () => {
 
     // 2. Helpers
     const handleInputChange = (value: string, field: keyof UserData) => {
-        setUser(prev => ({ ...prev, [field]: value }));
+        let processedValue = value;
+        if (field === 'code') {
+            processedValue = value.replace(/\D/g, ''); // Keep only digits
+        }
+        setUser(prev => ({ ...prev, [field]: processedValue }));
         if (fieldErrors[field]) {
             setFieldErrors(prev => {
                 const newErrors = { ...prev };
@@ -111,8 +115,12 @@ const RegisterForm = () => {
 
         if (!user.gender) errors.gender = t("select-gender-error");
 
-        if (user.code && user.code.length !== 10) {
-            errors.code = t("student-code-length-error");
+        if (user.code) {
+            if (!/^\d+$/.test(user.code)) {
+                errors.code = t("student-code-digits-error");
+            } else if (user.code.length !== 10) {
+                errors.code = t("student-code-length-error");
+            }
         }
 
         if (user.email && !/^[A-Za-z0-9._%+-]+@ou\.edu\.vn$/.test(user.email)) {
@@ -221,6 +229,8 @@ const RegisterForm = () => {
                                     icon={i.icon}
                                     error={fieldErrors[i.field]}
                                     placeholder={`${t('enter')} ${i.title.toLowerCase()}...`}
+                                    inputMode={i.field === 'code' ? 'numeric' : undefined}
+                                    pattern={i.field === 'code' ? '[0-9]*' : undefined}
                                 />
                             ))}
 

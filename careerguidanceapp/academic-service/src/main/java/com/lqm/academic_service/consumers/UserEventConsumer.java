@@ -7,7 +7,6 @@ import com.lqm.academic_service.models.Section;
 import com.lqm.academic_service.models.StudentClassroom;
 import com.lqm.academic_service.services.ClassroomService;
 import com.lqm.academic_service.services.SectionService;
-import com.lqm.academic_service.specifications.ClassroomSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -55,9 +54,7 @@ public class UserEventConsumer {
                         PageRequest.of(0, 100));
 
                 for (Section section : sections.getContent()) {
-                    section.setTeacherId(null);
-                    sectionService.saveSingleSection(section, section.getClassroom().getId(),
-                            section.getCurriculum().getId());
+                    sectionService.removeTeacherFromSection(section.getId());
                 }
             }
         } catch (Exception e) {

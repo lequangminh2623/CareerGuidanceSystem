@@ -36,7 +36,7 @@ public class SemesterRequestDTOValidator implements Validator, SupportsClass {
 
         if (!errors.hasFieldErrors()
                 && semesterService.existDuplicateSemester(SemesterType.fromSemesterName(semester.name()),
-                    semester.id(), semester.yearId())) {
+                        semester.id(), semester.yearId())) {
             errors.rejectValue("name", "semester.unique");
         }
     }

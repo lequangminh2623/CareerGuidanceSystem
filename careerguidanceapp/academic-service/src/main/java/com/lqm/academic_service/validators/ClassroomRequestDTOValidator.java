@@ -45,8 +45,7 @@ public class ClassroomRequestDTOValidator implements Validator, SupportsClass {
             boolean exists = classroomService.existDuplicateClassroom(
                     classroomRequestDTO.name(),
                     classroomRequestDTO.gradeId(),
-                    classroomRequestDTO.id()
-            );
+                    classroomRequestDTO.id());
 
             if (exists) {
                 errors.rejectValue("name", "classroom.unique");
@@ -54,8 +53,7 @@ public class ClassroomRequestDTOValidator implements Validator, SupportsClass {
             if (classroomRequestDTO.studentIds() != null) {
                 List<String> conflicts = new ArrayList<>();
                 List<UserResponseDTO> users = userClient.getUsers(
-                        classroomRequestDTO.studentIds(), Map.of("role", "Student")
-                ).getContent();
+                        classroomRequestDTO.studentIds(), Map.of("role", "Student")).getContent();
 
                 Map<UUID, UserResponseDTO> userMap = users.stream()
                         .collect(Collectors.toMap(UserResponseDTO::id, u -> u));
@@ -65,8 +63,7 @@ public class ClassroomRequestDTOValidator implements Validator, SupportsClass {
                 List<UUID> conflictingStudentIds = classroomService.getStudentsInOtherClassrooms(
                         classroomRequestDTO.studentIds(),
                         yearId,
-                        classroomRequestDTO.id()
-                );
+                        classroomRequestDTO.id());
 
                 for (UUID studentId : conflictingStudentIds) {
                     UserResponseDTO u = userMap.get(studentId);
@@ -75,15 +72,14 @@ public class ClassroomRequestDTOValidator implements Validator, SupportsClass {
                     }
                 }
 
-                if(!conflicts.isEmpty()) {
+                if (!conflicts.isEmpty()) {
                     String msg = messageSource.getMessage("classroom.students.alreadyIn", null, Locale.getDefault())
                             + ": " + String.join(", ", conflicts);
 
                     errors.rejectValue(
                             "studentIds",
                             "",
-                            msg
-                    );
+                            msg);
                 }
 
             }

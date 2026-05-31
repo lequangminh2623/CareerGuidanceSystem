@@ -41,8 +41,9 @@ public class CurriculumServiceImpl implements CurriculumService {
     }
 
     @Override
-    @Cacheable(value = "academic::curriculums", 
-            key = "'all_' + #params?.getOrDefault('gradeId', '') + '_' + #params?.getOrDefault('semesterId', '') + '_' + #params?.getOrDefault('subjectId', '') + '_' + #params?.getOrDefault('yearId', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    @Cacheable(value = "academic::curriculums",
+            condition = "#pageable.isPaged()",
+            key = "'all_' + #params?.getOrDefault('gradeId', '') + '_' + #params?.getOrDefault('semesterId', '') + '_' + #params?.getOrDefault('subjectId', '') + '_' + #params?.getOrDefault('yearId', '') + '_' + (#pageable.isPaged() ? #pageable.pageNumber : 'unpaged') + '_' + (#pageable.isPaged() ? #pageable.pageSize : 'unpaged')")
     public Page<Curriculum> getCurriculums(Map<String, String> params, Pageable pageable) {
         Specification<Curriculum> spec = CurriculumSpecification.filterByParams(params);
         return curriculumRepo.findAll(spec, pageable);

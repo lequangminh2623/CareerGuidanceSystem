@@ -84,6 +84,7 @@
   "create-new-account": "Create New Account",
   "select-gender-error": "Please select gender",
   "student-code-length-error": "Student code must be exactly 10 characters",
+  "student-code-digits-error": "Student code must contain only numbers",
   "avatar-empty-error": "Please upload an avatar",
   "confirm": "Confirm",
   "confirm-password-mismatch": "Confirmed password does not match",

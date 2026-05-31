@@ -200,7 +200,7 @@ export default function ChatBox() {
                 </div>
             ) : activeView === "group" && activeGroupId && selectedGroup && firebaseUser ? (
                 /* Group Chat */
-                <div className="flex-1 min-w-0 h-full flex flex-col relative">
+                <div className="flex-1 min-w-0 h-full flex flex-row relative">
                     <ChatPanel
                         currentUid={firebaseUser.uid}
                         activeChatId={activeGroupId}

@@ -39,8 +39,7 @@ public class AdminSubjectController {
         Pageable pageable = pageableUtil.getPageable(
                 params.getOrDefault("page", "1"),
                 PageSize.SUBJECT_PAGE_SIZE,
-                List.of("name:asc")
-        );
+                List.of("name:asc"));
 
         return subjectService.getSubjects(params, pageable).map(subjectMapper::toAcademicResponseDTO);
     }
@@ -48,19 +47,17 @@ public class AdminSubjectController {
     @GetMapping("/{id}")
     public SubjectRequestDTO getSubjectRequestById(@PathVariable("id") UUID id) {
         return subjectMapper.toSubjectRequestDTO(
-                subjectService.getSubjectById(id)
-        );
+                subjectService.getSubjectById(id));
     }
 
     @PostMapping
     public void saveSubject(@RequestBody @Valid SubjectRequestDTO dto) {
-         subjectService.saveSubject(subjectMapper.toEntity(dto));
+        subjectService.saveSubject(subjectMapper.toEntity(dto));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSubjectById(@PathVariable("id") UUID id) {
-            subjectService.deleteSubjectById(id);
+        subjectService.deleteSubjectById(id);
     }
 }
-

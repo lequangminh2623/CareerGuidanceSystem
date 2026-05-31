@@ -84,6 +84,7 @@
   "create-new-account": "Tạo tài khoản mới",
   "select-gender-error": "Vui lòng chọn giới tính",
   "student-code-length-error": "Mã sinh viên phải có đúng 10 ký tự",
+  "student-code-digits-error": "Mã sinh viên chỉ được phép nhập số",
   "avatar-empty-error": "Vui lòng tải lên ảnh đại diện",
   "confirm": "Xác nhận",
   "confirm-password-mismatch": "Mật khẩu xác nhận không khớp",

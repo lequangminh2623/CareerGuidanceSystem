@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # ── Gemini API (AI Studio & Vertex) ──
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL_NAME: str = "career-guidance-v6"
+    GEMINI_MODEL_NAME: str = "career-guidance-model"
     GOOGLE_CLOUD_PROJECT: str = ""
     GOOGLE_CLOUD_REGION: str = "us-central1"
 

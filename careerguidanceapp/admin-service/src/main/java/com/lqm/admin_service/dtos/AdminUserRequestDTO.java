@@ -37,6 +37,7 @@ public record AdminUserRequestDTO (
         String role,
 
         @Size(min = 10, max = 10, message = "{user.student.code.size}")
+        @Pattern(regexp = "^\\d+$", message = "{user.student.code.digits}")
         String code,
 
         @NotNull(message = "{user.active.notNull}")

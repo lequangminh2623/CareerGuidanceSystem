@@ -3,7 +3,7 @@ Career Guidance System - FastAPI Backend
 Main application entry point.
 
 Bridges the Spring Boot student management system, the Next.js frontend,
-and the fine-tuned Gemini model (career-guidance-v6) for career counseling
+and the fine-tuned Gemini model (career-guidance-model) for career counseling
 of Vietnamese high school students.
 """
 

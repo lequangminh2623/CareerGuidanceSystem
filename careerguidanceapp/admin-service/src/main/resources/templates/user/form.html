@@ -143,6 +143,7 @@
                             <input type="text"
                                 class="form-control border-indigo-soft py-2.5 fs-16 fw-black tracking-widest text-indigo"
                                 id="code" th:field="*{code}" placeholder="VD: 2151010001" maxlength="10" minlength="10"
+                                inputmode="numeric" pattern="[0-9]*"
                                 th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'" />
                             <div class="invalid-feedback fw-bold mt-2" th:errors="*{code}"></div>
                             <p class="text-muted small mt-2 mb-0">Mã số này dùng để định danh học sinh trên thẻ ID và

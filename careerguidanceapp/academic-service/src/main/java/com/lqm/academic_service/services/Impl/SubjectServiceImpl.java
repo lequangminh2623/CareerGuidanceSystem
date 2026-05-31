@@ -28,7 +28,8 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     @Cacheable(value = "academic::subjects",
-            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+            condition = "#pageable.isPaged()",
+            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + (#pageable.isPaged() ? #pageable.pageNumber : 'unpaged') + '_' + (#pageable.isPaged() ? #pageable.pageSize : 'unpaged')")
     public Page<Subject> getSubjects(Map<String, String> params, Pageable pageable) {
         String kw = (params != null) ? params.get("kw") : null;
         return subjectRepo.findAllByKeyword(kw, pageable);

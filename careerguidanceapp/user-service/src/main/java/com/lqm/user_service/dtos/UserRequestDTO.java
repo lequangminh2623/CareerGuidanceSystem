@@ -21,5 +21,5 @@ public record UserRequestDTO(
 
                 @Size(max = 255, message = "{user.password.size}") String password,
 
-                @Size(min = 10, max = 10, message = "{user.student.code.size}") String code) {
+                @Size(min = 10, max = 10, message = "{user.student.code.size}") @Pattern(regexp = "^\\d+$", message = "{user.student.code.digits}") String code) {
 }

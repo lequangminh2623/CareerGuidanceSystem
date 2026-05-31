@@ -20,6 +20,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const roleSelect = document.getElementById("role");
     roleSelect.addEventListener("change", toggleStudentCode);
     toggleStudentCode();
+
+    const studentCodeInput = document.getElementById("code");
+    if (studentCodeInput) {
+        studentCodeInput.addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "");
+        });
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function () {

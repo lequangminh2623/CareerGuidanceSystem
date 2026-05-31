@@ -24,7 +24,7 @@ public record AdminUserRequestDTO(
 
                 @EnumValue(enumClass = Role.class, message = "{user.role.invalid}") @Size(max = 13, message = "user.role.size") String role,
 
-                @Size(min = 10, max = 10, message = "{user.student.code.size}") String code,
+                @Size(min = 10, max = 10, message = "{user.student.code.size}") @Pattern(regexp = "^\\d+$", message = "{user.student.code.digits}") String code,
 
                 @NotNull(message = "{user.active.notNull}") Boolean active,
 

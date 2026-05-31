@@ -92,7 +92,7 @@ export default function GroupSettingsPanel({
     }, [group.id, group.groupName, onDeleteGroup, onClose, t]);
 
     return (
-        <div className="flex flex-col w-[300px] h-full bg-white/80 backdrop-blur-md border-l border-white/20 overflow-hidden">
+        <div className="flex flex-col w-full sm:w-[300px] h-full bg-white/80 backdrop-blur-md border-l border-white/20 overflow-hidden absolute right-0 top-0 z-20 shadow-xl md:relative md:shadow-none">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100/50">
                 <h3 className="font-bold text-gray-800">{t('group-info')}</h3>

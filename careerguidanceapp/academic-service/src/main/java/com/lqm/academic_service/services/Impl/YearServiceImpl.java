@@ -38,7 +38,8 @@ public class YearServiceImpl implements YearService {
 
     @Override
     @Cacheable(value = "academic::years",
-            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+            condition = "#pageable.isPaged()",
+            key = "'all_' + #params?.getOrDefault('kw', '') + '_' + (#pageable.isPaged() ? #pageable.pageNumber : 'unpaged') + '_' + (#pageable.isPaged() ? #pageable.pageSize : 'unpaged')")
     public Page<Year> getYears(Map<String, String> params, Pageable pageable) {
         String kw = (params != null) ? params.get("kw") : null;
         return yearRepo.findAllByKeyword(kw, pageable);
